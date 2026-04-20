@@ -3,231 +3,137 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-# [0.5.0](https://github.com/navaris/appshell/compare/@appshell/loader@0.4.0...@appshell/loader@0.5.0) (2025-08-12)
-
+## [0.5.1-alpha.0](https://github.com/appshell-org/appshell/compare/@appshell/loader@0.5.0...@appshell/loader@0.5.1-alpha.0) (2026-04-20)
 
 ### Bug Fixes
 
-* configurable api key header support, minor fixes ([2f0bf02](https://github.com/navaris/appshell/commit/2f0bf027b92398f91b8e8cbfbf543d61fe37b7a0))
+- update repository URLs from navaris/appshell to appshell-org/appshell ([506a90d](https://github.com/appshell-org/appshell/commit/506a90d94a6f6e10f463987d408550f48624bfd0))
 
+# [0.5.0](https://github.com/navaris/appshell/compare/@appshell/loader@0.4.0...@appshell/loader@0.5.0) (2025-08-12)
+
+### Bug Fixes
+
+- configurable api key header support, minor fixes ([2f0bf02](https://github.com/navaris/appshell/commit/2f0bf027b92398f91b8e8cbfbf543d61fe37b7a0))
 
 ### Features
 
-* appshell cli api key support, init sync and outdated commands ([#6](https://github.com/navaris/appshell/issues/6)) ([acc5fa2](https://github.com/navaris/appshell/commit/acc5fa234f91a167038161d5080481c43f8eb8b4))
-
-
-
-
+- appshell cli api key support, init sync and outdated commands ([#6](https://github.com/navaris/appshell/issues/6)) ([acc5fa2](https://github.com/navaris/appshell/commit/acc5fa234f91a167038161d5080481c43f8eb8b4))
 
 # [0.5.0-alpha.0](https://github.com/navaris/appshell/compare/@appshell/loader@0.4.0...@appshell/loader@0.5.0-alpha.0) (2025-08-10)
 
-
 ### Bug Fixes
 
-* include credentials when fetching the manifests ([4e0ee79](https://github.com/navaris/appshell/commit/4e0ee79b4ba93d34fd6a0e1a5f6bf2fc9f3994cc))
-
+- include credentials when fetching the manifests ([4e0ee79](https://github.com/navaris/appshell/commit/4e0ee79b4ba93d34fd6a0e1a5f6bf2fc9f3994cc))
 
 ### Features
 
-* appshell cli api key support, init sync and outdated commands ([#6](https://github.com/navaris/appshell/issues/6)) ([acc5fa2](https://github.com/navaris/appshell/commit/acc5fa234f91a167038161d5080481c43f8eb8b4))
-
-
-
-
+- appshell cli api key support, init sync and outdated commands ([#6](https://github.com/navaris/appshell/issues/6)) ([acc5fa2](https://github.com/navaris/appshell/commit/acc5fa234f91a167038161d5080481c43f8eb8b4))
 
 # [0.4.0](https://github.com/navaris/appshell/compare/@appshell/loader@0.3.0...@appshell/loader@0.4.0) (2024-09-24)
 
-
 ### Features
 
-* api key support ([9cdcbee](https://github.com/navaris/appshell/commit/9cdcbee36e44b8a179b49768d74a25767f1cc5f2))
-
-
-
-
+- api key support ([9cdcbee](https://github.com/navaris/appshell/commit/9cdcbee36e44b8a179b49768d74a25767f1cc5f2))
 
 # [0.4.0-alpha.0](https://github.com/navaris/appshell/compare/@appshell/loader@0.3.1-alpha.0...@appshell/loader@0.4.0-alpha.0) (2024-09-05)
 
-
 ### Features
 
-* api key support ([8c91e62](https://github.com/navaris/appshell/commit/8c91e6240b3d879af9bdd5949924865da0e0f8a1))
-
-
-
-
+- api key support ([8c91e62](https://github.com/navaris/appshell/commit/8c91e6240b3d879af9bdd5949924865da0e0f8a1))
 
 ## [0.3.1-alpha.0](https://github.com/navaris/appshell/compare/@appshell/loader@0.3.0...@appshell/loader@0.3.1-alpha.0) (2024-08-31)
 
-
 ### Bug Fixes
 
-* bump pipeline ([8bb63bc](https://github.com/navaris/appshell/commit/8bb63bcae1928c01bb6bc853d88010939e686af5))
-
-
-
-
+- bump pipeline ([8bb63bc](https://github.com/navaris/appshell/commit/8bb63bcae1928c01bb6bc853d88010939e686af5))
 
 # [0.3.0](https://github.com/navaris/appshell/compare/@appshell/loader@0.2.1...@appshell/loader@0.3.0) (2024-01-25)
 
-
 ### Features
 
-* AppshellComponent impl ([2b82621](https://github.com/navaris/appshell/commit/2b82621c13302f790a8e1c457f9a82f39903fc1f))
-
-
-
-
+- AppshellComponent impl ([2b82621](https://github.com/navaris/appshell/commit/2b82621c13302f790a8e1c457f9a82f39903fc1f))
 
 ## [0.2.1](https://github.com/navaris/appshell/compare/@appshell/loader@0.2.0...@appshell/loader@0.2.1) (2023-08-29)
 
-
 ### Bug Fixes
 
-* appshell loader override check ([aedda4a](https://github.com/navaris/appshell/commit/aedda4abf81560297dce03df09fba68e8785242f))
-
-
-
-
+- appshell loader override check ([aedda4a](https://github.com/navaris/appshell/commit/aedda4abf81560297dce03df09fba68e8785242f))
 
 # [0.2.0](https://github.com/navaris/appshell/compare/@appshell/loader@0.2.0-alpha.1...@appshell/loader@0.2.0) (2023-08-28)
 
 **Note:** Version bump only for package @appshell/loader
 
-
-
-
-
 # [0.2.0-alpha.1](https://github.com/navaris/appshell/compare/@appshell/loader@0.2.0-alpha.0...@appshell/loader@0.2.0-alpha.1) (2023-08-28)
-
 
 ### Features
 
-* environment variable override for federated components ([#27](https://github.com/navaris/appshell/issues/27)) ([d32de0b](https://github.com/navaris/appshell/commit/d32de0b0d1cbb1792715e1b363c80ed4600df155))
-
-
-
-
+- environment variable override for federated components ([#27](https://github.com/navaris/appshell/issues/27)) ([d32de0b](https://github.com/navaris/appshell/commit/d32de0b0d1cbb1792715e1b363c80ed4600df155))
 
 # [0.2.0-alpha.0](https://github.com/navaris/appshell/compare/@appshell/loader@0.1.0...@appshell/loader@0.2.0-alpha.0) (2023-08-23)
 
-
 ### Features
 
-* consolidate runtime artifacts ([#26](https://github.com/navaris/appshell/issues/26)) ([a29479a](https://github.com/navaris/appshell/commit/a29479a49f0c5ec1273c9f8e4c7384096f2d4ba0))
-
-
-
-
+- consolidate runtime artifacts ([#26](https://github.com/navaris/appshell/issues/26)) ([a29479a](https://github.com/navaris/appshell/commit/a29479a49f0c5ec1273c9f8e4c7384096f2d4ba0))
 
 # [0.1.0](https://github.com/navaris/appshell/compare/@appshell/loader@0.1.0-alpha.1...@appshell/loader@0.1.0) (2023-07-11)
 
-
 ### Bug Fixes
 
-* registry projection, enable env overwrite, refactor docker workflow, consolidate env names ([33a28fe](https://github.com/navaris/appshell/commit/33a28fe76b58e05c5b6b6b33d4b402e52bb29e70))
-* rename @appshell/react-federated-component package to @appshell/react ([0b74498](https://github.com/navaris/appshell/commit/0b74498bf17ba73db4d936c8a012af1d3b111a28))
-* replace config intermediate file with template ([9b79e65](https://github.com/navaris/appshell/commit/9b79e65b355686a0cca273c89c7164bb031e8437))
-
-
-
-
+- registry projection, enable env overwrite, refactor docker workflow, consolidate env names ([33a28fe](https://github.com/navaris/appshell/commit/33a28fe76b58e05c5b6b6b33d4b402e52bb29e70))
+- rename @appshell/react-federated-component package to @appshell/react ([0b74498](https://github.com/navaris/appshell/commit/0b74498bf17ba73db4d936c8a012af1d3b111a28))
+- replace config intermediate file with template ([9b79e65](https://github.com/navaris/appshell/commit/9b79e65b355686a0cca273c89c7164bb031e8437))
 
 # [0.1.0-alpha.1](https://github.com/navaris/appshell/compare/@appshell/loader@0.0.3...@appshell/loader@0.1.0-alpha.1) (2023-07-05)
 
-
 ### Features
 
-* foundation refactor wip ([339b930](https://github.com/navaris/appshell/commit/339b9306accaa9aba1712f3a0dee6c4cab7ed273))
-
-
-
-
+- foundation refactor wip ([339b930](https://github.com/navaris/appshell/commit/339b9306accaa9aba1712f3a0dee6c4cab7ed273))
 
 # [0.1.0-alpha.0](https://github.com/navaris/appshell/compare/@appshell/loader@0.0.3...@appshell/loader@0.1.0-alpha.0) (2023-07-05)
 
-
 ### Features
 
-* registry index ([8e6ee0a](https://github.com/navaris/appshell/commit/8e6ee0a6a377584efa2ee702168025f46108b8c5))
-
-
-
-
+- registry index ([8e6ee0a](https://github.com/navaris/appshell/commit/8e6ee0a6a377584efa2ee702168025f46108b8c5))
 
 ## [0.0.3](https://github.com/navaris/appshell/compare/@appshell/loader@0.0.3-alpha.2...@appshell/loader@0.0.3) (2023-06-29)
 
 **Note:** Version bump only for package @appshell/loader
 
-
-
-
-
 ## [0.0.3-alpha.2](https://github.com/navaris/appshell/compare/@appshell/loader@0.0.2...@appshell/loader@0.0.3-alpha.2) (2023-06-29)
 
 **Note:** Version bump only for package @appshell/loader
 
-
-
-
-
 ## [0.0.3-alpha.1](https://github.com/navaris/appshell/compare/@appshell/loader@0.0.3-alpha.0...@appshell/loader@0.0.3-alpha.1) (2023-06-29)
-
 
 ### Bug Fixes
 
-* update npm package visibility ([1ef4119](https://github.com/navaris/appshell/commit/1ef411903dd038dfc781e8ce0700811e5460c903))
-
-
-
-
+- update npm package visibility ([1ef4119](https://github.com/navaris/appshell/commit/1ef411903dd038dfc781e8ce0700811e5460c903))
 
 ## [0.0.3-alpha.0](https://github.com/navaris/appshell/compare/@appshell/loader@0.0.2-alpha.0...@appshell/loader@0.0.3-alpha.0) (2023-06-29)
 
 **Note:** Version bump only for package @appshell/loader
 
-
-
-
-
 ## [0.0.2](https://github.com/navaris/appshell/compare/@appshell/loader@0.0.2-alpha.0...@appshell/loader@0.0.2) (2023-06-29)
 
 **Note:** Version bump only for package @appshell/loader
 
-
-
-
-
 ## [0.0.2-alpha.0](https://github.com/navaris/appshell/compare/@appshell/loader@0.0.1...@appshell/loader@0.0.2-alpha.0) (2023-06-15)
-
 
 ### Bug Fixes
 
-* hot module replacement support, example updates ([a67d230](https://github.com/navaris/appshell/commit/a67d2303b40f5911373225cc0b4ccf9b67c33d11))
-
-
-
-
+- hot module replacement support, example updates ([a67d230](https://github.com/navaris/appshell/commit/a67d2303b40f5911373225cc0b4ccf9b67c33d11))
 
 =======
+
 ## 0.0.1 (2023-06-15)
 
 **Note:** Version bump only for package @appshell/loader
 
-
-
-
-
 ## [0.0.1-alpha.1](https://github.com/navaris/appshell/compare/@appshell/loader@0.0.1-alpha.0...@appshell/loader@0.0.1-alpha.1) (2023-06-15)
-
 
 ### Bug Fixes
 
-* hot module replacement support, example updates ([a67d230](https://github.com/navaris/appshell/commit/a67d2303b40f5911373225cc0b4ccf9b67c33d11))
-
-
-
-
+- hot module replacement support, example updates ([a67d230](https://github.com/navaris/appshell/commit/a67d2303b40f5911373225cc0b4ccf9b67c33d11))
 
 ## 0.0.1-alpha.0 (2023-03-19)
 
