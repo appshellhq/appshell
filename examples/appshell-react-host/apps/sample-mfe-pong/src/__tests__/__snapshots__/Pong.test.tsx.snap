@@ -1,0 +1,42 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`should match snapshot 1`] = `
+<div>
+  <div
+    class="sc-fBEEOr jxkmG"
+  >
+    <header
+      class="sc-hfDuwB gXOGqX"
+    >
+      <pre>
+        sample-mfe-pong
+         v
+        0.0.1
+      </pre>
+    </header>
+    <div
+      class="sc-jCIOXC eelIQs"
+    >
+      <textarea
+        class="sc-dBwcjI dFAvjM"
+        readonly=""
+      >
+        {
+  "id": "6b3cbfed",
+  "manifestUrl": "http://localhost:3002/appshell.manifest.json",
+  "remoteEntryUrl": "http://localhost:3002/remoteEntry.js",
+  "scope": "PongModule",
+  "module": "./Pong",
+  "metadata": {
+    "route": "/pong",
+    "displayName": "Pong Micro-Frontend",
+    "displayGroup": "main",
+    "order": 20,
+    "icon": "ViewList"
+  }
+}
+      </textarea>
+    </div>
+  </div>
+</div>
+`;

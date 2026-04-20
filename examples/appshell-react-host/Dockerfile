@@ -1,5 +1,5 @@
 ### BASE
-FROM node:20-alpine AS base
+FROM node:22-alpine AS base
 LABEL maintainer "Robert Hamilton <rh@navaris.com>"
 
 # Set the working directory
@@ -9,11 +9,16 @@ WORKDIR /appshell
 FROM base AS dependencies
 RUN apk add --update python3 make g++ && rm -rf /var/cache/apk/*
 
-# Copy source
-COPY . .
+# Install dependencies first for better layer caching
+COPY package.json package-lock.json ./
+COPY apps/sample-mfe-container/package.json apps/sample-mfe-container/
+COPY apps/sample-mfe-ping/package.json apps/sample-mfe-ping/
+COPY apps/sample-mfe-pong/package.json apps/sample-mfe-pong/
+COPY packages/components/package.json packages/components/
+RUN npm ci
 
-# Install dependencies
-RUN npm install --pure-lockfile && npm run bootstrap
+# Copy remaining source
+COPY . .
 
 ### BUILD
 FROM dependencies as build
@@ -35,4 +40,4 @@ EXPOSE ${SAMPLE_MFE_CONTAINER_PORT}
 EXPOSE ${SAMPLE_MFE_PING_PORT}
 EXPOSE ${SAMPLE_MFE_PONG_PORT}
 
-CMD ${CONTAINER_COMMAND}
+CMD ["sh", "-c", "${CONTAINER_COMMAND}"]

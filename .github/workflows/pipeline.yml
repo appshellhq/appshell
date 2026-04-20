@@ -18,8 +18,13 @@ on:
         required: false
         default: 'Manual trigger'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: write
+  id-token: write
 
 jobs:
   build:
@@ -27,12 +32,12 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
+        node-version: [22.x, 24.x]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
@@ -56,17 +61,21 @@ jobs:
     needs: build
     if: ${{ github.ref == 'refs/heads/main' || contains(github.ref, 'refs/heads/feat') || contains(github.ref, 'refs/heads/fix') }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Use Node.js 20.x
-        uses: actions/setup-node@v3
+      - name: Use Node.js 24.x
+        uses: actions/setup-node@v4
         with:
-          node-version: 20.x
+          node-version: 24.x
           cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Git Identity
         run: |
@@ -76,14 +85,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: $GITHUB_REPOSITORY
-
-      - name: Authenticate with Registry
-        run: |
-          echo "@appshell:registry=https://registry.npmjs.org/" > .npmrc
-          echo "registry=https://registry.npmjs.org/" >> .npmrc
-          echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> .npmrc
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Install dependencies
         run: npm ci
@@ -100,12 +101,9 @@ jobs:
         run: npm run build
 
       - name: Publish
-        run: |
-          echo ${NPM_TOKEN:0:5}
-          npx lerna publish --yes from-git
+        run: npx lerna publish --yes from-git
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true
 
       - name: Push CI commit
         run: git push --follow-tags
@@ -122,7 +120,7 @@ jobs:
 
     steps:
       - name: Check out the repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -130,7 +128,7 @@ jobs:
         run: git pull
 
       - name: Log in to Docker Hub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
@@ -144,13 +142,15 @@ jobs:
 
       - name: Build and push Docker production image
         if: ${{ github.ref == 'refs/heads/main' }}
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           target: production
           platforms: linux/amd64, linux/arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           build-args: |
             SOURCE_DIR=packages/${{ matrix.package-dir }}
           tags: |
@@ -159,13 +159,15 @@ jobs:
 
       - name: Build and push Docker developer image
         if: ${{ github.ref == 'refs/heads/main' }}
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           target: developer
           platforms: linux/amd64, linux/arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           build-args: |
             SOURCE_DIR=packages/${{ matrix.package-dir }}
           tags: |
@@ -174,13 +176,15 @@ jobs:
 
       - name: Build and push Docker production release candidate image
         if: ${{ contains(github.ref, 'refs/heads/feat') || contains(github.ref, 'refs/heads/fix') }}
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           target: production
-          platforms: linux/amd64, linux/arm64
+          platforms: linux/amd64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           build-args: |
             SOURCE_DIR=packages/${{ matrix.package-dir }}
           tags: |
@@ -188,13 +192,15 @@ jobs:
 
       - name: Build and push Docker developer release candidate image
         if: ${{ contains(github.ref, 'refs/heads/feat') || contains(github.ref, 'refs/heads/fix') }}
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           target: developer
-          platforms: linux/amd64, linux/arm64
+          platforms: linux/amd64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           build-args: |
             SOURCE_DIR=packages/${{ matrix.package-dir }}
           tags: |

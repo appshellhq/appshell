@@ -19,6 +19,7 @@ type AppManifestPluginOptions = { config?: string };
 
 type ModuleFederationPluginInstance = WebpackPluginInstance & {
   _options?: ModuleFederationPluginOptions;
+  options?: ModuleFederationPluginOptions;
 };
 
 const PLUGIN_NAME = 'AppManifestPlugin';
@@ -70,11 +71,12 @@ export default class AppshellManifestPlugin {
     config: AppshellConfig,
     plugin: ModuleFederationPluginInstance,
   ): AppshellTemplate {
-    const name = config.name || plugin._options?.name;
+    const pluginOptions = plugin._options || plugin.options;
+    const name = config.name || pluginOptions?.name;
     const template: AppshellTemplate = {
       name,
       ...config,
-      module: plugin._options || {},
+      module: pluginOptions || {},
       environment: config.environment
         ? {
             [name || 'unknown']: config.environment,

@@ -1,0 +1,53 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AppShowcase should match snapshot 1`] = `
+<div>
+  <div
+    class="sc-fBEEOr jxkmG"
+  >
+    <header
+      class="sc-hfDuwB gXOGqX"
+    >
+      Header Text
+    </header>
+    <div
+      class="sc-jCIOXC eelIQs"
+    >
+      <p>
+        Body
+      </p>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`PackageBlock should match snapshot 1`] = `
+<div>
+  <pre>
+    test-pkg
+     v
+    0.0.1
+  </pre>
+</div>
+`;
+
+exports[`Remote should match snapshot 1`] = `
+<div>
+  <textarea
+    class="sc-dBwcjI dFAvjM"
+    readonly=""
+  >
+    {
+  "id": "abc123",
+  "manifestUrl": "http://localhost:3001/appshell.manifest.json",
+  "remoteEntryUrl": "http://localhost:3001/remoteEntry.js",
+  "scope": "TestModule",
+  "module": "./Test",
+  "metadata": {
+    "route": "/test",
+    "displayName": "Test MFE"
+  }
+}
+  </textarea>
+</div>
+`;
