@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# 0.12.0-alpha.0 (2026-04-20)
+
+### Bug Fixes
+
+- make react-refresh-singleton-plugin public for npm publishing ([2d2d9e3](https://github.com/appshell-org/appshell/commit/2d2d9e315c5d5369bb080ac34a618f9f79d336ee))
+- resolve npm audit vulnerabilities (74 → 4) ([ea3226c](https://github.com/appshell-org/appshell/commit/ea3226cea8e8c53f79ea5a112c1f72ff5039c4c2))
+- update plugin project settings ([ffae926](https://github.com/appshell-org/appshell/commit/ffae926df93de250ed50dd797d109817a22145f0))
+- update repository URLs from navaris/appshell to appshell-org/appshell ([506a90d](https://github.com/appshell-org/appshell/commit/506a90d94a6f6e10f463987d408550f48624bfd0))
+
+### Features
+
+- api key support ([9cdcbee](https://github.com/appshell-org/appshell/commit/9cdcbee36e44b8a179b49768d74a25767f1cc5f2))
+- react-refresh-singleton-plugin ([42afa71](https://github.com/appshell-org/appshell/commit/42afa71b0e6122640e0ffff107702d5186ca65cf))
+
 ## [0.2.1-alpha.0](https://github.com/appshell-org/appshell/compare/@appshell/react-refresh-singleton-plugin@0.2.0...@appshell/react-refresh-singleton-plugin@0.2.1-alpha.0) (2026-04-20)
 
 ### Bug Fixes

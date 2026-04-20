@@ -3,6 +3,46 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# 0.12.0-alpha.0 (2026-04-20)
+
+### Bug Fixes
+
+- add allow-override flag for cli ([9fbe018](https://github.com/appshell-org/appshell/commit/9fbe018e0c8047a1d98258271cd02a233206c070))
+- add api-key support for appshell host ([817481a](https://github.com/appshell-org/appshell/commit/817481a0b25bec1d0eec38d4d5771d5941cf2f3d))
+- add shareScope support to appshell remotes ([ceb55c8](https://github.com/appshell-org/appshell/commit/ceb55c8f6deed27ad11cff841609b1656269a921))
+- allow-overrides for start cli ([0684919](https://github.com/appshell-org/appshell/commit/06849198008df5cd492dfea59b1ffb0f139dfa66))
+- appshell loader override check ([aedda4a](https://github.com/appshell-org/appshell/commit/aedda4abf81560297dce03df09fba68e8785242f))
+- configurable api key header support, minor fixes ([2f0bf02](https://github.com/appshell-org/appshell/commit/2f0bf027b92398f91b8e8cbfbf543d61fe37b7a0))
+- detect shared dependency conflicts ([c290107](https://github.com/appshell-org/appshell/commit/c290107b4f7be93bf0b915371891db8b88f84678))
+- enable insecure flag for cli generate index, metadata and start commands ([03f5e7f](https://github.com/appshell-org/appshell/commit/03f5e7fbd2ad3746ce648152c4410025958274a9))
+- Fixed parsing of strings with more than one variable. ([#10](https://github.com/appshell-org/appshell/issues/10)) ([af21588](https://github.com/appshell-org/appshell/commit/af215886b858742ecf170a6e06a1d6bcba3fd39c))
+- override support for appshell template schema ([f2b10d4](https://github.com/appshell-org/appshell/commit/f2b10d4e784d2d39b4602390b73b7db89bd88c34))
+- override support for template mapper ([e79ad36](https://github.com/appshell-org/appshell/commit/e79ad36158c22ae0e6977bfff810cec543e0f828))
+- reenable unit tests ([c00f581](https://github.com/appshell-org/appshell/commit/c00f581b2d71778378729f3bc42a4f5a1c0afe04))
+- registry projection, enable env overwrite, refactor docker workflow, consolidate env names ([33a28fe](https://github.com/appshell-org/appshell/commit/33a28fe76b58e05c5b6b6b33d4b402e52bb29e70))
+- replace config intermediate file with template ([9b79e65](https://github.com/appshell-org/appshell/commit/9b79e65b355686a0cca273c89c7164bb031e8437))
+- schema validation only when registering manifests ([c0136fb](https://github.com/appshell-org/appshell/commit/c0136fb1cc9163e575c233e8330593a2a6c5a670))
+- serve registry docs, update cli error reporting ([7338810](https://github.com/appshell-org/appshell/commit/73388109620c8ec83110b3b60063290214221a59))
+- setup github actions build pipeline, setup project for release ([a54722f](https://github.com/appshell-org/appshell/commit/a54722f3df28098593ec1bce3cc2def377ff531a))
+- ship developer image with development build, urls for adjunct registries ([333f931](https://github.com/appshell-org/appshell/commit/333f9314854a93ab3f8e57dfde806baf26012e6c))
+- support metadata flag on cli start ([567cf02](https://github.com/appshell-org/appshell/commit/567cf02a52150054b855197371681f426382b454))
+- update registy url for metadata ([20a9229](https://github.com/appshell-org/appshell/commit/20a92296289d3510ff9661654bac303c0ccd07b7))
+- update repository URLs from navaris/appshell to appshell-org/appshell ([506a90d](https://github.com/appshell-org/appshell/commit/506a90d94a6f6e10f463987d408550f48624bfd0))
+
+### Features
+
+- api key support ([9cdcbee](https://github.com/appshell-org/appshell/commit/9cdcbee36e44b8a179b49768d74a25767f1cc5f2))
+- appshell cli api key support, init sync and outdated commands ([#6](https://github.com/appshell-org/appshell/issues/6)) ([acc5fa2](https://github.com/appshell-org/appshell/commit/acc5fa234f91a167038161d5080481c43f8eb8b4))
+- appshell start, cleanup dev workflow ([74fd2e5](https://github.com/appshell-org/appshell/commit/74fd2e5a5acd2415482268175c7f3f16cd7c93ec))
+- AppshellComponent impl ([2b82621](https://github.com/appshell-org/appshell/commit/2b82621c13302f790a8e1c457f9a82f39903fc1f))
+- consolidate runtime artifacts ([#26](https://github.com/appshell-org/appshell/issues/26)) ([a29479a](https://github.com/appshell-org/appshell/commit/a29479a49f0c5ec1273c9f8e4c7384096f2d4ba0))
+- deregister cli command ([#24](https://github.com/appshell-org/appshell/issues/24)) ([746e827](https://github.com/appshell-org/appshell/commit/746e8273b366543a606cecadf18554bfc094143e))
+- detect shared dependency conflicts ([2894b15](https://github.com/appshell-org/appshell/commit/2894b158262ba6e474853b7db086625cd7ecdda7))
+- environment variable override for federated components ([#27](https://github.com/appshell-org/appshell/issues/27)) ([d32de0b](https://github.com/appshell-org/appshell/commit/d32de0b0d1cbb1792715e1b363c80ed4600df155))
+- foundation refactor wip ([339b930](https://github.com/appshell-org/appshell/commit/339b9306accaa9aba1712f3a0dee6c4cab7ed273))
+- support for proxying appshell calls ([ead8ff9](https://github.com/appshell-org/appshell/commit/ead8ff9024426a79a898de07adb587da74e0ba9c))
+- support manifest merging and config watch ([5431d10](https://github.com/appshell-org/appshell/commit/5431d100ec7f5106cab66d3009ce5f836e452715))
+
 ## [0.10.1-alpha.0](https://github.com/appshell-org/appshell/compare/@appshell/config@0.10.0...@appshell/config@0.10.1-alpha.0) (2026-04-20)
 
 ### Bug Fixes

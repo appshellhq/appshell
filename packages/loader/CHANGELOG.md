@@ -3,6 +3,27 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# 0.12.0-alpha.0 (2026-04-20)
+
+### Bug Fixes
+
+- appshell loader override check ([aedda4a](https://github.com/appshell-org/appshell/commit/aedda4abf81560297dce03df09fba68e8785242f))
+- configurable api key header support, minor fixes ([2f0bf02](https://github.com/appshell-org/appshell/commit/2f0bf027b92398f91b8e8cbfbf543d61fe37b7a0))
+- hot module replacement support, example updates ([a67d230](https://github.com/appshell-org/appshell/commit/a67d2303b40f5911373225cc0b4ccf9b67c33d11))
+- registry projection, enable env overwrite, refactor docker workflow, consolidate env names ([33a28fe](https://github.com/appshell-org/appshell/commit/33a28fe76b58e05c5b6b6b33d4b402e52bb29e70))
+- rename @appshell/react-federated-component package to @appshell/react ([0b74498](https://github.com/appshell-org/appshell/commit/0b74498bf17ba73db4d936c8a012af1d3b111a28))
+- replace config intermediate file with template ([9b79e65](https://github.com/appshell-org/appshell/commit/9b79e65b355686a0cca273c89c7164bb031e8437))
+- update repository URLs from navaris/appshell to appshell-org/appshell ([506a90d](https://github.com/appshell-org/appshell/commit/506a90d94a6f6e10f463987d408550f48624bfd0))
+
+### Features
+
+- api key support ([9cdcbee](https://github.com/appshell-org/appshell/commit/9cdcbee36e44b8a179b49768d74a25767f1cc5f2))
+- appshell cli api key support, init sync and outdated commands ([#6](https://github.com/appshell-org/appshell/issues/6)) ([acc5fa2](https://github.com/appshell-org/appshell/commit/acc5fa234f91a167038161d5080481c43f8eb8b4))
+- AppshellComponent impl ([2b82621](https://github.com/appshell-org/appshell/commit/2b82621c13302f790a8e1c457f9a82f39903fc1f))
+- consolidate runtime artifacts ([#26](https://github.com/appshell-org/appshell/issues/26)) ([a29479a](https://github.com/appshell-org/appshell/commit/a29479a49f0c5ec1273c9f8e4c7384096f2d4ba0))
+- environment variable override for federated components ([#27](https://github.com/appshell-org/appshell/issues/27)) ([d32de0b](https://github.com/appshell-org/appshell/commit/d32de0b0d1cbb1792715e1b363c80ed4600df155))
+- foundation refactor wip ([339b930](https://github.com/appshell-org/appshell/commit/339b9306accaa9aba1712f3a0dee6c4cab7ed273))
+
 ## [0.5.1-alpha.0](https://github.com/appshell-org/appshell/compare/@appshell/loader@0.5.0...@appshell/loader@0.5.1-alpha.0) (2026-04-20)
 
 ### Bug Fixes
