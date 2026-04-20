@@ -3,6 +3,46 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# 0.12.0 (2026-04-20)
+
+### Bug Fixes
+
+- add api-key support for appshell host ([817481a](https://github.com/appshell-org/appshell/commit/817481a0b25bec1d0eec38d4d5771d5941cf2f3d))
+- add generate metadata to react-host startup command ([b8ade33](https://github.com/appshell-org/appshell/commit/b8ade33bc8bdf0d5bc612ce08846f2b9f26a3fd4))
+- appshell host runtime configuration ([#32](https://github.com/appshell-org/appshell/issues/32)) ([cd63ad0](https://github.com/appshell-org/appshell/commit/cd63ad0f031ede2fd9153707d418261238b382b2))
+- appshell host startup script ([#34](https://github.com/appshell-org/appshell/issues/34)) ([e136d73](https://github.com/appshell-org/appshell/commit/e136d73fb92c8dfcb90648dcb0eb7b2ec8a365b1))
+- configurable api key header support, minor fixes ([2f0bf02](https://github.com/appshell-org/appshell/commit/2f0bf027b92398f91b8e8cbfbf543d61fe37b7a0))
+- enable history api fallback, include serve.json config, update publicPath value ([96af4fc](https://github.com/appshell-org/appshell/commit/96af4fc8cd14006aa477964daa4e37d29803191c))
+- enable relative appshell_configs dir, containerize appshell host example ([79926f5](https://github.com/appshell-org/appshell/commit/79926f5e2b1ae29c4d7349c0babcb93d3b147485))
+- hot module replacement support, example updates ([a67d230](https://github.com/appshell-org/appshell/commit/a67d2303b40f5911373225cc0b4ccf9b67c33d11))
+- ignore dist from dev server ([66eaa4f](https://github.com/appshell-org/appshell/commit/66eaa4f0f7909de289aa25bd8962d0d018be8c89))
+- ignore manifest changes that force refresh ([ccb2155](https://github.com/appshell-org/appshell/commit/ccb2155a26bd3f6861f43805bb674ae4906375c1))
+- make runtime env generation prefix configurable ([28441a8](https://github.com/appshell-org/appshell/commit/28441a854cd03dfd4b89fb932efba571af221cd2))
+- metadata urls ([efcce1c](https://github.com/appshell-org/appshell/commit/efcce1ce4cb1745afa83661cae1414a73f837483))
+- reenable unit tests ([c00f581](https://github.com/appshell-org/appshell/commit/c00f581b2d71778378729f3bc42a4f5a1c0afe04))
+- registry projection, enable env overwrite, refactor docker workflow, consolidate env names ([33a28fe](https://github.com/appshell-org/appshell/commit/33a28fe76b58e05c5b6b6b33d4b402e52bb29e70))
+- rename @appshell/react-federated-component package to @appshell/react ([0b74498](https://github.com/appshell-org/appshell/commit/0b74498bf17ba73db4d936c8a012af1d3b111a28))
+- resolve npm audit vulnerabilities (74 → 4) ([36a2d56](https://github.com/appshell-org/appshell/commit/36a2d56a76dabd55a6886ddb9f020948420fd832))
+- serve registry docs, update cli error reporting ([7338810](https://github.com/appshell-org/appshell/commit/73388109620c8ec83110b3b60063290214221a59))
+- ship developer image with development build, urls for adjunct registries ([333f931](https://github.com/appshell-org/appshell/commit/333f9314854a93ab3f8e57dfde806baf26012e6c))
+- stylesheet url support for appshell host ([40e5368](https://github.com/appshell-org/appshell/commit/40e5368cf65e71eb2adbbcc432c846ba1539d14f))
+- support metadata flag on cli start ([567cf02](https://github.com/appshell-org/appshell/commit/567cf02a52150054b855197371681f426382b454))
+- support metadata generation ([4df202f](https://github.com/appshell-org/appshell/commit/4df202f0fd3b9ca6c660975b75eb0ac9b60225c2))
+- update appshell commands for react-host ([a9d881c](https://github.com/appshell-org/appshell/commit/a9d881cc93b720b2aaf28f1765f7e671f265df3d))
+- use --validate-registry-ssl-cert instead of --insecure ([88a0575](https://github.com/appshell-org/appshell/commit/88a0575c52617a08da4b8bc08288ebce8f103586))
+
+### Features
+
+- api key support ([9cdcbee](https://github.com/appshell-org/appshell/commit/9cdcbee36e44b8a179b49768d74a25767f1cc5f2))
+- appshell cli api key support, init sync and outdated commands ([#6](https://github.com/appshell-org/appshell/issues/6)) ([acc5fa2](https://github.com/appshell-org/appshell/commit/acc5fa234f91a167038161d5080481c43f8eb8b4))
+- appshell start, cleanup dev workflow ([74fd2e5](https://github.com/appshell-org/appshell/commit/74fd2e5a5acd2415482268175c7f3f16cd7c93ec))
+- AppshellComponent impl ([2b82621](https://github.com/appshell-org/appshell/commit/2b82621c13302f790a8e1c457f9a82f39903fc1f))
+- consolidate runtime artifacts ([#26](https://github.com/appshell-org/appshell/issues/26)) ([a29479a](https://github.com/appshell-org/appshell/commit/a29479a49f0c5ec1273c9f8e4c7384096f2d4ba0))
+- enable props to be passed to federated component rendered by react host ([e3a7273](https://github.com/appshell-org/appshell/commit/e3a72738455e179c9cc0b3f1ae29cf61b7c6d765))
+- foundation refactor wip ([339b930](https://github.com/appshell-org/appshell/commit/339b9306accaa9aba1712f3a0dee6c4cab7ed273))
+- support for proxying appshell calls ([ead8ff9](https://github.com/appshell-org/appshell/commit/ead8ff9024426a79a898de07adb587da74e0ba9c))
+- support manifest merging and config watch ([5431d10](https://github.com/appshell-org/appshell/commit/5431d100ec7f5106cab66d3009ce5f836e452715))
+
 # 0.12.0-alpha.0 (2026-04-20)
 
 ### Bug Fixes

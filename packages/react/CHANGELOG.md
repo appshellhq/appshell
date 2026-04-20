@@ -3,6 +3,21 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# 0.12.0 (2026-04-20)
+
+### Bug Fixes
+
+- appshell loader override check ([aedda4a](https://github.com/appshell-org/appshell/commit/aedda4abf81560297dce03df09fba68e8785242f))
+- capture direct dependencies passed to FederatedComponent for re-render ([3621879](https://github.com/appshell-org/appshell/commit/36218793a5cb47f74bd8d1ce93deffdb1b85cd1c))
+- rename @appshell/react-federated-component package to @appshell/react ([0b74498](https://github.com/appshell-org/appshell/commit/0b74498bf17ba73db4d936c8a012af1d3b111a28))
+- resolve npm audit vulnerabilities (74 → 4) ([36a2d56](https://github.com/appshell-org/appshell/commit/36a2d56a76dabd55a6886ddb9f020948420fd832))
+
+### Features
+
+- api key support ([9cdcbee](https://github.com/appshell-org/appshell/commit/9cdcbee36e44b8a179b49768d74a25767f1cc5f2))
+- AppshellComponent impl ([2b82621](https://github.com/appshell-org/appshell/commit/2b82621c13302f790a8e1c457f9a82f39903fc1f))
+- consolidate runtime artifacts ([#26](https://github.com/appshell-org/appshell/issues/26)) ([a29479a](https://github.com/appshell-org/appshell/commit/a29479a49f0c5ec1273c9f8e4c7384096f2d4ba0))
+
 # 0.12.0-alpha.0 (2026-04-20)
 
 ### Bug Fixes
