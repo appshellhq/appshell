@@ -4,7 +4,7 @@
   "workspaces": [
     "packages/*"
   ],
-  "repository": "https://github.com/navaris/appshell.git",
+  "repository": "https://github.com/appshell-org/appshell.git",
   "scripts": {
     "bootstrap": "npm install",
     "build": "lerna run --scope=@appshell/manifest-webpack-plugin --scope=@appshell/react-refresh-singleton-plugin build && lerna run --ignore=@appshell/manifest-webpack-plugin --ignore=@appshell/react-refresh-singleton-plugin build",

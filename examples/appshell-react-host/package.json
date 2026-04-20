@@ -7,7 +7,7 @@
     "apps/*",
     "packages/*"
   ],
-  "repository": "https://github.com/navaris/appshell.git",
+  "repository": "https://github.com/appshell-org/appshell.git",
   "author": "Robert Hamilton <rh@navaris.com>",
   "scripts": {
     "bootstrap": "npx lerna bootstrap",
