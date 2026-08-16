@@ -1,13 +1,15 @@
 /* eslint-disable no-console */
 import { outdated, sync } from '@appshell/config';
-import { ComparisonResult, SharedObject } from 'packages/config/src/types';
+import { ComparisonResult } from 'packages/config/src/types';
 import { PackageManager, ResolutionStrategy } from '../../../config/src/sync';
-import { fetchPackageSpec, fetchSnapshot } from '../util/fetch';
+import { fetchPackageSpec, fetchSharedModules } from '../util/fetch';
 
 export type SyncArgs = {
   apiKey: string | undefined;
   apiKeyHeader: string | undefined;
   registry: string;
+  environment: string | undefined;
+  scopeId: string;
   workingDir: string;
   packageManager: string;
   resolutionStrategy: string;
@@ -15,8 +17,17 @@ export type SyncArgs = {
 };
 
 export default async (argv: SyncArgs) => {
-  const { workingDir, registry, packageManager, resolutionStrategy, dryRun, apiKey, apiKeyHeader } =
-    argv;
+  const {
+    workingDir,
+    registry,
+    environment,
+    scopeId,
+    packageManager,
+    resolutionStrategy,
+    dryRun,
+    apiKey,
+    apiKeyHeader,
+  } = argv;
 
   try {
     console.log(
@@ -24,14 +35,11 @@ export default async (argv: SyncArgs) => {
     );
 
     const packageSpec = await fetchPackageSpec(workingDir, apiKey, apiKeyHeader);
-    const snapshot = await fetchSnapshot(registry, apiKey, apiKeyHeader);
+    const modules = await fetchSharedModules(registry, environment, scopeId, apiKey, apiKeyHeader);
 
-    console.debug('Snapshot:', JSON.stringify(snapshot, null, 2));
-    const jobs = Object.entries(snapshot.modules).map(([name, options]) =>
-      outdated(packageSpec, {
-        name,
-        shared: options.shared as SharedObject,
-      }),
+    console.debug('Shared modules:', JSON.stringify(modules, null, 2));
+    const jobs = Object.entries(modules).map(([name, shared]) =>
+      outdated(packageSpec, { name, shared }),
     );
 
     const results = await Promise.all(jobs);

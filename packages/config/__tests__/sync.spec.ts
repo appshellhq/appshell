@@ -118,12 +118,15 @@ describe('sync', () => {
   describe('syncDependencies', () => {
     const mockDataHandler = jest.fn();
     const mockExitHandler = jest.fn();
+    const mockErrorHandler = jest.fn();
 
     const mockOn = jest.fn((event: string, handler: () => void) => {
       if (event === 'data') {
         mockDataHandler.mockImplementationOnce(handler);
       } else if (event === 'exit') {
         mockExitHandler.mockImplementationOnce(handler);
+      } else if (event === 'error') {
+        mockErrorHandler.mockImplementationOnce(handler);
       }
     }) as any;
 
@@ -137,6 +140,7 @@ describe('sync', () => {
     afterEach(() => {
       mockDataHandler.mockRestore();
       mockExitHandler.mockRestore();
+      mockErrorHandler.mockRestore();
     });
 
     it('should install dependencies using npm', async () => {
@@ -151,8 +155,9 @@ describe('sync', () => {
       );
 
       expect(processSpy).toHaveBeenCalledWith(
-        `npm install test-package-1@1.0.0 test-package-2@2.0.0 --force`,
-        { cwd: workingDir, stdio: 'inherit' },
+        'npm',
+        ['install', 'test-package-1@1.0.0', 'test-package-2@2.0.0', '--force'],
+        { cwd: workingDir, stdio: 'inherit', shell: process.platform === 'win32' },
       );
     });
 
@@ -168,9 +173,18 @@ describe('sync', () => {
       );
 
       expect(processSpy).toHaveBeenCalledWith(
-        `yarn add test-package-1@1.0.0 test-package-2@2.0.0 --force`,
-        { cwd: workingDir, stdio: 'inherit' },
+        'yarn',
+        ['add', 'test-package-1@1.0.0', 'test-package-2@2.0.0', '--force'],
+        { cwd: workingDir, stdio: 'inherit', shell: process.platform === 'win32' },
       );
+    });
+
+    it('should reject when the package manager cannot be spawned', async () => {
+      setTimeout(() => mockErrorHandler(new Error('spawn npm ENOENT')), 500);
+
+      await expect(
+        syncModule.syncDependencies(workingDir, registry, ['test-package-1@1.0.0'], 'npm'),
+      ).rejects.toThrow('npm failed to install dependencies: spawn npm ENOENT');
     });
   });
 });

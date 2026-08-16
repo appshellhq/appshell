@@ -1,6 +1,7 @@
 import * as config from '@appshell/config';
 import { ComparisonResult } from '@appshell/config';
 import { merge } from 'lodash';
+import { SharedObject } from '../../config/src/types';
 import handler from '../src/handlers/sync';
 import * as util from '../src/util/fetch';
 import packageSpec from './assets/package.json';
@@ -11,17 +12,24 @@ jest.mock('../src/util/fetch');
 const mockConflicts = (conflicts: Record<string, ComparisonResult>) =>
   merge({ satisfied: {}, missing: {} }, { conflicts });
 
+const sharedModules = Object.entries(snapshot.modules).reduce((acc, [name, options]) => {
+  acc[name] = options.shared as SharedObject;
+  return acc;
+}, {} as Record<string, SharedObject>);
+
 describe('cli sync', () => {
   const apiKey = 'test-api-key';
   const apiKeyHeader = 'test-api-key-header';
+  const environment = 'test-env';
+  const scopeId = 'test-scope';
 
   let fetchPackageSpecSpy: jest.SpyInstance;
-  let fetchSnapshotSpy: jest.SpyInstance;
+  let fetchSharedModulesSpy: jest.SpyInstance;
   let consoleErrorSpy: jest.SpyInstance;
   let outdatedSpy: jest.SpyInstance;
   beforeEach(() => {
     fetchPackageSpecSpy = jest.spyOn(util, 'fetchPackageSpec').mockResolvedValue(packageSpec);
-    fetchSnapshotSpy = jest.spyOn(util, 'fetchSnapshot').mockResolvedValue(snapshot);
+    fetchSharedModulesSpy = jest.spyOn(util, 'fetchSharedModules').mockResolvedValue(sharedModules);
     consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     outdatedSpy = jest
       .spyOn(config, 'outdated')
@@ -67,6 +75,8 @@ describe('cli sync', () => {
       apiKeyHeader,
       workingDir,
       registry,
+      environment,
+      scopeId,
       packageManager: 'npm',
       resolutionStrategy: 'latest',
       dryRun: false,
@@ -79,10 +89,10 @@ describe('cli sync', () => {
     );
   });
 
-  it('should fetch snapshot from a valid URL', async () => {
+  it('should fetch shared modules from a valid URL', async () => {
     const workingDir = '/path/to/workingDir';
     const registry = 'http://test.appshell.com';
-    const modulesToCheck = Object.keys(snapshot.modules).length;
+    const modulesToCheck = Object.keys(sharedModules).length;
     const syncSpy = jest.spyOn(config, 'sync').mockResolvedValue();
 
     await handler({
@@ -90,6 +100,8 @@ describe('cli sync', () => {
       apiKeyHeader,
       workingDir,
       registry,
+      environment,
+      scopeId,
       packageManager: 'npm',
       resolutionStrategy: 'latest',
       dryRun: false,
@@ -98,14 +110,20 @@ describe('cli sync', () => {
     expect(syncSpy).toHaveBeenCalled();
     expect(config.outdated).toHaveBeenCalledTimes(modulesToCheck);
     expect(fetchPackageSpecSpy).toHaveBeenCalledWith(workingDir, apiKey, apiKeyHeader);
-    expect(fetchSnapshotSpy).toHaveBeenCalledWith(registry, apiKey, apiKeyHeader);
+    expect(fetchSharedModulesSpy).toHaveBeenCalledWith(
+      registry,
+      environment,
+      scopeId,
+      apiKey,
+      apiKeyHeader,
+    );
     expect(consoleErrorSpy).not.toHaveBeenCalled();
   });
 
-  it('should fetch snapshot from a local directory', async () => {
+  it('should fetch shared modules from a local directory', async () => {
     const workingDir = '/path/to/workingDir';
     const registry = '/path/to/registry';
-    const modulesToCheck = Object.keys(snapshot.modules).length;
+    const modulesToCheck = Object.keys(sharedModules).length;
     const syncSpy = jest.spyOn(config, 'sync').mockResolvedValue();
 
     await handler({
@@ -113,6 +131,8 @@ describe('cli sync', () => {
       apiKeyHeader,
       workingDir,
       registry,
+      environment,
+      scopeId,
       packageManager: 'npm',
       resolutionStrategy: 'latest',
       dryRun: false,
@@ -121,20 +141,28 @@ describe('cli sync', () => {
     expect(syncSpy).toHaveBeenCalled();
     expect(config.outdated).toHaveBeenCalledTimes(modulesToCheck);
     expect(fetchPackageSpecSpy).toHaveBeenCalledWith(workingDir, apiKey, apiKeyHeader);
-    expect(fetchSnapshotSpy).toHaveBeenCalledWith(registry, apiKey, apiKeyHeader);
+    expect(fetchSharedModulesSpy).toHaveBeenCalledWith(
+      registry,
+      environment,
+      scopeId,
+      apiKey,
+      apiKeyHeader,
+    );
     expect(consoleErrorSpy).not.toHaveBeenCalled();
   });
 
-  it('should throw an error if snapshot fetch fails', async () => {
+  it('should throw an error if shared deps fetch fails', async () => {
     const workingDir = '/path/to/workingDir';
     const registry = 'http://test.appshell.com';
-    fetchSnapshotSpy.mockRejectedValueOnce(new Error('Snapshot fetch failed'));
+    fetchSharedModulesSpy.mockRejectedValueOnce(new Error('Shared deps fetch failed'));
 
     await handler({
       apiKey,
       apiKeyHeader,
       workingDir,
       registry,
+      environment,
+      scopeId,
       packageManager: 'npm',
       resolutionStrategy: 'latest',
       dryRun: false,
@@ -142,20 +170,22 @@ describe('cli sync', () => {
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       'Error analyzing outdated shared dependencies',
-      'Snapshot fetch failed',
+      'Shared deps fetch failed',
     );
   });
 
   it('should handle and log errors', async () => {
     const workingDir = '/path/to/workingDir';
     const registry = 'http://test.appshell.com';
-    fetchSnapshotSpy.mockRejectedValueOnce(new Error('Snapshot fetch failed'));
+    fetchSharedModulesSpy.mockRejectedValueOnce(new Error('Shared deps fetch failed'));
 
     await handler({
       apiKey,
       apiKeyHeader,
       workingDir,
       registry,
+      environment,
+      scopeId,
       packageManager: 'npm',
       resolutionStrategy: 'latest',
       dryRun: false,
@@ -189,6 +219,8 @@ describe('cli sync', () => {
       apiKeyHeader,
       workingDir,
       registry,
+      environment,
+      scopeId,
       packageManager: 'npm',
       resolutionStrategy: 'latest',
       dryRun: false,

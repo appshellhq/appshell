@@ -1,31 +1,24 @@
-// init.test.ts
 import fs from 'fs';
-import util from 'util';
 import * as config from '../../config/src/utils/config';
 import init, { InitArgs } from '../src/handlers/config/init';
 
 jest.mock('fs');
 jest.mock('../../config/src/utils/config');
 
-describe('init', () => {
-  const consoleLogSpy = jest.spyOn(console, 'log');
+describe('config init', () => {
+  const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
   const existsSyncSpy = jest.spyOn(fs, 'existsSync');
   const mkdirSyncSpy = jest.spyOn(fs, 'mkdirSync');
+  const readConfigSpy = jest.spyOn(config, 'readConfig');
   const writeConfigSpy = jest.spyOn(config, 'writeConfig');
 
   beforeEach(() => {
-    consoleLogSpy.mockClear();
-    existsSyncSpy.mockClear();
-    mkdirSyncSpy.mockClear();
-    writeConfigSpy.mockClear();
+    jest.clearAllMocks();
+    readConfigSpy.mockReturnValue({} as never);
   });
 
   it('should initialize with default values if none are provided', async () => {
-    const args: InitArgs = {
-      apiKey: undefined,
-      registry: undefined,
-      config: 'defaultConfig',
-    };
+    const args: InitArgs = { config: 'defaultConfig' };
 
     existsSyncSpy.mockReturnValue(false);
 
@@ -34,33 +27,50 @@ describe('init', () => {
     expect(existsSyncSpy).toHaveBeenCalledWith(args.config);
     expect(mkdirSyncSpy).toHaveBeenCalledWith(expect.any(String), { recursive: true });
     expect(writeConfigSpy).toHaveBeenCalledWith(args.config, {
-      apiKey: '<Add your API key here>',
-      registry: 'http://localhost:3030',
+      registry: 'http://localhost:7150',
+      environment: 'default',
+      scopeId: 'default',
+      authIssuer: '',
+      clientId: 'appshell-cli',
     });
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      `init --api-key=${args.apiKey} --registry=${args.registry} --config=${args.config}`,
-    );
   });
 
-  it('should handle errors gracefully', async () => {
+  it('should prefer provided values over existing ones', async () => {
     const args: InitArgs = {
-      apiKey: 'testKey',
-      registry: 'testRegistry',
       config: 'testConfig',
+      registry: 'https://registry.example.com',
+      environment: 'staging',
     };
-    const inspectSpy = jest.spyOn(util, 'inspect').mockImplementation(() => '');
 
+    existsSyncSpy.mockReturnValue(true);
+    readConfigSpy.mockReturnValue({
+      registry: 'https://old.example.com',
+      environment: 'old',
+      scopeId: 'acme',
+    } as never);
+
+    await init(args);
+
+    expect(mkdirSyncSpy).not.toHaveBeenCalled();
+    expect(writeConfigSpy).toHaveBeenCalledWith(args.config, {
+      registry: 'https://registry.example.com',
+      environment: 'staging',
+      scopeId: 'acme',
+      authIssuer: '',
+      clientId: 'appshell-cli',
+    });
+  });
+
+  it('should surface errors to the caller', async () => {
     const error = new Error('test error');
     existsSyncSpy.mockImplementation(() => {
       throw error;
     });
 
-    await init(args);
-
-    expect(consoleLogSpy).toHaveBeenCalledWith(
+    await expect(init({ config: 'testConfig' })).rejects.toThrow('test error');
+    expect(consoleLogSpy).not.toHaveBeenCalledWith(
       'Error initializing appshell cli configuration:',
       error.message,
     );
-    expect(inspectSpy).toHaveBeenCalledWith(error);
   });
 });

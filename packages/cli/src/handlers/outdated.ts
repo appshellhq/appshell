@@ -3,14 +3,16 @@ import { outdated } from '@appshell/config';
 import chalk from 'chalk';
 import CliTable3 from 'cli-table3';
 import { first, uniq } from 'lodash';
-import { ComparisonResult, ComparisonResults, SharedObject } from 'packages/config/src/types';
+import { ComparisonResult, ComparisonResults } from 'packages/config/src/types';
 import { groupByPackageName } from '../../../config/src/sync';
-import { fetchPackageSpec, fetchSnapshot } from '../util/fetch';
+import { fetchPackageSpec, fetchSharedModules } from '../util/fetch';
 
 export type OutdatedArgs = {
   apiKey: string | undefined;
   apiKeyHeader: string | undefined;
   registry: string;
+  environment: string | undefined;
+  scopeId: string;
   workingDir: string;
   manager: string;
 };
@@ -161,20 +163,17 @@ const printSummary = (results: ComparisonResults[]) => {
 };
 
 export default async (argv: OutdatedArgs) => {
-  const { apiKey, apiKeyHeader, workingDir, registry, manager } = argv;
+  const { apiKey, apiKeyHeader, workingDir, registry, environment, scopeId, manager } = argv;
 
   try {
     console.log(`outdated --working-dir=${workingDir} --registry=${registry} --manager=${manager}`);
 
     const packageSpec = await fetchPackageSpec(workingDir, apiKey, apiKeyHeader);
-    const snapshot = await fetchSnapshot(registry, apiKey, apiKeyHeader);
+    const modules = await fetchSharedModules(registry, environment, scopeId, apiKey, apiKeyHeader);
 
-    console.debug('Snapshot:', JSON.stringify(snapshot, null, 2));
-    const jobs = Object.entries(snapshot.modules).map(async ([name, options]) => {
-      const results = await outdated(packageSpec, {
-        name,
-        shared: options.shared as SharedObject,
-      });
+    console.debug('Shared modules:', JSON.stringify(modules, null, 2));
+    const jobs = Object.entries(modules).map(async ([name, shared]) => {
+      const results = await outdated(packageSpec, { name, shared });
 
       printModuleResults(results);
 

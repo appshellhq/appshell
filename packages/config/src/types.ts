@@ -49,6 +49,10 @@ export type ComparisonTarget = {
 export type CliConfig = Record<string, string> & {
   apiKey: string;
   registry: string;
+  environment: string;
+  scopeId: string;
+  authIssuer: string;
+  clientId: string;
 };
 
 /* appshell.config.yaml types */
