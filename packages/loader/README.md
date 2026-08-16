@@ -59,11 +59,11 @@ appshell generate global-config --registry appshell_registry_path
 
 The loader walks a chain of resolvers and uses the first one that answers:
 
-| Resolver | Source | When it answers |
-| --- | --- | --- |
-| `inlineResolver` | `window.__appshell_config__` | The registry served the page and inlined the composition. No network call. |
-| `registryResolver` | `GET /v1/environments/:id/remotes/:key` | The remote was activated after this page was served. |
-| `legacyManifestResolver` | `index[key]` → the app's own `appshell.manifest.json` | Pre-registry hosts. |
+| Resolver                 | Source                                                | When it answers                                                            |
+| ------------------------ | ----------------------------------------------------- | -------------------------------------------------------------------------- |
+| `inlineResolver`         | `window.__appshell_config__`                          | The registry served the page and inlined the composition. No network call. |
+| `registryResolver`       | `GET /v1/environments/:id/remotes/:key`               | The remote was activated after this page was served.                       |
+| `legacyManifestResolver` | `index[key]` → the app's own `appshell.manifest.json` | Pre-registry hosts.                                                        |
 
 Environment variables reach `window.__appshell_env__<scope>` already merged with the
 environment's overrides when a composition is present, because the registry does that

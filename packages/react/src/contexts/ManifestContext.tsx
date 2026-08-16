@@ -21,7 +21,7 @@ const deprecateModules = (manifest: AppshellManifest): AppshellManifest =>
       if (property === 'modules') {
         // eslint-disable-next-line no-console
         console.warn(
-          "useManifest().modules is deprecated and will be removed. It is build-time webpack config; use useRemote() for what the browser needs. Please open an issue at github.com/appshell-org/appshell if you rely on it.",
+          'useManifest().modules is deprecated and will be removed. It is build-time webpack config; use useRemote() for what the browser needs. Please open an issue at github.com/appshell-org/appshell if you rely on it.',
         );
       }
 

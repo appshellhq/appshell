@@ -121,6 +121,9 @@ export type AppshellComposition<TMetadata = Metadata> = {
   /** `scope/name` — makes the payload self-describing for fetch-on-miss and for `env diff`. */
   environmentId: string;
   revision: number;
+  /** The remote key the host mounts at the root, and the props it is given. */
+  root: string;
+  rootProps: Record<string, unknown>;
   index: AppshellIndex;
   remotes: Record<string, ResolvedRemote<TMetadata>>;
   environment: Record<string, Record<string, string | number | undefined>>;
