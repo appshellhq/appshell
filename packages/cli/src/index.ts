@@ -541,6 +541,34 @@ yargs(hideBin(process.argv))
               }),
           handler: env.sync as never,
         })
+        .command({
+          command: 'clone',
+          describe: 'Create a new environment by cloning a source environment',
+          // eslint-disable-next-line @typescript-eslint/no-shadow
+          builder: (yargs) =>
+            yargs
+              .option('from', {
+                type: 'string',
+                demandOption: true,
+                description: "Source environment as 'name' or 'scope/name'",
+              })
+              .option('to', {
+                type: 'string',
+                description:
+                  "Target environment as 'name' or 'scope/name'. Defaults to --environment.",
+              })
+              .option('visibility', {
+                type: 'string',
+                choices: ['public', 'private'] as const,
+                description: 'Optional visibility override on the target environment',
+              })
+              .option('ephemeral', {
+                boolean: true,
+                type: 'boolean',
+                description: 'Optional ephemeral override on the target environment',
+              }),
+          handler: env.clone as never,
+        })
         .demandCommand(),
   })
   .command(loginCommand)

@@ -66,6 +66,13 @@ export type SyncEnvironmentBody = {
   >;
 };
 
+export type CloneEnvironmentBody = {
+  fromScopeId: string;
+  fromName: string;
+  visibility?: 'public' | 'private';
+  ephemeral?: boolean;
+};
+
 const describe = (error: unknown) => {
   const { response } = error as { response?: { status: number; data?: { message?: unknown } } };
   if (!response) {
@@ -174,6 +181,15 @@ export class RegistryClient {
       'post',
       `/v1/environments/${scopeId}/${name}/sync`,
       `sync environment ${scopeId}/${name}`,
+      body,
+    );
+  }
+
+  cloneEnvironment(scopeId: string, name: string, body: CloneEnvironmentBody) {
+    return this.send<{ id: string }>(
+      'post',
+      `/v1/environments/${scopeId}/${name}/clone`,
+      `clone environment ${scopeId}/${name}`,
       body,
     );
   }

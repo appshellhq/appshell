@@ -153,3 +153,34 @@ export const sync = async (
     ),
   );
 };
+
+export const clone = async (
+  argv: EnvArgs & {
+    from: string;
+    to?: string;
+    visibility?: 'public' | 'private';
+    ephemeral?: boolean;
+  },
+) => {
+  const source = parseEnvironment(argv.from, argv.scopeId);
+  const destinationName = argv.to ?? argv.environment;
+  if (!destinationName) {
+    throw new Error(
+      "No target environment given. Pass --to or set one with 'appshell config set environment <name>'.",
+    );
+  }
+  const destination = parseEnvironment(destinationName, argv.scopeId);
+
+  await new RegistryClient(argv.registry).cloneEnvironment(destination.scopeId, destination.name, {
+    fromScopeId: source.scopeId,
+    fromName: source.name,
+    visibility: argv.visibility,
+    ephemeral: argv.ephemeral,
+  });
+
+  console.log(
+    chalk.green(
+      `Cloned ${destination.scopeId}/${destination.name} from ${source.scopeId}/${source.name}`,
+    ),
+  );
+};
