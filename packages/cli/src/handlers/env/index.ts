@@ -114,3 +114,42 @@ export const open = async (argv: EnvArgs & { name?: string }) => {
 
   console.log(`${argv.registry.replace(/\/$/, '')}/e/${scopeId}/${name}`);
 };
+
+export const sync = async (
+  argv: EnvArgs & {
+    from: string;
+    to?: string;
+    mode?: 'replace' | 'merge';
+    include?: Array<
+      | 'apps'
+      | 'shell'
+      | 'overrides'
+      | 'allowOverrides'
+      | 'sharedBaselines'
+      | 'sharedDepsEnforcement'
+      | 'visibility'
+    >;
+  },
+) => {
+  const source = parseEnvironment(argv.from, argv.scopeId);
+  const destinationName = argv.to ?? argv.environment;
+  if (!destinationName) {
+    throw new Error(
+      "No target environment given. Pass --to or set one with 'appshell config set environment <name>'.",
+    );
+  }
+  const destination = parseEnvironment(destinationName, argv.scopeId);
+
+  await new RegistryClient(argv.registry).syncEnvironment(destination.scopeId, destination.name, {
+    fromScopeId: source.scopeId,
+    fromName: source.name,
+    mode: argv.mode,
+    include: argv.include,
+  });
+
+  console.log(
+    chalk.green(
+      `Synced ${destination.scopeId}/${destination.name} from ${source.scopeId}/${source.name}`,
+    ),
+  );
+};

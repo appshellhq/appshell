@@ -51,6 +51,21 @@ export type CreateEnvironmentBody = {
   overrides?: Record<string, unknown>;
 };
 
+export type SyncEnvironmentBody = {
+  fromScopeId: string;
+  fromName: string;
+  mode?: 'replace' | 'merge';
+  include?: Array<
+    | 'apps'
+    | 'shell'
+    | 'overrides'
+    | 'allowOverrides'
+    | 'sharedBaselines'
+    | 'sharedDepsEnforcement'
+    | 'visibility'
+  >;
+};
+
 const describe = (error: unknown) => {
   const { response } = error as { response?: { status: number; data?: { message?: unknown } } };
   if (!response) {
@@ -151,6 +166,15 @@ export class RegistryClient {
       `/v1/environments/${scopeId}/${name}/rollback`,
       `roll ${scopeId}/${name} back to revision ${revision}`,
       { revision },
+    );
+  }
+
+  syncEnvironment(scopeId: string, name: string, body: SyncEnvironmentBody) {
+    return this.send<{ id: string }>(
+      'post',
+      `/v1/environments/${scopeId}/${name}/sync`,
+      `sync environment ${scopeId}/${name}`,
+      body,
     );
   }
 

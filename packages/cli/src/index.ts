@@ -24,7 +24,6 @@ import loginHandler, { LoginArgs, logout } from './handlers/login';
 import outdatedHandler, { OutdatedArgs } from './handlers/outdated';
 import publishHandler, { PublishArgs } from './handlers/publish';
 import registerManifestHandler, { RegisterManifestArgs } from './handlers/register';
-import syncHandler, { SyncArgs } from './handlers/sync';
 
 const loadConfig = (cPath: string) => {
   const originalDebug = console.debug;
@@ -217,46 +216,6 @@ const outdatedCommand: yargs.CommandModule<unknown, OutdatedArgs> = {
         description: 'Package manager to use for dependency resolution',
       }) as yargs.Argv<OutdatedArgs>,
   handler: outdatedHandler,
-};
-
-const syncCommand: yargs.CommandModule<unknown, SyncArgs> = {
-  command: 'sync',
-  aliases: ['s'],
-  describe: 'Sync local dependencies with shared dependencies specified by registry',
-  // eslint-disable-next-line @typescript-eslint/no-shadow
-  builder: (yargs) =>
-    yargs
-      .option('registry', {
-        description: 'Registry with which the app shared dependencies are synced',
-      })
-      .option('workingDir', {
-        alias: 'd',
-        type: 'string',
-        default: '.',
-        description: 'Working directory to analyze shared dependencies',
-      })
-      .option('resolutionStrategy', {
-        alias: 's',
-        type: 'string',
-        default: 'highest',
-        choices: ['highest', 'lowest'] as const,
-        description:
-          'Resolution strategy for dealing with multiple conflicts against the same package',
-      })
-      .option('packageManager', {
-        alias: 'm',
-        type: 'string',
-        default: 'npm',
-        choices: ['npm', 'yarn'] as const,
-        description: 'Package manager to use for dependency resolution',
-      })
-      .option('dryRun', {
-        boolean: true,
-        default: false,
-        type: 'boolean',
-        description: 'Perform a dry run without actually syncing dependencies',
-      }) as yargs.Argv<SyncArgs>,
-  handler: syncHandler,
 };
 
 const initConfigCommand: yargs.CommandModule<unknown, InitArgs> = {
@@ -544,6 +503,44 @@ yargs(hideBin(process.argv))
           describe: 'Print the shell url for an environment',
           handler: env.open as never,
         })
+        .command({
+          command: 'sync',
+          describe: 'Sync a target environment from a source environment',
+          // eslint-disable-next-line @typescript-eslint/no-shadow
+          builder: (yargs) =>
+            yargs
+              .option('from', {
+                type: 'string',
+                demandOption: true,
+                description: "Source environment as 'name' or 'scope/name'",
+              })
+              .option('to', {
+                type: 'string',
+                description:
+                  "Target environment as 'name' or 'scope/name'. Defaults to --environment.",
+              })
+              .option('mode', {
+                type: 'string',
+                choices: ['replace', 'merge'] as const,
+                default: 'replace',
+                description: 'replace copies source fields verbatim, merge applies source values',
+              })
+              .option('include', {
+                type: 'array',
+                string: true,
+                choices: [
+                  'apps',
+                  'shell',
+                  'overrides',
+                  'allowOverrides',
+                  'sharedBaselines',
+                  'sharedDepsEnforcement',
+                  'visibility',
+                ] as const,
+                description: 'Optional list of environment sections to sync',
+              }),
+          handler: env.sync as never,
+        })
         .demandCommand(),
   })
   .command(loginCommand)
@@ -551,7 +548,6 @@ yargs(hideBin(process.argv))
   .command(publishCommand)
   .command(unpublishCommand)
   .command(outdatedCommand)
-  .command(syncCommand)
   .command(registerManifestCommand)
   .command(deregisterManifestCommand)
   .fail((msg, err) => {
