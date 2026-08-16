@@ -117,4 +117,28 @@ describe('remoteLoader', () => {
       /Failed to load component/i,
     );
   });
+
+  it('should load from an inlined composition without fetching a manifest', async () => {
+    const ExpectedComponent = () => 'test component';
+    jest.spyOn(fetchDynamicScript, 'default').mockReturnValueOnce(Promise.resolve(true));
+    jest.spyOn(loadAppshellComponent, 'default').mockResolvedValue(ExpectedComponent);
+    fetch.resetMocks();
+
+    const loadRemote = remoteLoader(config, {
+      composition: {
+        environmentId: 'acme/dev',
+        revision: 1,
+        index: config.index,
+        remotes: manifest.remotes,
+        environment: { TestModule: { ENV_VAR_A: 'Composed value for A' } },
+      },
+    });
+    const [ActualComponent, actualManifest] = await loadRemote('TestModule/TestComponent');
+
+    expect(fetch).not.toHaveBeenCalled();
+    expect(ActualComponent).toEqual(ExpectedComponent);
+    expect(actualManifest?.modules).toEqual({});
+    // eslint-disable-next-line no-underscore-dangle
+    expect(window.__appshell_env__TestModule).toEqual({ ENV_VAR_A: 'Composed value for A' });
+  });
 });

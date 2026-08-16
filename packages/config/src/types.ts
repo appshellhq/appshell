@@ -107,6 +107,25 @@ export type AppshellGlobalConfig<TMetadata = Metadata> = {
   overrides?: AppshellOverrides;
 };
 
+/** An `AppshellRemote` the registry already resolved, so the browser needs no manifest fetch. */
+export type ResolvedRemote<TMetadata = Metadata> = AppshellRemote<TMetadata>;
+
+/**
+ * The wire contract for `window.__appshell_config__`. Deliberately not an
+ * `AppshellManifest`: that is a build artifact, and reusing it left it unclear
+ * which fields the browser actually needs. `modules` is build-time webpack
+ * config and never crosses the wire; `environment` arrives already merged with
+ * the environment's overrides, leaving the browser only local overrides to apply.
+ */
+export type AppshellComposition<TMetadata = Metadata> = {
+  /** `scope/name` — makes the payload self-describing for fetch-on-miss and for `env diff`. */
+  environmentId: string;
+  revision: number;
+  index: AppshellIndex;
+  remotes: Record<string, ResolvedRemote<TMetadata>>;
+  environment: Record<string, Record<string, string | number | undefined>>;
+};
+
 /**
  * Advanced configuration for modules that should be exposed by this container.
  */

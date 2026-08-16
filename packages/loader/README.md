@@ -55,6 +55,27 @@ render(<Component />);
 appshell generate global-config --registry appshell_registry_path
 ```
 
+## How a remote is resolved
+
+The loader walks a chain of resolvers and uses the first one that answers:
+
+| Resolver | Source | When it answers |
+| --- | --- | --- |
+| `inlineResolver` | `window.__appshell_config__` | The registry served the page and inlined the composition. No network call. |
+| `registryResolver` | `GET /v1/environments/:id/remotes/:key` | The remote was activated after this page was served. |
+| `legacyManifestResolver` | `index[key]` → the app's own `appshell.manifest.json` | Pre-registry hosts. |
+
+Environment variables reach `window.__appshell_env__<scope>` already merged with the
+environment's overrides when a composition is present, because the registry does that
+merge server side. The legacy resolver still merges in the browser, since in that mode
+no server has.
+
+You can bypass the chain entirely, which is mainly useful for tests and embedders:
+
+```ts
+const load = componentLoader(config, { resolver: myResolver });
+```
+
 **Do you have any framework specific loaders?**
 
 > See [@appshell/react](https://www.npmjs.com/package/@appshell/react) for a `React` loader.

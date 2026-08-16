@@ -33,4 +33,18 @@ describe('ManifestProvider', () => {
 
     await expect(screen.getByText(/TestModule\/TestComponent/i)).toBeInTheDocument();
   });
+
+  it('should warn when a consumer reads the deprecated modules field', () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const ComponentUsingModules = () => <div>{Object.keys(useManifest().modules).length}</div>;
+
+    render(
+      <ManifestProvider manifest={manifest}>
+        <ComponentUsingModules />
+      </ManifestProvider>,
+    );
+
+    expect(warn).toHaveBeenCalledWith(expect.stringMatching(/modules is deprecated/i));
+    warn.mockRestore();
+  });
 });

@@ -68,9 +68,28 @@ const MyComponent = () => {
 </RegistryProvider>
 ```
 
+## useRemote
+
+For access to the remote backing the surrounding `AppshellComponent`. Prefer this
+over looking your own entry up in the manifest — the component already knows its key.
+
+```tsx
+import { useRemote } from '@appshell/react';
+
+const MyComponent = () => {
+  const remote = useRemote();
+
+  ...
+}
+```
+
 ## useManifest
 
 For access to the manifest.
+
+> **Deprecated:** `manifest.modules` is build-time webpack config, is never sent to
+> the browser by the registry, and will be removed. Reading it logs a warning. Use
+> `useRemote()` for what a micro-frontend actually needs at runtime.
 
 ```tsx
 import { ManifestProvider, useManifest } from '@appshell/react';

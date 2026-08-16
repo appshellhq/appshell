@@ -10,6 +10,7 @@ export { default as outdated } from './outdated';
 export { default as register } from './register';
 export { default as sync } from './sync';
 export type {
+  AppshellComposition,
   AppshellConfig,
   AppshellConfigRemote,
   AppshellGlobalConfig,
@@ -23,6 +24,7 @@ export type {
   Metadata,
   ModuleFederationPluginOptions,
   PackageSpec,
+  ResolvedRemote,
   Schema,
   SharedModuleSpec,
 } from './types';

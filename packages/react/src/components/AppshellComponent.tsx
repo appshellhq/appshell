@@ -3,6 +3,7 @@ import { AppshellIndex } from '@appshell/config';
 import remoteLoader from '@appshell/loader';
 import React, { ComponentType, ReactElement, ReactNode, useEffect, useState } from 'react';
 import { ManifestProvider } from '../contexts/ManifestContext';
+import { RemoteProvider } from '../contexts/RemoteContext';
 import useGlobalConfig from '../hooks/useGlobalConfig';
 import LoadingError from './LoadingError';
 
@@ -42,7 +43,9 @@ const AppshellComponent = <TProps extends ExtendedProps>({
         active = false;
         setElement(
           <ManifestProvider manifest={manifest}>
-            <Component {...rest} />
+            <RemoteProvider remote={manifest.remotes[remote]}>
+              <Component {...rest} />
+            </RemoteProvider>
           </ManifestProvider>,
         );
       } catch (err) {
