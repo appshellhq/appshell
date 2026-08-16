@@ -9,13 +9,13 @@
 
 # Example Overview
 
-Consists of 3 micro-frontends, each is configured with `@appshell/manifest-webpack-plugin`.
+Consists of 3 micro-frontends, each is configured with `@appshell/webpack-plugin`.
 
 ![Screenshot](https://github.com/navaris/appshell/blob/main/assets/docs/appshell_react_host_screenshot.png 'Screenshot')
 
 ## Build time
 
-At build time, each `AppshellManifestPlugin` emits an appshell manifest template to the build directory.
+At build time, each `AppshellPlugin` emits an appshell manifest template to the build directory.
 
 ## Runtime
 

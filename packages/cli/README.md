@@ -85,7 +85,7 @@ appshell generate manifest --template dist/appshell.template.json
 
 **Where does the content of APPSHELL_REGISTRY come from?**
 
-> Each micro-frontend configured to use [@appshell/manifest-webpack-plugin](https://www.npmjs.com/package/@appshell/manifest-webpack-plugin) emits a manifest template, which is subsequently used to generate a manifest for the remote module. This manifest is then registered with the APPSHELL_REGISTRY.
+> Each micro-frontend configured to use [@appshell/webpack-plugin](https://www.npmjs.com/package/@appshell/webpack-plugin) emits a manifest template, which is subsequently used to generate a manifest for the remote module. This manifest is then registered with the APPSHELL_REGISTRY.
 
 Sample config template `appshell.template.json`:
 

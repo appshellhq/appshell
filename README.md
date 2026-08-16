@@ -16,7 +16,7 @@ Appshell is a collection of utilities for building micro-frontend applications u
 - [@appshell/cli](./packages/cli/)
 - [@appshell/config](./packages/config/)
 - [@appshell/loader](./packages/loader/)
-- [@appshell/manifest-webpack-plugin](./packages/manifest-webpack-plugin/)
+- [@appshell/webpack-plugin](./packages/webpack-plugin/)
 - [@appshell/react](./packages/react/)
 
 # @appshell hosts

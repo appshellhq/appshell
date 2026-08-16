@@ -1,6 +1,6 @@
 const { container } = require('webpack');
 const path = require('path');
-const { AppshellManifestPlugin } = require('@appshell/manifest-webpack-plugin');
+const { AppshellPlugin } = require('@appshell/webpack-plugin');
 const ReactRefreshSingleton = require('single-react-refresh-plugin');
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
 const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
@@ -88,7 +88,7 @@ module.exports = (env, { mode }) => {
           },
         },
       }),
-      new AppshellManifestPlugin(),
+      new AppshellPlugin(),
       isDevelopment && new ReactRefreshWebpackPlugin(),
       isDevelopment && new ReactRefreshSingleton(),
     ].filter(Boolean),

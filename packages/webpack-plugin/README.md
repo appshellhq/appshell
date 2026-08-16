@@ -9,7 +9,7 @@
 
 [![Appshell CI](https://github.com/navaris/appshell/actions/workflows/pipeline.yml/badge.svg)](https://github.com/navaris/appshell/actions/workflows/pipeline.yml)
 
-# @appshell/manifest-webpack-plugin
+# @appshell/webpack-plugin
 
 Emits an appshell manifest template for building micro-frontends with Appshell and Webpack Module Federation. The appshell manifest template is subseqently processed to generate an `appshell manifest`.
 
@@ -17,22 +17,22 @@ Working examples can be found [here](https://github.com/navaris/appshell/tree/ma
 
 ## Getting Started
 
-To begin, you'll need to install `@appshell/manifest-webpack-plugin`:
+To begin, you'll need to install `@appshell/webpack-plugin`:
 
 ```console
-npm install @appshell/manifest-webpack-plugin --save-dev
+npm install @appshell/webpack-plugin --save-dev
 ```
 
 or
 
 ```console
-yarn add -D @appshell/manifest-webpack-plugin
+yarn add -D @appshell/webpack-plugin
 ```
 
 or
 
 ```console
-pnpm add -D @appshell/manifest-webpack-plugin
+pnpm add -D @appshell/webpack-plugin
 ```
 
 Then add the plugin to the `webpack` config of each remote app module. For example:
@@ -40,16 +40,48 @@ Then add the plugin to the `webpack` config of each remote app module. For examp
 **webpack.config.js**
 
 ```js
-const { AppshellManifestPlugin } = require('@appshell/manifest-webpack-plugin');
+const { AppshellPlugin } = require('@appshell/webpack-plugin');
 
 module.exports = {
   plugins: [
-    new AppshellManifestPlugin({
+    new AppshellPlugin({
       config: './path/to/appshell.config.yaml',
     }),
   ],
 };
 ```
+
+## Publishing on build
+
+The plugin can publish the generated manifest to an Appshell registry after every successful build,
+so a running `--watch` keeps an environment current as you work. It is **off by default** — nothing
+is sent anywhere unless you opt in.
+
+```js
+new AppshellPlugin({
+  config: './path/to/appshell.config.yaml',
+  registry: 'https://registry.example.com',
+  environment: 'acme/my-dev', // optional: activate the published version here
+  publish: true,
+});
+```
+
+Every option falls back to an environment variable, which is usually how you enable this — the same
+webpack config then publishes in a dev loop or in CI without being edited:
+
+| Option        | Variable                    | Notes                                            |
+| ------------- | --------------------------- | ------------------------------------------------ |
+| `publish`     | `APPSHELL_PUBLISH_ON_BUILD` | Any non-empty value opts in                      |
+| `registry`    | `APPSHELL_REGISTRY_URL`     | Required when publishing                         |
+| `environment` | `APPSHELL_ENVIRONMENT`      | `scope/name`; omit to publish without activating |
+| —             | `APPSHELL_TOKEN`            | Bearer token. Never a plugin option              |
+
+The app is published under its **npm** name and version, unscoped — the registry takes the scope
+from your token. Publishing the same content twice is a no-op, so a watch loop that rebuilds without
+a version bump is harmless; publishing _different_ content under an existing version is rejected.
+
+A failed publish is reported as a compilation error rather than thrown, so `--watch` reports it and
+keeps running.
 
 **What is appshell.config.yaml?**
 
@@ -247,11 +279,11 @@ The plugin's signature:
 **webpack.config.js**
 
 ```js
-const { AppshellManifestPlugin } = require('@appshell/manifest-webpack-plugin');
+const { AppshellPlugin } = require('@appshell/webpack-plugin');
 
 module.exports = {
   plugins: [
-    new AppshellManifestPlugin({
+    new AppshellPlugin({
       config: './path/to/appshell.config.yaml',
     }),
   ],

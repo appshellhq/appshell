@@ -51,7 +51,7 @@ const manifest = generateManifest<MyMetadata>(process.env.CONFIGS_DIR);
 
 **Where does the content of CONFIGS_DIR come from?**
 
-> Each micro-frontend configured to use [@appshell/manifest-webpack-plugin](https://www.npmjs.com/package/@appshell/manifest-webpack-plugin) emits it's configuration to the configs directory at build time, which is subsequently processed with this utility to reflect the current runtime environment.
+> Each micro-frontend configured to use [@appshell/webpack-plugin](https://www.npmjs.com/package/@appshell/webpack-plugin) emits it's configuration to the configs directory at build time, which is subsequently processed with this utility to reflect the current runtime environment.
 
 Sample content from CONFIGS_DIR:
 
