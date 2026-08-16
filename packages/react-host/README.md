@@ -15,33 +15,25 @@ Appshell React host for building micro-frontends with Appshell and Webpack Modul
 
 Working examples can be found [here](https://github.com/navaris/appshell/tree/main/examples).
 
-`@appshell/react-host` is published as a docker image and dynamically loads your micro-frontends.
+`@appshell/react-host` is the browser bundle that mounts your micro-frontends. It is not a server —
+the Appshell registry renders the shell document, inlines the resolved composition, and serves this
+bundle at the URL an environment's `hostBundleUrl` points at.
 
 ## Getting started
 
-Add a section in your docker-compose.yml to start the react host.
-
-```yaml
-services:
-  appshell:
-    image: appshell/react-host:developer # developer image
-    # image: appshell/react-host            # production image
-    env_file: './${ENV_TARGET}.env'
-    deploy:
-      mode: replicated
-      replicas: ${APPSHELL_CONTAINER_SCALE}
-    ports:
-      - ${APPSHELL_PORT}:${APPSHELL_PORT}
-    volumes:
-      - ./${ENV_TARGET}.env/:/appshell/${ENV_TARGET}.env
-      - ./appshell_registry:/appshell/appshell_registry
-```
-
-> **Note**
-> During development, volume mount your projects $APPSHELL_REGISTRY directory so the host can generate the global registry index. `./appshell_registry:/appshell/appshell_registry`
+Point an environment at a host bundle and the registry does the rest:
 
 ```bash
-docker compose up appshell
+appshell env create my-env --host-bundle-url https://cdn.example.com/appshell/1.2.3/main.js
+```
+
+Omit `--host-bundle-url` to use the bundle the registry ships with.
+
+To iterate on this package itself, run the development server. It rebuilds the bundle on change and
+serves a local shell document so you do not need a registry in the loop:
+
+```bash
+npm start
 ```
 
 ## Environment configuration
