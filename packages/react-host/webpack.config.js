@@ -103,38 +103,5 @@ module.exports = (env, { mode }) => {
     ].filter(Boolean),
   };
 
-  const worker = {
-    entry: {
-      'appshell-service-worker': './src/worker/service-worker',
-    },
-    mode,
-    target: 'webworker',
-    devtool: isDevelopment ? 'eval-source-map' : false,
-    output: {
-      publicPath: 'auto',
-      uniqueName: `appshell-service-worker`,
-    },
-    resolve: {
-      extensions: ['.js', '.ts', '.tsx'],
-      plugins: [new TsconfigPathsPlugin({ configFile: 'tsconfig.worker.json' })],
-    },
-    module: {
-      rules: [
-        {
-          test: /\.tsx?$/,
-          exclude: /node_modules/,
-          use: [
-            {
-              loader: 'babel-loader',
-              options: {
-                presets: ['@babel/preset-typescript'],
-              },
-            },
-          ],
-        },
-      ],
-    },
-  };
-
-  return [browser, worker];
+  return browser;
 };

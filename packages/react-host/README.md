@@ -83,8 +83,6 @@ APPSHELL_API_KEY=XXX-API-KEY-FOR-BASE-REGISTRY
 APPSHELL_API_KEY_HEADER=x-api-key
 # Used during development to access base registry that may be behind authenticated endpoint
 APPSHELL_PROXY_URL=http://proxy-url.com/proxy
-# Url of Appshell service worker script
-APPSHELL_SERVICE_WORKER_URL=/appshell-service-worker.js
 
 APPSHELL_CONTAINER_SCALE=1
 ENV_TARGET=

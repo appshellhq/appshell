@@ -9,14 +9,13 @@
     "generate:env": "appshell generate env -e .env --prefix $APPSHELL_ENV_PREFIX",
     "generate:global-config": "appshell generate global-config --validate-registry-ssl-cert $APPSHELL_VALIDATE_REGISTRY_SSL_CERT --registry $APPSHELL_BASE_REGISTRY $APPSHELL_REGISTRY --api-key $APPSHELL_API_KEY --api-key-header $APPSHELL_API_KEY_HEADER --proxy-url $APPSHELL_PROXY_URL",
     "start": "dotenv -- run-p start:appshell start:dev",
-    "start:dev": "npm run generate && run-s build:development build:worker start:server",
+    "start:dev": "npm run generate && run-s build:development start:server",
     "start:appshell": "appshell start --host --validate-registry-ssl-cert $APPSHELL_VALIDATE_REGISTRY_SSL_CERT --registry $APPSHELL_REGISTRY --base-registry $APPSHELL_BASE_REGISTRY --env $APPSHELL_ENV --env-prefix $APPSHELL_ENV_PREFIX --env-global-name $APPSHELL_ENV_GLOBAL_VAR --api-key $APPSHELL_API_KEY --api-key-header $APPSHELL_API_KEY_HEADER --proxy-url $APPSHELL_PROXY_URL",
     "start:server": "NODE_ENV=development node dist/server.js",
     "prebuild": "npm run clean",
     "build": "webpack --mode production && npm run build:server",
     "build:development": "webpack --mode development && npm run build:server",
     "build:server": "tsc -p tsconfig.server.json",
-    "build:worker": "tsc -p tsconfig.worker.json",
     "copy:config": "if [ -d ./appshell_registry ]; then cp -R ./appshell_registry/* ./dist/; fi",
     "serve": "dotenv -- run-s generate:env serve:server",
     "serve:prod": "dotenv -- run-s generate:env copy:config serve:server",
@@ -50,7 +49,6 @@
   "devDependencies": {
     "@types/ejs": "^3.1.5",
     "@types/webpack-hot-middleware": "2.25.0",
-    "service-worker-mock": "^2.0.5",
     "webpack-dev-middleware": "^7.0.0",
     "webpack-hot-middleware": "^2.26.0",
     "webpack-node-externals": "^3.0.0"
