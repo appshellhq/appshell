@@ -14,6 +14,12 @@ const composition = window.__appshell_config__;
 const remote = composition?.root || APPSHELL_ENV.APPSHELL_ROOT;
 const props = composition?.rootProps ?? JSON.parse(APPSHELL_ENV.APPSHELL_ROOT_PROPS);
 
+if (!remote) {
+  throw new Error(
+    `No root remote to mount. The registry supplies one; a standalone build needs APPSHELL_ROOT.`,
+  );
+}
+
 root.render(
   <React.StrictMode>
     <ReactHost

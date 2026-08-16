@@ -2,17 +2,12 @@
 declare global {
   interface Window {
     // eslint-disable-next-line import/prefer-default-export, @typescript-eslint/naming-convention
-    __appshell_env__: Record<string, string | undefined>;
+    __appshell_env__?: Record<string, string | undefined>;
   }
 }
 
-const env = window.__appshell_env__;
-
-if (!env.APPSHELL_ROOT) {
-  throw new Error(
-    `Missing runtime environment value. 'APPSHELL_ROOT' is required so the host knows which frontend to load.`,
-  );
-}
+// Absent when the registry served the page — it inlines the composition instead.
+const env = window.__appshell_env__ ?? {};
 
 const APPSHELL_PUBLIC_URL = env.APPSHELL_PUBLIC_URL || '';
 
