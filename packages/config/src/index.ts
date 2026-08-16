@@ -7,6 +7,8 @@ export { default as generateEnv } from './generate.env';
 export { default as generateGlobalConfig } from './generate.global-config';
 export { default as generateManifest } from './generate.manifest';
 export { default as outdated } from './outdated';
+export { activate, publish } from './publish';
+export type { PublishOptions, PublishResult } from './publish';
 export { default as register } from './register';
 export { default as sync } from './sync';
 export type {
