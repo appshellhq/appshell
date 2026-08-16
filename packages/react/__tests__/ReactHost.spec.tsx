@@ -82,4 +82,55 @@ describe('RenderHost', () => {
       {},
     );
   });
+
+  describe('when the registry inlined the composition', () => {
+    afterEach(() => {
+      delete window.__appshell_config__;
+    });
+
+    const inline = (index = { 'TestModule/TestComponent': 'http://test.com/manifest.json' }) => {
+      window.__appshell_config__ = {
+        environmentId: 'acme/prod',
+        revision: 1,
+        root: remote,
+        rootProps: {},
+        index,
+        remotes: {},
+        environment: {},
+      };
+    };
+
+    it('should render without fetching a config', async () => {
+      inline();
+      useState.mockRestore();
+      fetch.resetMocks();
+
+      await act(() => render(<ReactHost remote={remote} fallback="Loading" />));
+
+      expect(screen.getByText(/test component/i)).toBeInTheDocument();
+      expect(fetch).not.toHaveBeenCalled();
+    });
+
+    it('should prefer the inlined config over a configUrl', async () => {
+      inline();
+      useState.mockRestore();
+      fetch.resetMocks();
+
+      await act(() =>
+        render(<ReactHost configUrl={configUrl} remote={remote} fallback="Loading" />),
+      );
+
+      expect(fetch).not.toHaveBeenCalled();
+    });
+  });
+
+  it('should render with an empty index when neither a config nor a url is available', async () => {
+    useState.mockRestore();
+    fetch.resetMocks();
+
+    await act(() => render(<ReactHost remote={remote} fallback="Loading" />));
+
+    expect(screen.getByText(/test component/i)).toBeInTheDocument();
+    expect(fetch).not.toHaveBeenCalled();
+  });
 });

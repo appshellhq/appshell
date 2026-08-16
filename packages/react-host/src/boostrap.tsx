@@ -8,13 +8,17 @@ import reportWebVitals from './reportWebVitals';
 import './reset.css';
 
 const root = createRoot(document.getElementById('root') as HTMLElement);
-const props = JSON.parse(APPSHELL_ENV.APPSHELL_ROOT_PROPS);
+
+// A registry-served shell inlines these; the build-time env is the standalone fallback.
+const composition = window.__appshell_config__;
+const remote = composition?.root || APPSHELL_ENV.APPSHELL_ROOT;
+const props = composition?.rootProps ?? JSON.parse(APPSHELL_ENV.APPSHELL_ROOT_PROPS);
 
 root.render(
   <React.StrictMode>
     <ReactHost
-      configUrl={APPSHELL_ENV.APPSHELL_CONFIG_URL}
-      remote={APPSHELL_ENV.APPSHELL_ROOT}
+      configUrl={composition ? undefined : APPSHELL_ENV.APPSHELL_CONFIG_URL}
+      remote={remote}
       fallback={<Splash />}
       {...props}
     />

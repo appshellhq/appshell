@@ -59,6 +59,8 @@ module.exports = {
     'import/no-extraneous-dependencies': 'off',
     'import/prefer-default-export': 'warn',
     'no-param-reassign': 'warn',
+    // The underscored globals are the browser wire contract, not private fields.
+    'no-underscore-dangle': ['error', { allow: ['__appshell_config__', '__appshell_index__'] }],
     'react/function-component-definition': [
       'error',
       {
