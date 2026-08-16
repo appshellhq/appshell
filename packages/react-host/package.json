@@ -1,19 +1,24 @@
 {
   "name": "@appshell/react-host",
   "version": "0.12.0-alpha.0",
-  "description": "Appshell host for React",
-  "main": "index.js",
-  "private": true,
+  "description": "Appshell host bundle for React",
+  "main": "dist/main.js",
+  "repository": "https://github.com/appshell-org/appshell.git",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "generate": "run-p generate:*",
     "generate:env": "appshell generate env -e .env --prefix $APPSHELL_ENV_PREFIX",
     "generate:global-config": "appshell generate global-config --validate-registry-ssl-cert $APPSHELL_VALIDATE_REGISTRY_SSL_CERT --registry $APPSHELL_BASE_REGISTRY $APPSHELL_REGISTRY --api-key $APPSHELL_API_KEY --api-key-header $APPSHELL_API_KEY_HEADER --proxy-url $APPSHELL_PROXY_URL",
-    "start": "dotenv -- npm run start:dev",
-    "start:dev": "npm run generate && run-s build:dev-server start:dev-server",
-    "start:dev-server": "NODE_ENV=development node dist/dev-server.js",
+    "start": "dotenv -- run-s generate:env start:bundle",
+    "start:bundle": "webpack serve --mode development",
     "prebuild": "npm run clean",
     "build": "webpack --mode production",
-    "build:dev-server": "tsc -p tsconfig.dev-server.json",
     "clean": "rm -rf dist"
   },
   "author": "Robert Hamilton <rh@navaris.com>",
@@ -34,16 +39,5 @@
     "micro-frontends",
     "appshell"
   ],
-  "license": "MIT",
-  "dependencies": {
-    "ejs": "^3.1.9",
-    "express": "^4.18.2"
-  },
-  "devDependencies": {
-    "@types/ejs": "^3.1.5",
-    "@types/webpack-hot-middleware": "2.25.0",
-    "webpack-dev-middleware": "^7.0.0",
-    "webpack-hot-middleware": "^2.26.0",
-    "webpack-node-externals": "^3.0.0"
-  }
+  "license": "MIT"
 }

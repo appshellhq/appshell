@@ -1,4 +1,3 @@
-const path = require('path');
 const webpack = require('webpack');
 const CopyPlugin = require('copy-webpack-plugin');
 const ReactRefreshSingleton = require('single-react-refresh-plugin');
@@ -11,12 +10,7 @@ module.exports = (env, { mode }) => {
   const isDevelopment = mode === 'development';
 
   const browser = {
-    entry: isDevelopment
-      ? [
-          'webpack-hot-middleware/client', // HMR entry point
-          './src/index',
-        ]
-      : './src/index',
+    entry: './src/index',
     mode,
     devtool: isDevelopment ? 'eval-source-map' : false,
     devServer: {
@@ -28,14 +22,9 @@ module.exports = (env, { mode }) => {
         'Access-Control-Allow-Headers': '*',
       },
       compress: true,
-      static: {
-        directory: path.join(__dirname, 'dist'),
-        watch: {
-          ignored: [/node_modules/, /dist/],
-        },
-      },
+      // Only the bundle is served; the registry renders the shell that loads it.
+      static: false,
       port: process.env.APPSHELL_PORT,
-      historyApiFallback: true,
     },
     output: {
       publicPath: 'auto',
@@ -69,7 +58,6 @@ module.exports = (env, { mode }) => {
     plugins: [
       new CopyPlugin({
         patterns: [
-          { from: 'public/index.html', to: './views' },
           { from: 'public/favicon.ico', to: '.' },
           { from: 'public/manifest.json', to: '.' },
           { from: 'public/logo192.png', to: '.' },

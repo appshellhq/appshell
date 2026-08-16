@@ -29,11 +29,20 @@ appshell env create my-env --host-bundle-url https://cdn.example.com/appshell/1.
 
 Omit `--host-bundle-url` to use the bundle the registry ships with.
 
-To iterate on this package itself, run the development server. It rebuilds the bundle on change and
-serves a local shell document so you do not need a registry in the loop:
+The package publishes `dist/` and nothing else. A registry image installs it and serves `dist` under
+a versioned path, so pinning a bundle version is an ordinary dependency bump:
+
+```dockerfile
+RUN npm install @appshell/react-host@1.2.3
+RUN cp -R node_modules/@appshell/react-host/dist public/host
+```
+
+To iterate on this package itself, start the bundle server and point an environment at it. The
+registry still renders the shell, so you develop against the same path a deployment takes:
 
 ```bash
 npm start
+appshell env create my-dev --ephemeral --host-bundle-url http://localhost:3030/main.js
 ```
 
 ## Environment configuration
