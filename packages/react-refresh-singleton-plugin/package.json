@@ -1,6 +1,6 @@
 {
   "name": "@appshell/react-refresh-singleton-plugin",
-  "version": "1.0.0-alpha.4",
+  "version": "1.0.0-alpha.5",
   "description": "Webpack plugin used to enable react-refresh hot module replacement for distributed frontends using Module Federation",
   "main": "src/ReactRefreshSingletonPlugin.js",
   "repository": "https://github.com/appshell-org/appshell.git",
