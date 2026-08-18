@@ -100,10 +100,11 @@ jobs:
       - name: Build
         run: npm run build
 
+      # Trusted publishing (OIDC) auto-generates provenance; setting
+      # NPM_CONFIG_PROVENANCE on top of it submits a duplicate attestation and
+      # Rekor rejects it with a 409. --concurrency 1 avoids any tlog race.
       - name: Publish
-        run: npx lerna publish --yes from-git
-        env:
-          NPM_CONFIG_PROVENANCE: true
+        run: npx lerna publish --yes --concurrency 1 from-git
 
       - name: Push CI commit
         run: git push --follow-tags
