@@ -1,54 +1,54 @@
 <div align="center">
-  <a href="https://github.com/navaris/appshell">
+  <a href="https://github.com/appshell-org/appshell">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://github.com/navaris/appshell/blob/main/assets/branding/appshell-logo-white_2x.png">
-      <img alt="appshell" src="https://github.com/navaris/appshell/blob/main/assets/branding/appshell-logo_2x.png">
+      <source media="(prefers-color-scheme: dark)" srcset="https://github.com/appshell-org/appshell/blob/main/assets/branding/appshell-logo-white_2x.png">
+      <img alt="appshell" src="https://github.com/appshell-org/appshell/blob/main/assets/branding/appshell-logo_2x.png">
     </picture>
   </a>
 </div>
 
-[![Appshell CI](https://github.com/navaris/appshell/actions/workflows/pipeline.yml/badge.svg)](https://github.com/navaris/appshell/actions/workflows/pipeline.yml)
+[![Appshell CI](https://github.com/appshell-org/appshell/actions/workflows/pipeline.yml/badge.svg)](https://github.com/appshell-org/appshell/actions/workflows/pipeline.yml)
 
-# @appshell/react-host
+# @appshell/react-shell
 
-Appshell React host for building micro-frontends with Appshell and Webpack Module federation.
+Appshell React shell for building micro-frontends with Appshell and Webpack Module federation.
 
-Working examples can be found [here](https://github.com/navaris/appshell/tree/main/examples).
+Working examples can be found [here](https://github.com/appshell-org/appshell/tree/main/examples).
 
-`@appshell/react-host` is the browser bundle that mounts your micro-frontends. It is not a server —
+`@appshell/react-shell` is the browser bundle that mounts your micro-frontends. It is not a server —
 the Appshell registry renders the shell document, inlines the resolved composition, and serves this
-bundle at the URL an environment's `hostBundleUrl` points at.
+bundle at the URL an environment's `shellBundleUrl` points at.
 
 **Building a micro-frontend? You do not need this package.** Run your own dev server and publish to
-an environment; the registry loads the host bundle for you. This README is for pinning which bundle
+an environment; the registry loads the shell bundle for you. This README is for pinning which bundle
 an environment uses, and for working on the bundle itself.
 
 ## Choosing a bundle
 
-Every environment resolves a host bundle. By default that is the one the registry image ships, so
-there is nothing to configure. Point `hostBundleUrl` elsewhere to pin a version or serve from a CDN:
+Every environment resolves a shell bundle. By default that is the one the registry image ships, so
+there is nothing to configure. Point `shellBundleUrl` elsewhere to pin a version or serve from a CDN:
 
 ```bash
-appshell env create my-env --host-bundle-url https://cdn.example.com/appshell/1.2.3/main.js
+appshell env create my-env --shell-bundle-url https://cdn.example.com/appshell/1.2.3/main.js
 ```
 
 The package publishes `dist/` and nothing else, so a registry image can serve it under a versioned
 path and pinning becomes an ordinary dependency bump:
 
 ```dockerfile
-RUN npm install @appshell/react-host@1.2.3
-RUN cp -R node_modules/@appshell/react-host/dist public/host
+RUN npm install @appshell/react-shell@1.2.3
+RUN cp -R node_modules/@appshell/react-shell/dist public/shell
 ```
 
 ## Working on the bundle
 
 `npm start` serves `main.js` and nothing else — the registry still renders the shell, so you develop
-against the same path a deployment takes. The registry does not need to be local: `hostBundleUrl` is
+against the same path a deployment takes. The registry does not need to be local: `shellBundleUrl` is
 resolved by the browser, so a shared registry can point at your machine.
 
 ```bash
 npm start
-appshell env create host-dev --ephemeral --host-bundle-url http://localhost:3030/main.js
+appshell env create shell-dev --ephemeral --shell-bundle-url http://localhost:3030/main.js
 ```
 
 > **Note**

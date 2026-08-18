@@ -21,4 +21,4 @@ Appshell is a collection of utilities for building micro-frontend applications u
 
 # @appshell hosts
 
-- [@appshell/react-host](./packages/react-host/)
+- [@appshell/react-shell](./packages/react-shell/)

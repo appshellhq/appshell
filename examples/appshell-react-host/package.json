@@ -1,7 +1,7 @@
 {
   "name": "appshell-react-host",
   "version": "0.0.1",
-  "description": "Full example using @appshell/webpack-plugin, @appshell/cli and @appshell/react-host to build Module Federation micro-frontends",
+  "description": "Full example using @appshell/webpack-plugin, @appshell/cli and @appshell/react-shell to build Module Federation micro-frontends",
   "main": "index.js",
   "workspaces": [
     "apps/*",

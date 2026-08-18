@@ -28,7 +28,7 @@ module.exports = (env, { mode }) => {
     },
     output: {
       publicPath: 'auto',
-      uniqueName: `appshell-react-host`,
+      uniqueName: `appshell-react-shell`,
     },
     resolve: {
       extensions: ['.js', '.ts', '.tsx'],
