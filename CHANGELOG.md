@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.1](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.0...v1.0.0-alpha.1) (2026-08-18)
+
+### Bug Fixes
+
+- **config:** tolerate empty cli config file ([dc483ae](https://github.com/appshell-org/appshell/commit/dc483ae88cfbf0f437c1700f273ff6a8b8b23dfb))
+
 # 0.12.0-alpha.0 (2026-04-20)
 
 ### Bug Fixes
