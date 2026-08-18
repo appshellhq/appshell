@@ -12,7 +12,7 @@ const readYaml = <T>(file: string) => yaml.parse(fs.readFileSync(file, 'utf-8'))
 export const readConfig = (configPath: string) => {
   console.debug(`Reading config from ${configPath}`);
   if (fs.existsSync(configPath)) {
-    const config = readYaml<CliConfig>(configPath);
+    const config = readYaml<CliConfig>(configPath) ?? ({} as CliConfig);
 
     console.debug(`Raw config: ${JSON.stringify(config, null, 2)}`);
 
