@@ -1,6 +1,6 @@
 {
   "name": "@appshell/cli",
-  "version": "1.0.0-alpha.5",
+  "version": "1.0.0-alpha.6",
   "description": "cli utility to generate a global appshell artifacts for module federation micro-frontends",
   "main": "dist/main.js",
   "repository": "https://github.com/appshell-org/appshell.git",
@@ -34,5 +34,5 @@
     "change-case": "^5.4.4",
     "chokidar": "^3.6.0"
   },
-  "gitHead": "5bf84323527afe7d6235ab132ef9a06a5c139990"
+  "gitHead": "7ddd9f6836317732be68d1fc71b7d4e1276725a6"
 }

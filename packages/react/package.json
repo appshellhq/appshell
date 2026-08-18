@@ -1,6 +1,6 @@
 {
   "name": "@appshell/react",
-  "version": "1.0.0-alpha.5",
+  "version": "1.0.0-alpha.6",
   "description": "React utilities for building micro-frontends with Appshell and Module Federation",
   "main": "dist/main.js",
   "types": "dist/types/react/src/index.d.ts",
@@ -27,5 +27,5 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
-  "gitHead": "5bf84323527afe7d6235ab132ef9a06a5c139990"
+  "gitHead": "7ddd9f6836317732be68d1fc71b7d4e1276725a6"
 }

@@ -1,6 +1,6 @@
 {
   "name": "@appshell/core",
-  "version": "1.0.0-alpha.5",
+  "version": "1.0.0-alpha.6",
   "description": "Core types and components for @appshell",
   "main": "dist/main.js",
   "types": "dist/types/core/src/index.d.ts",
@@ -23,5 +23,5 @@
     "appshell"
   ],
   "license": "MIT",
-  "gitHead": "5bf84323527afe7d6235ab132ef9a06a5c139990"
+  "gitHead": "7ddd9f6836317732be68d1fc71b7d4e1276725a6"
 }
