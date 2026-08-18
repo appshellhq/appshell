@@ -61,7 +61,7 @@ docker run -d -p 27017:27017 --name appshell-mongo mongo:7
 docker run -d -p 7150:7150 --name appshell-registry \
   -e MONGO_URI=mongodb://host.docker.internal:27017/appshell-registry \
   -e AUTH_MODE=none \
-  ghcr.io/appshell-org/registry:latest
+  appshell/registry:latest
 ```
 
 `AUTH_MODE=none` disables authentication and is for local development only.
