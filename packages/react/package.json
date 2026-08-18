@@ -1,6 +1,6 @@
 {
   "name": "@appshell/react",
-  "version": "1.0.0-alpha.3",
+  "version": "1.0.0-alpha.4",
   "description": "React utilities for building micro-frontends with Appshell and Module Federation",
   "main": "dist/main.js",
   "types": "dist/types/react/src/index.d.ts",
