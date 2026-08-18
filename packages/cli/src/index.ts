@@ -369,10 +369,10 @@ yargs(hideBin(process.argv))
     global: true,
   })
   .option('apiKeyHeader', {
-    alias: 'h',
+    alias: 'a',
     default: process.env.APPSHELL_API_KEY_HEADER || config.apiKeyHeader || 'x-api-key',
     type: 'string',
-    description: 'Api key to use for appshell registry',
+    description: 'Header to send the registry api key in',
     global: true,
   })
   .option('registry', {
@@ -582,6 +582,8 @@ yargs(hideBin(process.argv))
   .command(outdatedCommand)
   .command(registerManifestCommand)
   .command(deregisterManifestCommand)
+  .help()
+  .alias('h', 'help')
   .fail((msg, err) => {
     if (err) {
       console.error(err.message);
