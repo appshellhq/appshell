@@ -33,5 +33,6 @@
   "dependencies": {
     "change-case": "^5.4.4",
     "chokidar": "^3.6.0"
-  }
+  },
+  "gitHead": "4f569b012fbebe31b374d8262dfa0d2af734a778"
 }

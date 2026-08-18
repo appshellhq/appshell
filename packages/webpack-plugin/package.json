@@ -28,5 +28,6 @@
     "appshell",
     "plugin"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "gitHead": "4f569b012fbebe31b374d8262dfa0d2af734a778"
 }
