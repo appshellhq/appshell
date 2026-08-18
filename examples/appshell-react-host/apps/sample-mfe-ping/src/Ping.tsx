@@ -7,7 +7,7 @@ const App = () => {
   const remote = useRemote();
   return (
     <AppShowcase header={<PackageBlock name={pkg.name} version={pkg.version} />}>
-      <Remote remote={remote} />
+      {remote ? <Remote remote={remote} /> : null}
     </AppShowcase>
   );
 };

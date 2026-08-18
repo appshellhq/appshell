@@ -66,7 +66,7 @@ docker run -d -p 7150:7150 --name appshell-registry \
 
 `AUTH_MODE=none` disables authentication and is for local development only.
 
-### 2. Point the CLI at it
+### 2. Point the CLI and plugin at it
 
 ```bash
 cp sample.env .env # create a .env
@@ -78,9 +78,14 @@ APPSHELL_ENVIRONMENT=dev
 APPSHELL_SCOPE_ID=default
 # The CLI always sends a token; AUTH_MODE=none makes the value irrelevant.
 APPSHELL_TOKEN=local-dev
+# Let @appshell/webpack-plugin publish each app on every build.
+APPSHELL_PUBLISH_ON_BUILD=1
 ```
 
-These can be persisted instead of passed per-invocation:
+One `.env` drives both the CLI and `@appshell/webpack-plugin` — they read the same variables
+(`APPSHELL_REGISTRY`, `APPSHELL_ENVIRONMENT` + `APPSHELL_SCOPE_ID`, `APPSHELL_TOKEN`).
+
+These can be persisted for the CLI instead of passed per-invocation:
 
 ```bash
 appshell config set registry http://localhost:7150
@@ -95,35 +100,50 @@ Against a registry that does enforce auth, use `appshell login` rather than `APP
 appshell env create dev
 ```
 
-### 4. Build and publish
+### 4. Run it — publish happens on build
 
 ```bash
 npm run bootstrap
-npm run build
+npm run start
 ```
 
-Then, from each app directory:
+Each app runs its webpack dev server, and `@appshell/webpack-plugin` publishes that app's manifest
+to the registry and activates it in `dev` on every build — no separate publish step. Because the
+dev server builds in development mode, the plugin asks the registry to **overwrite** the version in
+place, so editing `appshell.config.yaml` (routes, metadata) re-publishes without a version bump. A
+local `AUTH_MODE=none` registry honors that overwrite; a real registry refuses it.
+
+Open the shell:
+
+```bash
+appshell env open dev  # prints http://localhost:7150/e/default/dev
+```
+
+The registry serves the shell document itself, so there is no separate host to run. To serve the
+host yourself instead, point it at the composition endpoint:
+
+```
+http://localhost:7150/dev/appshell.config.json
+```
+
+### Publishing in CI
+
+Publish-on-build is a development convenience. In CI, bump the app's version and publish explicitly
+so each release is an immutable version:
+
+```bash
+npm run build   # production build; the plugin publishes without forcing
+```
+
+or drive it from the CLI, which is the same primitive:
 
 ```bash
 appshell publish --template dist/appshell.template.json --environment dev
 ```
 
-Publishing on its own only uploads the version; `--environment` also activates it. Add `--watch` to republish whenever the template changes.
-
-### 5. Run it
-
-```bash
-npm run start          # start the micro-frontends
-appshell env open dev  # print the shell url
-```
-
-The registry serves the shell document itself, so there is no separate host to run — open the url that `env open` prints (`http://localhost:7150/e/default/dev`).
-
-To serve the host yourself instead, point it at the composition endpoint:
-
-```
-http://localhost:7150/dev/appshell.config.json
-```
+`--environment` also activates the published version; add `--watch` to republish whenever the
+template changes. A production build never forces, so re-publishing changed content under an
+existing version is rejected — the immutability guarantee CI depends on.
 
 ## Inspecting an environment
 
