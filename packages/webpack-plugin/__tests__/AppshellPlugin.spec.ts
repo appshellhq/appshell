@@ -86,7 +86,9 @@ describe('AppshellPlugin', () => {
     jest.restoreAllMocks();
     jest.clearAllMocks();
     delete process.env.APPSHELL_PUBLISH_ON_BUILD;
-    delete process.env.APPSHELL_REGISTRY_URL;
+    delete process.env.APPSHELL_REGISTRY;
+    delete process.env.APPSHELL_ENVIRONMENT;
+    delete process.env.APPSHELL_SCOPE_ID;
     rimrafSync(configsDir);
   });
 
@@ -132,12 +134,32 @@ describe('AppshellPlugin', () => {
 
     it('should opt in via APPSHELL_PUBLISH_ON_BUILD', () => {
       process.env.APPSHELL_PUBLISH_ON_BUILD = '1';
-      process.env.APPSHELL_REGISTRY_URL = registry;
+      process.env.APPSHELL_REGISTRY = registry;
 
       const plugin = new AppshellPlugin();
 
       expect(plugin.options.publish).toBe(true);
       expect(plugin.options.registry).toEqual(registry);
+    });
+
+    it('should join APPSHELL_SCOPE_ID and APPSHELL_ENVIRONMENT into scope/name', () => {
+      process.env.APPSHELL_SCOPE_ID = 'acme';
+      process.env.APPSHELL_ENVIRONMENT = 'dev';
+
+      expect(new AppshellPlugin().options.environment).toEqual('acme/dev');
+    });
+
+    it('should default the scope to default when only APPSHELL_ENVIRONMENT is set', () => {
+      process.env.APPSHELL_ENVIRONMENT = 'dev';
+
+      expect(new AppshellPlugin().options.environment).toEqual('default/dev');
+    });
+
+    it('should take APPSHELL_ENVIRONMENT as-is when it already contains a scope', () => {
+      process.env.APPSHELL_SCOPE_ID = 'acme';
+      process.env.APPSHELL_ENVIRONMENT = 'other/dev';
+
+      expect(new AppshellPlugin().options.environment).toEqual('other/dev');
     });
 
     it('should let explicit options win over the environment', () => {
@@ -202,6 +224,28 @@ describe('AppshellPlugin', () => {
         }),
       );
       expect(errors).toHaveLength(0);
+    });
+
+    it('should request force when webpack runs in development mode', async () => {
+      jest.spyOn(fs, 'writeFileSync').mockImplementation();
+      compiler.options.mode = 'development';
+      const plugin = new AppshellPlugin({ config, registry, publish: true });
+
+      plugin.apply(compiler as any);
+      await compiler.invokeHandlers();
+
+      expect(mocked.publish).toHaveBeenCalledWith(expect.objectContaining({ force: true }));
+    });
+
+    it('should not request force in production mode', async () => {
+      jest.spyOn(fs, 'writeFileSync').mockImplementation();
+      compiler.options.mode = 'production';
+      const plugin = new AppshellPlugin({ config, registry, publish: true });
+
+      plugin.apply(compiler as any);
+      await compiler.invokeHandlers();
+
+      expect(mocked.publish).toHaveBeenCalledWith(expect.objectContaining({ force: false }));
     });
 
     it('should publish under the unscoped package name', () => {

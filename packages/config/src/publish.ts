@@ -9,6 +9,8 @@ export type PublishOptions = {
   manifest: AppshellManifest;
   visibility?: 'public' | 'private';
   metadata?: Metadata;
+  /** Ask the registry to overwrite an existing version whose content differs. */
+  force?: boolean;
 };
 
 export type PublishResult = {
@@ -36,7 +38,8 @@ const describe = (error: unknown) => {
 
 /**
  * Publishing the same content twice is a no-op; publishing different content
- * under a version that already exists is rejected by the registry.
+ * under a version that already exists is rejected by the registry, unless
+ * `force` is set and the registry is configured to honor it (dev registries).
  */
 export const publish = async ({
   registry,
@@ -46,11 +49,12 @@ export const publish = async ({
   manifest,
   visibility,
   metadata,
+  force,
 }: PublishOptions): Promise<PublishResult> => {
   try {
     const { data } = await axios.post<PublishResult>(
       `${registry.replace(/\/$/, '')}/v1/apps`,
-      { name, version, manifest, visibility, metadata },
+      { name, version, manifest, visibility, metadata, force },
       { headers: authorization(token) },
     );
 

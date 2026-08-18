@@ -23,6 +23,7 @@ type AppshellPluginOptions = {
   registry?: string;
   environment?: string;
   publish?: boolean;
+  force?: boolean;
 };
 
 type ModuleFederationPluginInstance = WebpackPluginInstance & {
@@ -52,6 +53,11 @@ const schema: Schema = {
       description: 'Publish after every successful build. Defaults to APPSHELL_PUBLISH_ON_BUILD',
       type: 'boolean',
     },
+    force: {
+      description:
+        'Overwrite an existing version when content differs. Defaults to true in development mode. The registry only honors it when its own config allows.',
+      type: 'boolean',
+    },
   },
 };
 
@@ -75,11 +81,26 @@ export default class AppshellPlugin {
 
     this.options = {
       ...this.defaults,
-      registry: process.env.APPSHELL_REGISTRY_URL,
-      environment: process.env.APPSHELL_ENVIRONMENT,
+      registry: process.env.APPSHELL_REGISTRY,
+      // The CLI splits scope and name; activate() wants them joined as scope/name.
+      environment: AppshellPlugin.resolveEnvironment(),
       publish: !!process.env.APPSHELL_PUBLISH_ON_BUILD,
       ...options,
     };
+  }
+
+  static resolveEnvironment(): string | undefined {
+    const name = process.env.APPSHELL_ENVIRONMENT;
+
+    if (!name) {
+      return undefined;
+    }
+
+    if (name.includes('/')) {
+      return name;
+    }
+
+    return `${process.env.APPSHELL_SCOPE_ID || 'default'}/${name}`;
   }
 
   static findModuleFederationPlugin(webpackConfig: WebpackOptionsNormalized) {
@@ -190,9 +211,13 @@ export default class AppshellPlugin {
 
     if (this.options.publish && !registry) {
       throw new Error(
-        'Publishing is enabled but no registry was given. Set APPSHELL_REGISTRY_URL or pass `registry`.',
+        'Publishing is enabled but no registry was given. Set APPSHELL_REGISTRY or pass `registry`.',
       );
     }
+
+    // In a dev loop the manifest changes at a static version; force lets the registry
+    // accept the overwrite. It is a request only — the registry decides whether to honor it.
+    const force = this.options.force ?? compiler.options.mode === 'development';
 
     compiler.hooks.afterEmit.tapPromise(PLUGIN_NAME, async (compilation) => {
       const outputDir = path.resolve(compilation.outputOptions.path || '');
@@ -223,6 +248,7 @@ export default class AppshellPlugin {
           name,
           version,
           manifest,
+          force,
         });
 
         if (environment) {

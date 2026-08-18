@@ -69,16 +69,23 @@ new AppshellPlugin({
 Every option falls back to an environment variable, which is usually how you enable this — the same
 webpack config then publishes in a dev loop or in CI without being edited:
 
-| Option        | Variable                    | Notes                                            |
-| ------------- | --------------------------- | ------------------------------------------------ |
-| `publish`     | `APPSHELL_PUBLISH_ON_BUILD` | Any non-empty value opts in                      |
-| `registry`    | `APPSHELL_REGISTRY_URL`     | Required when publishing                         |
-| `environment` | `APPSHELL_ENVIRONMENT`      | `scope/name`; omit to publish without activating |
-| —             | `APPSHELL_TOKEN`            | Bearer token. Never a plugin option              |
+| Option        | Variable                    | Notes                                                                               |
+| ------------- | --------------------------- | ----------------------------------------------------------------------------------- |
+| `publish`     | `APPSHELL_PUBLISH_ON_BUILD` | Any non-empty value opts in                                                         |
+| `registry`    | `APPSHELL_REGISTRY`         | Required when publishing                                                            |
+| `environment` | `APPSHELL_ENVIRONMENT`      | Joined with `APPSHELL_SCOPE_ID` as `scope/name`; omit to publish without activating |
+| `force`       | —                           | Overwrite a changed version; defaults to `true` in dev mode                         |
+| —             | `APPSHELL_TOKEN`            | Bearer token. Never a plugin option                                                 |
+
+`environment` and `APPSHELL_SCOPE_ID` mirror the CLI: set `APPSHELL_ENVIRONMENT=dev` and
+`APPSHELL_SCOPE_ID=acme` and the plugin activates in `acme/dev`. Pass an explicit `scope/name` to
+either the option or `APPSHELL_ENVIRONMENT` to override.
 
 The app is published under its **npm** name and version, unscoped — the registry takes the scope
 from your token. Publishing the same content twice is a no-op, so a watch loop that rebuilds without
-a version bump is harmless; publishing _different_ content under an existing version is rejected.
+a version bump is harmless. Publishing _different_ content under an existing version is normally
+rejected; in development mode the plugin asks the registry to overwrite it, which a local (unauthenticated)
+registry honors by default and a real registry refuses unless configured with `ALLOW_FORCE_PUBLISH`.
 
 A failed publish is reported as a compilation error rather than thrown, so `--watch` reports it and
 keeps running.
