@@ -192,6 +192,19 @@ describe('AppshellPlugin', () => {
       );
     });
 
+    it('should opt out when APPSHELL_PUBLISH_ON_BUILD is a falsey string with whitespace', async () => {
+      jest.spyOn(fs, 'writeFileSync').mockImplementation();
+      mocked.resolveContext.mockReturnValue({ scopeId: 'default', registry });
+      process.env.APPSHELL_PUBLISH_ON_BUILD = ' false ';
+      compiler.options.mode = 'development';
+      const plugin = new AppshellPlugin({ config });
+
+      plugin.apply(compiler as any);
+      await compiler.invokeHandlers();
+
+      expect(mocked.publish).not.toHaveBeenCalled();
+    });
+
     it('should resolve the registry from the CLI context', async () => {
       jest.spyOn(fs, 'writeFileSync').mockImplementation();
       mocked.resolveContext.mockReturnValue({ scopeId: 'default', registry });

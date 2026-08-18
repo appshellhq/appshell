@@ -30,7 +30,9 @@ type AppshellPluginOptions = {
 
 // An env var set to an empty string or an explicit falsey value opts out.
 const truthy = (value?: string): boolean | undefined =>
-  value === undefined ? undefined : !['', '0', 'false', 'no', 'off'].includes(value.toLowerCase());
+  value === undefined
+    ? undefined
+    : !['', '0', 'false', 'no', 'off'].includes(value.trim().toLowerCase());
 
 type ModuleFederationPluginInstance = WebpackPluginInstance & {
   _options?: ModuleFederationPluginOptions;
