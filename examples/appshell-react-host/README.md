@@ -66,33 +66,29 @@ docker run -d -p 7150:7150 --name appshell-registry \
 
 `AUTH_MODE=none` disables authentication and is for local development only.
 
-### 2. Point the CLI and plugin at it
+### 2. Set your CLI context
 
-```bash
-cp sample.env .env # create a .env
-```
-
-```ini
-APPSHELL_REGISTRY=http://localhost:7150
-APPSHELL_ENVIRONMENT=dev
-APPSHELL_SCOPE_ID=default
-# The CLI always sends a token; AUTH_MODE=none makes the value irrelevant.
-APPSHELL_TOKEN=local-dev
-# Let @appshell/webpack-plugin publish each app on every build.
-APPSHELL_PUBLISH_ON_BUILD=1
-```
-
-One `.env` drives both the CLI and `@appshell/webpack-plugin` — they read the same variables
-(`APPSHELL_REGISTRY`, `APPSHELL_ENVIRONMENT` + `APPSHELL_SCOPE_ID`, `APPSHELL_TOKEN`).
-
-These can be persisted for the CLI instead of passed per-invocation:
+The registry, environment, and token are your working context — set them once with the CLI, like a
+kubectl context, rather than per project:
 
 ```bash
 appshell config set registry http://localhost:7150
 appshell config set environment dev
 ```
 
-Against a registry that does enforce auth, use `appshell login` rather than `APPSHELL_TOKEN`.
+Under `AUTH_MODE=none` there is no token to set. Against a registry that enforces auth, run
+`appshell login` once; it stores a per-registry token in `~/.appshell/credentials`.
+
+`@appshell/webpack-plugin` reads this same context, so the example apps need no registry or token in
+their `.env`. To point a single build somewhere else, set `APPSHELL_REGISTRY` / `APPSHELL_ENVIRONMENT`
+(or pass `registry` / `environment` to the plugin) — it will warn that it is overriding your context.
+In CI, where there is no `~/.appshell`, those env vars (and `APPSHELL_TOKEN`) are the whole story.
+
+The apps still read `.env` for their dev-server ports, so create one:
+
+```bash
+cp sample.env .env
+```
 
 ### 3. Create the environment
 
@@ -108,10 +104,12 @@ npm run start
 ```
 
 Each app runs its webpack dev server, and `@appshell/webpack-plugin` publishes that app's manifest
-to the registry and activates it in `dev` on every build — no separate publish step. Because the
-dev server builds in development mode, the plugin asks the registry to **overwrite** the version in
-place, so editing `appshell.config.yaml` (routes, metadata) re-publishes without a version bump. A
-local `AUTH_MODE=none` registry honors that overwrite; a real registry refuses it.
+to the registry and activates it in your environment on every build — no separate publish step, and
+nothing to toggle: **development builds publish by default**. Because the dev server builds in
+development mode, the plugin asks the registry to **overwrite** the version in place, so editing
+`appshell.config.yaml` (routes, metadata) re-publishes without a version bump. A local
+`AUTH_MODE=none` registry honors that overwrite; a real registry refuses it. If no registry is
+configured, the dev server still runs — publishing is skipped with a warning.
 
 Open the shell:
 
@@ -128,14 +126,8 @@ http://localhost:7150/dev/appshell.config.json
 
 ### Publishing in CI
 
-Publish-on-build is a development convenience. In CI, bump the app's version and publish explicitly
-so each release is an immutable version:
-
-```bash
-npm run build   # production build; the plugin publishes without forcing
-```
-
-or drive it from the CLI, which is the same primitive:
+Publish-on-build is a development convenience — production builds never publish on their own. In CI,
+bump the app's version and publish explicitly so each release is an immutable version:
 
 ```bash
 appshell publish --template dist/appshell.template.json --environment dev

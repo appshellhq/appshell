@@ -6,7 +6,9 @@ import {
   AppshellTemplate,
   generateManifest,
   ModuleFederationPluginOptions,
+  persistedContext,
   publish,
+  resolveContext,
   Schema,
   utils,
   validators,
@@ -25,6 +27,10 @@ type AppshellPluginOptions = {
   publish?: boolean;
   force?: boolean;
 };
+
+// An env var set to an empty string or an explicit falsey value opts out.
+const truthy = (value?: string): boolean | undefined =>
+  value === undefined ? undefined : !['', '0', 'false', 'no', 'off'].includes(value.toLowerCase());
 
 type ModuleFederationPluginInstance = WebpackPluginInstance & {
   _options?: ModuleFederationPluginOptions;
@@ -50,7 +56,8 @@ const schema: Schema = {
       type: 'string',
     },
     publish: {
-      description: 'Publish after every successful build. Defaults to APPSHELL_PUBLISH_ON_BUILD',
+      description:
+        'Publish after every successful build. Defaults to true in development mode; otherwise opt in with APPSHELL_PUBLISH_ON_BUILD.',
       type: 'boolean',
     },
     force: {
@@ -79,28 +86,12 @@ export default class AppshellPlugin {
       validate(schema, options, { name: PLUGIN_NAME });
     }
 
+    // Registry, environment, and token are resolved from the CLI context at apply()
+    // time; only explicit options are captured here.
     this.options = {
       ...this.defaults,
-      registry: process.env.APPSHELL_REGISTRY,
-      // The CLI splits scope and name; activate() wants them joined as scope/name.
-      environment: AppshellPlugin.resolveEnvironment(),
-      publish: !!process.env.APPSHELL_PUBLISH_ON_BUILD,
       ...options,
     };
-  }
-
-  static resolveEnvironment(): string | undefined {
-    const name = process.env.APPSHELL_ENVIRONMENT;
-
-    if (!name) {
-      return undefined;
-    }
-
-    if (name.includes('/')) {
-      return name;
-    }
-
-    return `${process.env.APPSHELL_SCOPE_ID || 'default'}/${name}`;
   }
 
   static findModuleFederationPlugin(webpackConfig: WebpackOptionsNormalized) {
@@ -189,6 +180,35 @@ export default class AppshellPlugin {
   }
 
   /**
+   * Warns when an env var or explicit option points somewhere other than the
+   * developer's persisted CLI context, so an overridden target is never silent.
+   */
+  static overrideNotices(
+    effective: { registry?: string; environment?: string },
+    persisted: { registry?: string; environment?: string },
+  ): string[] {
+    const notices: string[] = [];
+
+    if (persisted.registry && effective.registry && persisted.registry !== effective.registry) {
+      notices.push(
+        `Using registry ${effective.registry}, overriding your CLI context (${persisted.registry}).`,
+      );
+    }
+
+    if (
+      persisted.environment &&
+      effective.environment &&
+      persisted.environment !== effective.environment
+    ) {
+      notices.push(
+        `Using environment ${effective.environment}, overriding your CLI context (${persisted.environment}).`,
+      );
+    }
+
+    return notices;
+  }
+
+  /**
    * Apply the plugin
    * @param {Compiler} compiler the compiler instance
    * @returns {void}
@@ -207,19 +227,33 @@ export default class AppshellPlugin {
     const template = AppshellPlugin.createTemplate(config, plugin);
     AppshellPlugin.validate(template);
 
-    const { registry, environment } = this.options;
+    const isDevelopment = compiler.options.mode === 'development';
+    const context = resolveContext();
 
-    if (this.options.publish && !registry) {
+    // Precedence: explicit option, then the CLI context (env var, then ~/.appshell).
+    const registry = this.options.registry ?? context.registry;
+    const environment = this.options.environment ?? context.environment;
+    const { token } = context;
+
+    const requested = this.options.publish ?? truthy(process.env.APPSHELL_PUBLISH_ON_BUILD);
+    // A dev loop publishes by default, so nobody has to toggle it off before committing.
+    const shouldPublish = requested ?? isDevelopment;
+    const force = this.options.force ?? isDevelopment;
+
+    // Asking to publish with no registry anywhere is a configuration error; a dev-mode
+    // default with no registry is not — it degrades to just writing the template.
+    if (shouldPublish && requested && !registry) {
       throw new Error(
-        'Publishing is enabled but no registry was given. Set APPSHELL_REGISTRY or pass `registry`.',
+        'Publishing is enabled but no registry was given. Run `appshell config set registry <url>` or set APPSHELL_REGISTRY.',
       );
     }
 
-    // In a dev loop the manifest changes at a static version; force lets the registry
-    // accept the overwrite. It is a request only — the registry decides whether to honor it.
-    const force = this.options.force ?? compiler.options.mode === 'development';
+    const notices = AppshellPlugin.overrideNotices({ registry, environment }, persistedContext());
 
     compiler.hooks.afterEmit.tapPromise(PLUGIN_NAME, async (compilation) => {
+      const logger = compilation.getLogger(PLUGIN_NAME);
+      notices.forEach((notice) => logger.warn(notice));
+
       const outputDir = path.resolve(compilation.outputOptions.path || '');
       const outputFile = path.resolve(outputDir, 'appshell.template.json');
 
@@ -229,7 +263,14 @@ export default class AppshellPlugin {
 
       fs.writeFileSync(outputFile, JSON.stringify(template));
 
-      if (!this.options.publish) {
+      if (!shouldPublish) {
+        return;
+      }
+
+      if (!registry) {
+        logger.warn(
+          'Skipping publish: no registry configured. Run `appshell config set registry <url>` or set APPSHELL_REGISTRY.',
+        );
         return;
       }
 
@@ -241,10 +282,9 @@ export default class AppshellPlugin {
         }
 
         const { name, version } = AppshellPlugin.identify(compiler.context);
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const { id, created } = await publish({
-          registry: registry!,
-          token: process.env.APPSHELL_TOKEN,
+          registry,
+          token,
           name,
           version,
           manifest,
@@ -252,7 +292,7 @@ export default class AppshellPlugin {
         });
 
         if (environment) {
-          await activate(registry!, environment, id, process.env.APPSHELL_TOKEN);
+          await activate(registry, environment, id, token);
         }
 
         compilation

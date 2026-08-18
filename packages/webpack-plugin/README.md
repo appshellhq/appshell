@@ -54,32 +54,37 @@ module.exports = {
 ## Publishing on build
 
 The plugin can publish the generated manifest to an Appshell registry after every successful build,
-so a running `--watch` keeps an environment current as you work. It is **off by default** — nothing
-is sent anywhere unless you opt in.
+so a running `--watch` keeps an environment current as you work. **Development builds publish by
+default** — you never toggle it per project — while production builds never publish on their own.
 
 ```js
 new AppshellPlugin({
   config: './path/to/appshell.config.yaml',
-  registry: 'https://registry.example.com',
+  // registry / environment are usually omitted — see below.
+  registry: 'https://registry.example.com', // optional override
   environment: 'acme/my-dev', // optional: activate the published version here
-  publish: true,
 });
 ```
 
-Every option falls back to an environment variable, which is usually how you enable this — the same
-webpack config then publishes in a dev loop or in CI without being edited:
+By default the plugin defers to your **CLI context** — the registry, environment, and token you set
+with `appshell config set` and `appshell login` (stored in `~/.appshell`). That's the same context
+the CLI uses, so one machine-level setting drives both; a project needs no per-repo configuration.
 
-| Option        | Variable                    | Notes                                                                               |
-| ------------- | --------------------------- | ----------------------------------------------------------------------------------- |
-| `publish`     | `APPSHELL_PUBLISH_ON_BUILD` | Any non-empty value opts in                                                         |
-| `registry`    | `APPSHELL_REGISTRY`         | Required when publishing                                                            |
-| `environment` | `APPSHELL_ENVIRONMENT`      | Joined with `APPSHELL_SCOPE_ID` as `scope/name`; omit to publish without activating |
-| `force`       | —                           | Overwrite a changed version; defaults to `true` in dev mode                         |
-| —             | `APPSHELL_TOKEN`            | Bearer token. Never a plugin option                                                 |
+Resolution precedence, per field: explicit plugin option → `APPSHELL_*` env var → `~/.appshell`
+context → default. When an option or env var points somewhere other than your persisted context, the
+plugin warns that it is overriding it.
 
-`environment` and `APPSHELL_SCOPE_ID` mirror the CLI: set `APPSHELL_ENVIRONMENT=dev` and
-`APPSHELL_SCOPE_ID=acme` and the plugin activates in `acme/dev`. Pass an explicit `scope/name` to
-either the option or `APPSHELL_ENVIRONMENT` to override.
+| Field       | Option        | Env var                     | Notes                                                                                 |
+| ----------- | ------------- | --------------------------- | ------------------------------------------------------------------------------------- |
+| publish     | `publish`     | `APPSHELL_PUBLISH_ON_BUILD` | Defaults to `true` in development mode; set `0`/`false` to opt out                    |
+| registry    | `registry`    | `APPSHELL_REGISTRY`         | From CLI context by default                                                           |
+| environment | `environment` | `APPSHELL_ENVIRONMENT`      | `scope/name` (or joined with `APPSHELL_SCOPE_ID`); omit to publish without activating |
+| force       | `force`       | —                           | Overwrite a changed version; defaults to `true` in dev mode                           |
+| token       | —             | `APPSHELL_TOKEN`            | Otherwise from `~/.appshell/credentials`; never a plugin option                       |
+
+In CI there is no `~/.appshell`, so `APPSHELL_REGISTRY`, `APPSHELL_ENVIRONMENT`, and `APPSHELL_TOKEN`
+are the whole story. If publishing defaults on in development but no registry is resolvable, the build
+still succeeds — publishing is skipped with a warning.
 
 The app is published under its **npm** name and version, unscoped — the registry takes the scope
 from your token. Publishing the same content twice is a no-op, so a watch loop that rebuilds without

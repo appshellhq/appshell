@@ -1,5 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { activate, generateManifest, publish } from '@appshell/config';
+import {
+  activate,
+  generateManifest,
+  persistedContext,
+  publish,
+  resolveContext,
+} from '@appshell/config';
 import fs from 'fs';
 import { values } from 'lodash';
 import { rimrafSync } from 'rimraf';
@@ -16,12 +22,16 @@ jest.mock('@appshell/config', () => ({
   activate: jest.fn(),
   generateManifest: jest.fn(),
   publish: jest.fn(),
+  resolveContext: jest.fn(),
+  persistedContext: jest.fn(),
 }));
 
 const mocked = {
   activate: activate as jest.MockedFunction<typeof activate>,
   generateManifest: generateManifest as jest.MockedFunction<typeof generateManifest>,
   publish: publish as jest.MockedFunction<typeof publish>,
+  resolveContext: resolveContext as jest.MockedFunction<typeof resolveContext>,
+  persistedContext: persistedContext as jest.MockedFunction<typeof persistedContext>,
 };
 
 class MockCompiler {
@@ -64,22 +74,27 @@ describe('AppshellPlugin', () => {
 
   let compiler: MockCompiler;
   let errors: Error[];
+  let logger: { info: jest.Mock; warn: jest.Mock };
 
   beforeEach(() => {
     const plugins = [new container.ModuleFederationPlugin(MODULE_FEDERATION_PLUGIN_OPTIONS)];
     errors = [];
+    logger = { info: jest.fn(), warn: jest.fn() };
     compiler = new MockCompiler(
       { plugins },
       {
         outputOptions: { path: '' },
         errors: errors as any,
-        getLogger: (() => ({ info: jest.fn() })) as any,
+        getLogger: (() => logger) as any,
       },
     );
 
     mocked.generateManifest.mockResolvedValue({ remotes: {} } as any);
     mocked.publish.mockResolvedValue({ id: 'acme/widgets@1.0.0', created: true });
     mocked.activate.mockResolvedValue(undefined);
+    // Hermetic by default: no persisted CLI context, nothing resolved from ~/.appshell.
+    mocked.resolveContext.mockReturnValue({ scopeId: 'default' });
+    mocked.persistedContext.mockReturnValue({});
   });
 
   afterEach(() => {
@@ -127,46 +142,6 @@ describe('AppshellPlugin', () => {
 
       expect(plugin.options.config).toEqual('appshell.config.yaml');
     });
-
-    it('should not publish unless asked', () => {
-      expect(new AppshellPlugin().options.publish).toBe(false);
-    });
-
-    it('should opt in via APPSHELL_PUBLISH_ON_BUILD', () => {
-      process.env.APPSHELL_PUBLISH_ON_BUILD = '1';
-      process.env.APPSHELL_REGISTRY = registry;
-
-      const plugin = new AppshellPlugin();
-
-      expect(plugin.options.publish).toBe(true);
-      expect(plugin.options.registry).toEqual(registry);
-    });
-
-    it('should join APPSHELL_SCOPE_ID and APPSHELL_ENVIRONMENT into scope/name', () => {
-      process.env.APPSHELL_SCOPE_ID = 'acme';
-      process.env.APPSHELL_ENVIRONMENT = 'dev';
-
-      expect(new AppshellPlugin().options.environment).toEqual('acme/dev');
-    });
-
-    it('should default the scope to default when only APPSHELL_ENVIRONMENT is set', () => {
-      process.env.APPSHELL_ENVIRONMENT = 'dev';
-
-      expect(new AppshellPlugin().options.environment).toEqual('default/dev');
-    });
-
-    it('should take APPSHELL_ENVIRONMENT as-is when it already contains a scope', () => {
-      process.env.APPSHELL_SCOPE_ID = 'acme';
-      process.env.APPSHELL_ENVIRONMENT = 'other/dev';
-
-      expect(new AppshellPlugin().options.environment).toEqual('other/dev');
-    });
-
-    it('should let explicit options win over the environment', () => {
-      process.env.APPSHELL_PUBLISH_ON_BUILD = '1';
-
-      expect(new AppshellPlugin({ publish: false }).options.publish).toBe(false);
-    });
   });
 
   describe('apply', () => {
@@ -193,7 +168,7 @@ describe('AppshellPlugin', () => {
       );
     });
 
-    it('should not publish by default', async () => {
+    it('should not publish outside development mode unless asked', async () => {
       jest.spyOn(fs, 'writeFileSync').mockImplementation();
       const plugin = new AppshellPlugin({ config, registry });
 
@@ -201,6 +176,57 @@ describe('AppshellPlugin', () => {
       await compiler.invokeHandlers();
 
       expect(mocked.publish).not.toHaveBeenCalled();
+    });
+
+    it('should publish by default in development mode', async () => {
+      jest.spyOn(fs, 'writeFileSync').mockImplementation();
+      mocked.resolveContext.mockReturnValue({ scopeId: 'default', registry });
+      compiler.options.mode = 'development';
+      const plugin = new AppshellPlugin({ config });
+
+      plugin.apply(compiler as any);
+      await compiler.invokeHandlers();
+
+      expect(mocked.publish).toHaveBeenCalledWith(
+        expect.objectContaining({ registry, force: true }),
+      );
+    });
+
+    it('should resolve the registry from the CLI context', async () => {
+      jest.spyOn(fs, 'writeFileSync').mockImplementation();
+      mocked.resolveContext.mockReturnValue({ scopeId: 'default', registry });
+      const plugin = new AppshellPlugin({ config, publish: true });
+
+      plugin.apply(compiler as any);
+      await compiler.invokeHandlers();
+
+      expect(mocked.publish).toHaveBeenCalledWith(expect.objectContaining({ registry }));
+    });
+
+    it('should skip publish in development when no registry is configured', async () => {
+      jest.spyOn(fs, 'writeFileSync').mockImplementation();
+      compiler.options.mode = 'development';
+      const plugin = new AppshellPlugin({ config });
+
+      plugin.apply(compiler as any);
+      await compiler.invokeHandlers();
+
+      expect(mocked.publish).not.toHaveBeenCalled();
+      expect(errors).toHaveLength(0);
+      expect(logger.warn).toHaveBeenCalledWith(expect.stringMatching(/no registry configured/i));
+    });
+
+    it('should warn when an option overrides the persisted CLI context', async () => {
+      jest.spyOn(fs, 'writeFileSync').mockImplementation();
+      mocked.persistedContext.mockReturnValue({ registry: 'https://persisted.example.com' });
+      const plugin = new AppshellPlugin({ config, registry, publish: true });
+
+      plugin.apply(compiler as any);
+      await compiler.invokeHandlers();
+
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.stringMatching(/overriding your CLI context/i),
+      );
     });
 
     it('should fail before building when publishing without a registry', () => {

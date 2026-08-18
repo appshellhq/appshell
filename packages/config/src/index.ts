@@ -2,6 +2,16 @@
  * @appshell/config package API
  */
 export { default as configmap } from './configmap';
+export { persistedContext, resolveContext } from './context';
+export type { AppshellContext } from './context';
+export {
+  clearCredential,
+  credentialsPath,
+  requireToken,
+  resolveToken,
+  saveCredential,
+} from './credentials';
+export type { Credential } from './credentials';
 export { default as deregister } from './deregister';
 export { default as generateEnv } from './generate.env';
 export { default as generateGlobalConfig } from './generate.global-config';
