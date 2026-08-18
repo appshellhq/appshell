@@ -50,12 +50,18 @@ export const get = async (argv: EnvArgs & { name?: string }) => {
 };
 
 export const create = async (
-  argv: EnvArgs & { name: string; ephemeral: boolean; visibility?: 'public' | 'private' },
+  argv: EnvArgs & {
+    name: string;
+    ephemeral: boolean;
+    visibility?: 'public' | 'private';
+    shellBundleUrl?: string;
+  },
 ) => {
   const { id } = await new RegistryClient(argv.registry).createEnvironment({
     name: argv.name,
     ephemeral: argv.ephemeral,
     visibility: argv.visibility,
+    shell: argv.shellBundleUrl ? { shellBundleUrl: argv.shellBundleUrl } : undefined,
   });
 
   console.log(chalk.green(`Created environment ${id}`));

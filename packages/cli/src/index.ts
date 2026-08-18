@@ -462,7 +462,11 @@ yargs(hideBin(process.argv))
             yargs
               .positional('name', { type: 'string', demandOption: true })
               .option('ephemeral', { boolean: true, default: false, type: 'boolean' })
-              .option('visibility', { type: 'string', choices: ['public', 'private'] as const }),
+              .option('visibility', { type: 'string', choices: ['public', 'private'] as const })
+              .option('shell-bundle-url', {
+                type: 'string',
+                describe: 'Shell bundle this environment loads, instead of the registry default',
+              }),
           handler: env.create as never,
         })
         .command({
