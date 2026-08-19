@@ -156,6 +156,8 @@ appshell env sync --from dev --to staging --include apps
 
 ## Legacy file registry
 
-Earlier versions of this example wrote `appshell.config.json` and `appshell.snapshot.json` into the local `appshell_registry/` directory via `appshell register --registry $SAMPLE_MFE_REGISTRY`. That still works and is what the `register` npm scripts do, but it is deprecated in favour of `appshell publish`.
+Earlier versions of this example wrote `appshell.config.json` and `appshell.snapshot.json` into the local `appshell_registry/` directory via `appshell register --registry <path>`. That path-based flow still works for compatibility, but it is deprecated in favour of centralized `appshell publish`.
+
+In this workspace, the `register` npm scripts now call `appshell publish --template ...` so they publish to the configured registry/environment context (or to `APPSHELL_REGISTRY` / `APPSHELL_ENVIRONMENT` when those are set).
 
 `appshell register` also accepts a registry URL, which posts the manifest to `<registry>/<environment>` and lets a host read `<registry>/<environment>/appshell.config.json`. That is the smallest possible migration step, but it skips versioning, activation, and revisions.

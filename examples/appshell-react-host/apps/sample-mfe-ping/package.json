@@ -3,14 +3,14 @@
   "version": "0.0.1",
   "main": "dist/main.js",
   "scripts": {
-    "generate:manifest": "appshell generate manifest --template dist/appshell.template.json",
-    "register": "appshell register --manifest dist/appshell.manifest.json --registry $SAMPLE_MFE_REGISTRY",
+    "generate:manifest": "dotenv -- appshell generate manifest --template dist/appshell.template.json",
+    "register": "dotenv -- appshell publish --template dist/appshell.template.json",
     "watch:config": "nodemon --watch dist/appshell.template.json --exec run-s generate:manifest register",
     "start": "dotenv -- webpack-cli serve --mode development",
     "start:run": "webpack-cli serve --mode development",
     "build": "webpack --mode production && tsc --emitDeclarationOnly",
     "clean": "rm -rf dist",
-    "serve": "serve dist -p $SAMPLE_MFE_PING_PORT",
+    "serve": "dotenv -- serve dist -p $SAMPLE_MFE_PING_PORT",
     "stats": "webpack --json > stats.json"
   },
   "license": "MIT"
