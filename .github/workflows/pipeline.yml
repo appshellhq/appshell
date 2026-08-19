@@ -91,11 +91,11 @@ jobs:
 
       - name: Version and tag pre-release
         if: ${{ contains(github.ref, 'refs/heads/feat') || contains(github.ref, 'refs/heads/fix') }}
-        run: npx lerna version --no-push --conventional-prerelease --yes
+        run: npx lerna version --no-push --conventional-prerelease --force-publish --yes
 
       - name: Version and tag release
         if: ${{ github.ref == 'refs/heads/main' }}
-        run: npx lerna version --no-push --conventional-graduate --yes
+        run: npx lerna version --no-push --conventional-graduate --force-publish --yes
 
       - name: Build
         run: npm run build
