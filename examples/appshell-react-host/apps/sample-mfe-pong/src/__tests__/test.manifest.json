@@ -83,7 +83,7 @@
         },
         "@appshell/react": {
           "singleton": true,
-          "requiredVersion": "^0.12.0-alpha.0"
+          "requiredVersion": "^1.0.0-alpha.8"
         }
       }
     },
@@ -112,7 +112,7 @@
         },
         "@appshell/react": {
           "singleton": true,
-          "requiredVersion": "^0.12.0-alpha.0"
+          "requiredVersion": "^1.0.0-alpha.8"
         }
       }
     },
@@ -142,7 +142,7 @@
         },
         "@appshell/react": {
           "singleton": true,
-          "requiredVersion": "^0.12.0-alpha.0"
+          "requiredVersion": "^1.0.0-alpha.8"
         }
       }
     }
