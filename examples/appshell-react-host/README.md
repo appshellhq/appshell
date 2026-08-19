@@ -34,6 +34,14 @@ webpack build  ->  appshell.template.json
 
 A published version is immutable. Changing what an environment runs means activating a different version, which produces a new environment revision that can be inspected and rolled back.
 
+## CSP and the dev server `devtool`
+
+The registry-served shell sends a strict `Content-Security-Policy` with no `unsafe-eval`. Webpack's
+development-mode default `devtool` (`eval`) wraps every module in `eval()`, which that policy blocks —
+the remote entry loads (200) but its container never assigns itself on `window`. Each app's
+`webpack.config.js` sets `devtool: isDevelopment ? 'source-map' : false` to avoid this; apply the same
+override to any new MFE added to this example.
+
 ## Metadata
 
 You can associate any kind of metadata with each remote module (via `appshell.config.yaml`) and use the metadata to configure your appshell by supplying routing information, rendering details, etc.

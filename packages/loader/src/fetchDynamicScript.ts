@@ -1,7 +1,16 @@
 const urlCache = new Set<string>();
 
+/** Propagates the shell's CSP nonce so browsers that don't trust strict-dynamic propagation still allow it. */
+const cspNonce = (): string | undefined =>
+  document.querySelector<HTMLScriptElement>('script[nonce]')?.nonce;
+
 export default async (url: string) => {
   const element = document.createElement('script');
+  const nonce = cspNonce();
+
+  if (nonce) {
+    element.nonce = nonce;
+  }
 
   const cleanup = (): void => {
     if (document.head.contains(element)) {

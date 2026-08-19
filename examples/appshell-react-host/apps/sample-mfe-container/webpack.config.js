@@ -12,6 +12,8 @@ module.exports = (env, { mode }) => {
   return {
     entry: './src/Container',
     mode,
+    // dev-mode eval() is blocked by the shell's CSP; production already defaults to no devtool
+    devtool: isDevelopment ? 'source-map' : false,
     devServer: {
       hot: true,
       allowedHosts: 'all',

@@ -41,6 +41,40 @@ type ModuleFederationPluginInstance = WebpackPluginInstance & {
 
 const PLUGIN_NAME = 'AppshellPlugin';
 
+const delay = (ms: number) =>
+  new Promise<void>((resolve) => {
+    setTimeout(resolve, ms);
+  });
+
+const isConcurrentActivationError = (error: unknown): boolean => {
+  const message = (error as { message?: string })?.message ?? '';
+
+  return (
+    message.includes('was modified concurrently') ||
+    (message.includes('Failed to activate') && message.includes('409'))
+  );
+};
+
+const activateWithRetry = async (
+  registry: string,
+  environment: string,
+  id: string,
+  token: string | undefined,
+  retries: number,
+  attempt = 1,
+): Promise<void> => {
+  try {
+    await activate(registry, environment, id, token);
+  } catch (error) {
+    if (!isConcurrentActivationError(error) || attempt >= retries) {
+      throw error;
+    }
+
+    await delay(150 * attempt);
+    await activateWithRetry(registry, environment, id, token, retries, attempt + 1);
+  }
+};
+
 const schema: Schema = {
   title: 'AppshellPlugin',
   type: 'object',
@@ -294,7 +328,9 @@ export default class AppshellPlugin {
         });
 
         if (environment) {
-          await activate(registry, environment, id, token);
+          // Concurrent app startups can race on environment revisions.
+          // Retry activation a few times in dev to make one-command startup stable.
+          await activateWithRetry(registry, environment, id, token, isDevelopment ? 4 : 1);
         }
 
         compilation
@@ -305,8 +341,18 @@ export default class AppshellPlugin {
             }`,
           );
       } catch (error) {
+        const err = error as Error;
+
+        if (
+          isDevelopment &&
+          force &&
+          err?.message?.includes('already published with different content')
+        ) {
+          err.message = `${err.message} Development mode requested force publish, but the registry refused overwrite. Enable ALLOW_FORCE_PUBLISH=true (or AUTH_MODE=none) on the registry for local/dev.`;
+        }
+
         // Surfaced as a compilation error so watch mode reports it and keeps going.
-        compilation.errors.push(error as Error);
+        compilation.errors.push(err);
       }
     });
   }

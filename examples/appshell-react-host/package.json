@@ -16,8 +16,11 @@
     "lint": "eslint 'apps/**/*.{ts,tsx}'",
     "register": "dotenv -- lerna run --parallel register",
     "serve": "dotenv -- lerna run --parallel serve",
-    "prestart": "dotenv -- lerna run --scope=react-appshell-host-components build",
-    "start": "dotenv -- lerna run --parallel start",
+    "prestart": "dotenv -- npm run -w react-appshell-host-components build",
+    "start": "dotenv -- run-p start:container start:ping start:pong",
+    "start:container": "dotenv -- npm run -w sample-mfe-container start",
+    "start:ping": "dotenv -- npm run -w sample-mfe-ping start",
+    "start:pong": "dotenv -- npm run -w sample-mfe-pong start",
     "stats": "lerna run --parallel stats",
     "test": "jest",
     "test:ci": "npm run test -- a --watchAll=false"

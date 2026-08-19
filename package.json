@@ -10,6 +10,7 @@
     "build": "lerna run --scope=@appshell/webpack-plugin --scope=@appshell/react-refresh-singleton-plugin build && lerna run --ignore=@appshell/webpack-plugin --ignore=@appshell/react-refresh-singleton-plugin build",
     "clean": "lerna run --parallel clean && rm -rf coverage",
     "lint": "eslint 'packages/**/*.{ts,tsx}'",
+    "start:example:react-host": "npm --prefix examples/appshell-react-host run start",
     "serve": "dotenv -- lerna run --parallel serve",
     "start": "dotenv -- lerna run --parallel start",
     "stats": "lerna run --parallel stats",
