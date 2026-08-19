@@ -104,7 +104,22 @@ jobs:
       # NPM_CONFIG_PROVENANCE on top of it submits a duplicate attestation and
       # Rekor rejects it with a 409. --concurrency 1 avoids any tlog race.
       - name: Publish
-        run: npx lerna publish --yes --concurrency 1 from-git
+        shell: bash
+        run: |
+          set -o pipefail
+          publish_log="$RUNNER_TEMP/lerna-publish.log"
+
+          if npx lerna publish --yes --concurrency 1 from-git 2>&1 | tee "$publish_log"; then
+            exit 0
+          fi
+
+          if grep -q "TLOG_CREATE_ENTRY_ERROR" "$publish_log"; then
+            echo "::warning::npm transparency log returned 409; retrying publish with provenance disabled."
+            NPM_CONFIG_PROVENANCE=false npx lerna publish --yes --concurrency 1 from-git
+            exit $?
+          fi
+
+          exit 1
 
       - name: Push CI commit
         run: git push --follow-tags
