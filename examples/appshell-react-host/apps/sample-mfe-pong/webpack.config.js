@@ -38,6 +38,9 @@ module.exports = (env, { mode }) => {
       extensions: ['.js', '.ts', '.tsx'],
       plugins: [new TsconfigPathsPlugin()],
     },
+    // @appshell/react's dist bundles module-federation's own environment-detection require(),
+    // which webpack can't statically analyze; it's a known false positive, not a real issue.
+    ignoreWarnings: [{ module: /packages\/react\/dist\/main\.js/ }],
     module: {
       rules: [
         {
@@ -62,6 +65,8 @@ module.exports = (env, { mode }) => {
     plugins: [
       new ModuleFederationPlugin({
         name: 'PongModule',
+        // No consumer currently relies on generated remote types.
+        dts: false,
         exposes: {
           './Pong': './src/Pong',
           './CoolComponent': './src/CoolRemoteComponent',
