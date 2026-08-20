@@ -18,6 +18,15 @@ module.exports = (env, { mode }) => {
     devServer: {
       hot: true,
       allowedHosts: 'all',
+      // Browser extensions (e.g. MetaMask's injected inpage.js) throw unrelated runtime
+      // errors on the page; only surface our own compile errors/warnings, not those.
+      client: {
+        overlay: {
+          errors: true,
+          warnings: true,
+          runtimeErrors: false,
+        },
+      },
       headers: {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': '*',
