@@ -1,4 +1,5 @@
 const webpack = require('webpack');
+const { ModuleFederationPlugin } = require('@module-federation/enhanced/webpack');
 const CopyPlugin = require('copy-webpack-plugin');
 const ReactRefreshSingleton = require('single-react-refresh-plugin');
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
@@ -12,7 +13,8 @@ module.exports = (env, { mode }) => {
   const browser = {
     entry: './src/index',
     mode,
-    devtool: isDevelopment ? 'eval-source-map' : false,
+    // dev-mode eval() is blocked by the shell's own CSP; production already defaults to no devtool
+    devtool: isDevelopment ? 'source-map' : false,
     devServer: {
       hot: true,
       allowedHosts: 'all',
@@ -64,7 +66,7 @@ module.exports = (env, { mode }) => {
           { from: 'public/logo512.png', to: '.' },
         ],
       }),
-      new webpack.container.ModuleFederationPlugin({
+      new ModuleFederationPlugin({
         name: 'Appshell',
         shared: {
           react: {

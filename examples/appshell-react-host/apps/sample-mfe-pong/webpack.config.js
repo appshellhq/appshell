@@ -1,4 +1,4 @@
-const { container } = require('webpack');
+const { ModuleFederationPlugin } = require('@module-federation/enhanced/webpack');
 const path = require('path');
 const { AppshellPlugin } = require('@appshell/webpack-plugin');
 const ReactRefreshSingleton = require('single-react-refresh-plugin');
@@ -60,7 +60,7 @@ module.exports = (env, { mode }) => {
       ],
     },
     plugins: [
-      new container.ModuleFederationPlugin({
+      new ModuleFederationPlugin({
         name: 'PongModule',
         exposes: {
           './Pong': './src/Pong',

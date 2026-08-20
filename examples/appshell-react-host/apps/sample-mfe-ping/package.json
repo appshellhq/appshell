@@ -13,5 +13,8 @@
     "serve": "dotenv -- serve dist -p $SAMPLE_MFE_PING_PORT",
     "stats": "webpack --json > stats.json"
   },
+  "devDependencies": {
+    "@module-federation/enhanced": "^2.8.2"
+  },
   "license": "MIT"
 }

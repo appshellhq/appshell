@@ -12,5 +12,8 @@
     "serve": "dotenv -- serve dist -p $SAMPLE_MFE_CONTAINER_PORT",
     "stats": "webpack --json > stats.json"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "@module-federation/enhanced": "^2.8.2"
+  }
 }

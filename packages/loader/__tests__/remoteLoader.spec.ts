@@ -1,13 +1,11 @@
 /** @jest-environment jsdom */
 import { AppshellGlobalConfig, AppshellManifest } from '@appshell/config';
 import fetch, { enableFetchMocks } from 'jest-fetch-mock';
-import * as fetchDynamicScript from '../src/fetchDynamicScript';
 import * as loadAppshellComponent from '../src/loadAppshellComponent';
 import remoteLoader from '../src/remoteLoader';
 
 enableFetchMocks();
 
-jest.mock('../src/fetchDynamicScript');
 jest.mock('../src/loadAppshellComponent');
 
 describe('remoteLoader', () => {
@@ -51,7 +49,6 @@ describe('remoteLoader', () => {
 
   it('should return the Appshell component if it is found in the registry', async () => {
     const ExpectedComponent = () => 'test component';
-    jest.spyOn(fetchDynamicScript, 'default').mockReturnValueOnce(Promise.resolve(true));
     jest
       .spyOn(loadAppshellComponent, 'default')
       .mockResolvedValue(Promise.resolve(ExpectedComponent));
@@ -63,27 +60,8 @@ describe('remoteLoader', () => {
     expect(actualManifest).toEqual(manifest);
   });
 
-  it('should not fetch remote entry more than once', async () => {
-    const ExpectedComponent = () => 'test component';
-    const fetchDynamicScriptSpy = jest
-      .spyOn(fetchDynamicScript, 'default')
-      .mockReturnValueOnce(Promise.resolve(true));
-    jest
-      .spyOn(loadAppshellComponent, 'default')
-      .mockResolvedValue(Promise.resolve(ExpectedComponent));
-
-    const loadRemote = remoteLoader(config);
-
-    await loadRemote('TestModule/TestComponent');
-    await loadRemote('TestModule/TestComponent');
-    await loadRemote('TestModule/TestComponent');
-
-    expect(fetchDynamicScriptSpy).toHaveBeenCalledTimes(1);
-  });
-
   it('should apply overridden environment values', async () => {
     const ExpectedComponent = () => 'test component';
-    jest.spyOn(fetchDynamicScript, 'default').mockReturnValueOnce(Promise.resolve(true));
     jest
       .spyOn(loadAppshellComponent, 'default')
       .mockResolvedValue(Promise.resolve(ExpectedComponent));
@@ -108,7 +86,6 @@ describe('remoteLoader', () => {
   });
 
   it('should throw if load Appshell component fails', async () => {
-    jest.spyOn(fetchDynamicScript, 'default').mockReturnValueOnce(Promise.resolve(true));
     jest.spyOn(loadAppshellComponent, 'default').mockRejectedValue(new Error('failed'));
 
     const loadRemote = remoteLoader(config);
@@ -120,7 +97,6 @@ describe('remoteLoader', () => {
 
   it('should load from an inlined composition without fetching a manifest', async () => {
     const ExpectedComponent = () => 'test component';
-    jest.spyOn(fetchDynamicScript, 'default').mockReturnValueOnce(Promise.resolve(true));
     jest.spyOn(loadAppshellComponent, 'default').mockResolvedValue(ExpectedComponent);
     fetch.resetMocks();
 

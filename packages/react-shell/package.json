@@ -22,6 +22,9 @@
     "clean": "rm -rf dist"
   },
   "author": "Robert Hamilton <rh@navaris.com>",
+  "devDependencies": {
+    "@module-federation/enhanced": "^2.8.2"
+  },
   "browserslist": {
     "production": [
       ">0.2%",

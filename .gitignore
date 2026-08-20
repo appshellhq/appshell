@@ -11,6 +11,9 @@ junit.xml
 # production
 dist
 
+# module federation dts-plugin cache
+.mf/
+
 # misc
 .env
 .env.local

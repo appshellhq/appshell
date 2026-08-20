@@ -1,102 +1,68 @@
 /** @jest-environment jsdom */
-/* eslint-disable no-underscore-dangle */
-import loadAppshellComponent from '../src/loadAppshellComponent';
-import { ModuleContainer, ShareScope } from '../src/types';
+
+jest.mock('@module-federation/enhanced/runtime', () => ({
+  init: jest.fn(),
+  getInstance: jest.fn(() => null),
+  registerRemotes: jest.fn(),
+  loadRemote: jest.fn(),
+}));
 
 type ComponentType = () => string;
-
-const TestComponent = () => 'test component';
-const mockModule = {
-  './TestComponent': {
-    get: jest.fn(),
-    from: '',
-    eager: false,
-  },
-};
-const scopes: Record<string, ShareScope<ComponentType>> = {
-  default: {
-    TestModule: mockModule,
-  },
-  test_scope: {
-    TestModule2: mockModule,
-  },
-  no_factory: {
-    TestModule3: mockModule,
-  },
-};
-const containers: Record<string, Record<string, ModuleContainer<ComponentType>>> = {
-  default: {
-    TestModule: {
-      init: jest.fn(),
-      get: jest.fn().mockReturnValue(() => ({
-        default: TestComponent,
-      })),
-    },
-  },
-  test_scope: {
-    TestModule2: {
-      init: jest.fn(),
-      get: jest.fn().mockReturnValue(() => ({
-        test_scope: TestComponent,
-      })),
-    },
-  },
-  no_factory: {
-    TestModule3: {
-      init: jest.fn(),
-      get: jest.fn().mockReturnValue(undefined),
-    },
-  },
-};
+const TestComponent: ComponentType = () => 'test component';
 
 describe('loadAppshellComponent', () => {
   beforeEach(() => {
-    window.__webpack_init_sharing__ = jest.fn(async (shareScope: string) => {
-      // eslint-disable-next-line @typescript-eslint/dot-notation
-      Object.entries(containers[shareScope] || {}).forEach(([key, module]) => {
-        window[key] = module;
-      });
-      window.__webpack_share_scopes__ = {};
-      window.__webpack_share_scopes__[shareScope] = scopes[shareScope];
-    });
+    jest.resetModules();
   });
 
-  afterEach(() => {
-    Object.values(window.__webpack_share_scopes__ || {})
-      .flatMap((val) => Object.keys(val || {}))
-      .forEach((key) => {
-        delete window[key];
-      });
-    window.__webpack_share_scopes__ = {};
-  });
+  it('should load the Appshell component via the federation runtime', async () => {
+    const runtime = await import('@module-federation/enhanced/runtime');
+    (runtime.loadRemote as jest.Mock).mockResolvedValue({ default: TestComponent });
+    const loadAppshellComponent = (await import('../src/loadAppshellComponent')).default;
 
-  it('should load the Appshell component from the default scope', async () => {
-    const scope = 'TestModule';
-    const module = './TestComponent';
-    const shareScope = undefined;
-
-    const Component = await loadAppshellComponent<ComponentType>(scope, module, shareScope);
+    const Component = await loadAppshellComponent<ComponentType>(
+      'TestModule',
+      './TestComponent',
+      'http://test.com/remoteEntry.js',
+    );
 
     expect(Component).toBe(TestComponent);
+    expect(runtime.registerRemotes).toHaveBeenCalledWith([
+      { name: 'TestModule', entry: 'http://test.com/remoteEntry.js' },
+    ]);
+    expect(runtime.loadRemote).toHaveBeenCalledWith('TestModule/TestComponent');
   });
 
-  it('should throw if the share scope does not exist', async () => {
-    const scope = 'TestModule';
-    const module = './TestComponent';
-    const shareScope = 'does_not_exist';
+  it('should initialize the runtime and register each scope only once', async () => {
+    const runtime = await import('@module-federation/enhanced/runtime');
+    (runtime.loadRemote as jest.Mock).mockResolvedValue({ default: TestComponent });
+    const loadAppshellComponent = (await import('../src/loadAppshellComponent')).default;
 
-    await expect(loadAppshellComponent<ComponentType>(scope, module, shareScope)).rejects.toThrow(
-      /Failed to find module container/i,
-    );
+    await loadAppshellComponent('TestModule', './TestComponent', 'http://test.com/remoteEntry.js');
+    await loadAppshellComponent('TestModule', './TestComponent', 'http://test.com/remoteEntry.js');
+
+    expect(runtime.init).toHaveBeenCalledTimes(1);
+    expect(runtime.registerRemotes).toHaveBeenCalledTimes(1);
   });
 
-  it('should throw if the module factory does not exist', async () => {
-    const scope = 'TestModule3';
-    const module = './TestComponent';
-    const shareScope = 'no_factory';
+  it('should throw if the remote module cannot be loaded', async () => {
+    const runtime = await import('@module-federation/enhanced/runtime');
+    (runtime.loadRemote as jest.Mock).mockResolvedValue(null);
+    const loadAppshellComponent = (await import('../src/loadAppshellComponent')).default;
 
-    await expect(loadAppshellComponent<ComponentType>(scope, module, shareScope)).rejects.toThrow(
-      /Invalid factory produced/i,
-    );
+    await expect(
+      loadAppshellComponent('TestModule', './TestComponent', 'http://test.com/remoteEntry.js'),
+    ).rejects.toThrow(/Failed to find module container/i);
+  });
+
+  it('should not call init when a host federation instance already exists', async () => {
+    const runtime = await import('@module-federation/enhanced/runtime');
+    (runtime.getInstance as jest.Mock).mockReturnValue({});
+    (runtime.loadRemote as jest.Mock).mockResolvedValue({ default: TestComponent });
+    const loadAppshellComponent = (await import('../src/loadAppshellComponent')).default;
+
+    await loadAppshellComponent('TestModule', './TestComponent', 'http://test.com/remoteEntry.js');
+
+    expect(runtime.init).not.toHaveBeenCalled();
   });
 });

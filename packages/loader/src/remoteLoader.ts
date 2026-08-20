@@ -1,6 +1,5 @@
 /* eslint-disable no-underscore-dangle */
 import type { AppshellComposition, AppshellGlobalConfig } from '@appshell/config';
-import fetchDynamicScript from './fetchDynamicScript';
 import loadAppshellComponent from './loadAppshellComponent';
 import {
   chainResolvers,
@@ -10,10 +9,9 @@ import {
   type RemoteResolver,
 } from './resolvers';
 
-const fetchedScriptCache = new Set<string>();
-
 declare global {
   interface Window {
+    [key: string]: unknown;
     __appshell_config__?: AppshellComposition;
   }
 }
@@ -56,19 +54,10 @@ export default (config: AppshellGlobalConfig, options: RemoteLoaderOptions = {})
     try {
       window[`__appshell_env__${remote.scope}`] = environment;
 
-      const loaded =
-        fetchedScriptCache.has(remote.remoteEntryUrl) ||
-        (await fetchDynamicScript(remote.remoteEntryUrl));
-
-      if (!loaded) {
-        return [null, null] as const;
-      }
-
-      fetchedScriptCache.add(remote.remoteEntryUrl);
-
       const Component = await loadAppshellComponent<TComponent>(
         remote.scope,
         remote.module,
+        remote.remoteEntryUrl,
         remote.shareScope,
       );
 
