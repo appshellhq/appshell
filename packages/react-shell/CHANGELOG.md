@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.11](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.10...v1.0.0-alpha.11) (2026-08-20)
+
+### Features
+
+- **loader:** migrate remote loading to @module-federation/enhanced runtime ([fda2d5d](https://github.com/appshell-org/appshell/commit/fda2d5ddfa5487f9aae55669392a08e55a491461)), closes [#RUNTIME-010](https://github.com/appshell-org/appshell/issues/RUNTIME-010)
+
 # [1.0.0-alpha.10](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.9...v1.0.0-alpha.10) (2026-08-19)
 
 **Note:** Version bump only for package @appshell/react-shell
