@@ -5,7 +5,6 @@ const ReactRefreshSingleton = require('single-react-refresh-plugin');
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
 const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 const { dependencies } = require('../../package.json');
-const appshellReactPkg = require('../react/package.json');
 
 module.exports = (env, { mode }) => {
   const isDevelopment = mode === 'development';
@@ -90,14 +89,12 @@ module.exports = (env, { mode }) => {
             singleton: true,
             requiredVersion: dependencies['react-refresh'],
           },
-          '@appshell/react': {
-            singleton: true,
-            requiredVersion: appshellReactPkg.version,
-          },
         },
       }),
       isDevelopment && new webpack.HotModuleReplacementPlugin(),
-      isDevelopment && new ReactRefreshWebpackPlugin(),
+      // Its own error overlay (separate from devServer.client.overlay) catches any
+      // uncaught window error, including unrelated ones from browser extensions.
+      isDevelopment && new ReactRefreshWebpackPlugin({ overlay: false }),
       isDevelopment && new ReactRefreshSingleton(),
     ].filter(Boolean),
   };

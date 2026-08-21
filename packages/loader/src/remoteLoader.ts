@@ -1,6 +1,6 @@
 /* eslint-disable no-underscore-dangle */
 import type { AppshellComposition, AppshellGlobalConfig } from '@appshell/config';
-import loadAppshellComponent from './loadAppshellComponent';
+import loadAppshellComponent, { type LoadAppshellComponentOptions } from './loadAppshellComponent';
 import {
   chainResolvers,
   inlineResolver,
@@ -22,6 +22,8 @@ export type RemoteLoaderOptions = {
   resolver?: RemoteResolver;
 };
 
+export type RemoteComponentLoadOptions = LoadAppshellComponentOptions;
+
 export default (config: AppshellGlobalConfig, options: RemoteLoaderOptions = {}) => {
   const composition =
     options.composition ?? (typeof window === 'undefined' ? undefined : window.__appshell_config__);
@@ -34,7 +36,7 @@ export default (config: AppshellGlobalConfig, options: RemoteLoaderOptions = {})
       legacyManifestResolver(config),
     );
 
-  return async <TComponent>(key: string) => {
+  return async <TComponent>(key: string, loadOptions: RemoteComponentLoadOptions = {}) => {
     const failed = (err: unknown) =>
       new Error(`Failed to load component '${key}'. ${err?.toString()}`);
 
@@ -59,6 +61,7 @@ export default (config: AppshellGlobalConfig, options: RemoteLoaderOptions = {})
         remote.module,
         remote.remoteEntryUrl,
         remote.shareScope,
+        loadOptions,
       );
 
       return [Component, manifest] as const;

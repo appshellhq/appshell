@@ -97,14 +97,12 @@ module.exports = (env, { mode }) => {
             singleton: true,
             requiredVersion: dependencies['styled-components'],
           },
-          '@appshell/react': {
-            singleton: true,
-            requiredVersion: dependencies['@appshell/react'],
-          },
         },
       }),
       new AppshellPlugin(),
-      isDevelopment && new ReactRefreshWebpackPlugin(),
+      // Its own error overlay (separate from devServer.client.overlay) catches any
+      // uncaught window error, including unrelated ones from browser extensions.
+      isDevelopment && new ReactRefreshWebpackPlugin({ overlay: false }),
       isDevelopment && new ReactRefreshSingleton(),
     ].filter(Boolean),
   };
