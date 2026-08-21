@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.12](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.11...v1.0.0-alpha.12) (2026-08-21)
+
+### Bug Fixes
+
+- improve local federation HMR and shell share behavior ([463d85c](https://github.com/appshell-org/appshell/commit/463d85ce0f18f6111a09b5d94d39d24fb813abc8))
+
 # [1.0.0-alpha.11](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.10...v1.0.0-alpha.11) (2026-08-20)
 
 ### Features

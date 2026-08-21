@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.12](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.11...v1.0.0-alpha.12) (2026-08-21)
+
+### Bug Fixes
+
+- **examples:** silence federation dts errors and bundled-react warning noise ([7a49b11](https://github.com/appshell-org/appshell/commit/7a49b118e9e745ab3c09fe38fd6ab4587512fd3d)), closes [#TYPE-001](https://github.com/appshell-org/appshell/issues/TYPE-001)
+- **examples:** stop dev-server overlay from catching unrelated runtime errors ([10b4b86](https://github.com/appshell-org/appshell/commit/10b4b8676d9e7776377138ac9299a7fc99a7e910))
+- improve local federation HMR and shell share behavior ([463d85c](https://github.com/appshell-org/appshell/commit/463d85ce0f18f6111a09b5d94d39d24fb813abc8))
+
 # [1.0.0-alpha.11](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.10...v1.0.0-alpha.11) (2026-08-20)
 
 ### Features
