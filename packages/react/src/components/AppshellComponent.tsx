@@ -20,9 +20,6 @@ export type AppshellComponentProps<TProps extends ExtendedProps = ExtendedProps>
   fallback?: ReactNode;
 } & TProps;
 
-// A remote served from localhost / a private LAN address is a webpack dev-server, so it
-// exposes a live-reload websocket we can watch. Detected at runtime (not via NODE_ENV) so
-// this survives the library being built in production mode yet consumed by a dev app.
 const isDevServerHost = (host: string): boolean => {
   const hostname = host.split(':')[0];
   return (
@@ -47,33 +44,14 @@ const toWebpackDevServerWsUrl = (remoteEntryUrl: string): string | null => {
   }
 };
 
-const watchRemoteHmrHash = (
-  remoteEntryUrl: string,
-  onHashChange: (hash: string) => void,
-): (() => void) => {
+const watchRemoteHmr = (remoteEntryUrl: string, onUpdated: () => void): (() => void) => {
   const wsUrl = toWebpackDevServerWsUrl(remoteEntryUrl);
-  if (!wsUrl) {
-    // eslint-disable-next-line no-console
-    console.log(`[appshell-hmr] not a dev-server host, skipping watch: ${remoteEntryUrl}`);
-    return () => undefined;
-  }
+  if (!wsUrl) return () => undefined;
 
-  // eslint-disable-next-line no-console
-  console.log(`[appshell-hmr] watching dev-server ws: ${wsUrl}`);
-
-  let lastHash: string | null = null;
   let closed = false;
+  let pendingHash: string | null = null;
+  let lastAppliedHash: string | null = null;
   const socket = new WebSocket(wsUrl);
-
-  socket.onopen = () => {
-    // eslint-disable-next-line no-console
-    console.log(`[appshell-hmr] ws open: ${wsUrl}`);
-  };
-
-  socket.onerror = () => {
-    // eslint-disable-next-line no-console
-    console.log(`[appshell-hmr] ws error: ${wsUrl}`);
-  };
 
   socket.onmessage = (event) => {
     if (closed) return;
@@ -81,23 +59,31 @@ const watchRemoteHmrHash = (
     try {
       const payload = JSON.parse(`${event.data}`) as { type?: string; data?: string };
 
-      // Track hash so we can pass it to the loader cache-buster.
       if (payload.type === 'hash' && typeof payload.data === 'string') {
-        lastHash = payload.data;
+        pendingHash = payload.data;
         return;
       }
 
-      // "ok" fires after webpack has finished serving the new bundle — safe to re-load.
-      // "static-changed" fires when a static file changes and the server restarts.
-      if (payload.type === 'ok' || payload.type === 'static-changed') {
-        // eslint-disable-next-line no-console
-        console.log(`[appshell-hmr] ws "${payload.type}" (hash=${lastHash})`);
-        if (lastHash) {
-          onHashChange(lastHash);
+      // "ok" indicates the remote dev-server finished rebuilding.
+      if (payload.type === 'ok' && pendingHash) {
+        if (!lastAppliedHash) {
+          // Prime baseline on first connect; don't reload immediately.
+          lastAppliedHash = pendingHash;
+          pendingHash = null;
+          return;
         }
+
+        if (pendingHash !== lastAppliedHash) {
+          lastAppliedHash = pendingHash;
+          pendingHash = null;
+          onUpdated();
+          return;
+        }
+
+        pendingHash = null;
       }
     } catch {
-      // Ignore non-JSON frames or unrelated payloads.
+      // Ignore non-JSON frames.
     }
   };
 
@@ -118,17 +104,16 @@ const AppshellComponent = <TProps extends ExtendedProps>({
   useEffect(() => {
     let active = false;
     let disposed = false;
-    let watching = false;
     let isLoading = false;
-    let pendingReloadCacheBust: string | undefined;
+    let pendingReload = false;
+    let watching = false;
+    let reloading = false;
     let stopWatching: () => void = () => undefined;
     const loadComponent = remoteLoader(config);
 
-    async function load(cacheBust?: string) {
+    async function load() {
       if (isLoading) {
-        if (cacheBust) {
-          pendingReloadCacheBust = cacheBust;
-        }
+        pendingReload = true;
         return;
       }
 
@@ -137,24 +122,18 @@ const AppshellComponent = <TProps extends ExtendedProps>({
       try {
         active = true;
         setElement(undefined);
-        const [Component, manifest] = await loadComponent<ComponentType>(remote, {
-          forceReload: Boolean(cacheBust),
-          cacheBust,
-        });
+        const [Component, manifest] = await loadComponent<ComponentType>(remote);
         if (!Component) {
-          isLoading = false;
           return;
         }
 
         if (!watching && manifest.remotes[remote]?.remoteEntryUrl) {
           watching = true;
-          // eslint-disable-next-line no-console
-          console.log(`[appshell-hmr] attaching watcher for ${remote}`);
-          stopWatching = watchRemoteHmrHash(manifest.remotes[remote].remoteEntryUrl, (hash) => {
+          stopWatching = watchRemoteHmr(manifest.remotes[remote].remoteEntryUrl, () => {
             if (disposed) return;
-            // eslint-disable-next-line no-console
-            console.log(`[appshell-hmr] ${remote} hash changed: ${hash}`);
-            load(hash);
+            if (reloading) return;
+            reloading = true;
+            window.location.reload();
           });
         }
 
@@ -170,10 +149,9 @@ const AppshellComponent = <TProps extends ExtendedProps>({
         setElement(<LoadingError remote={remote} reason={`${err}`} />);
       } finally {
         isLoading = false;
-        if (pendingReloadCacheBust && !disposed) {
-          const nextCacheBust = pendingReloadCacheBust;
-          pendingReloadCacheBust = undefined;
-          load(nextCacheBust);
+        if (pendingReload && !disposed) {
+          pendingReload = false;
+          load();
         }
       }
     }

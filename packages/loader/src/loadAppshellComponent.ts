@@ -5,7 +5,7 @@ import {
   registerRemotes,
 } from '@module-federation/enhanced/runtime';
 
-const HOST_NAME = 'appshell-host';
+const HOST_NAME = 'Appshell';
 
 // The runtime instance and each remote's registration only need to happen once per page load.
 let initialized = false;
