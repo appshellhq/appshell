@@ -10,24 +10,6 @@ const HOST_NAME = 'Appshell';
 // The runtime instance and each remote's registration only need to happen once per page load.
 let initialized = false;
 const registeredScopes = new Set<string>();
-const registeredEntries = new Map<string, string>();
-
-export type LoadAppshellComponentOptions = {
-  forceReload?: boolean;
-  cacheBust?: string;
-};
-
-const withCacheBust = (url: string, cacheBust?: string): string => {
-  if (!cacheBust) return url;
-
-  try {
-    const parsed = new URL(url);
-    parsed.searchParams.set('__appshell_hmr', cacheBust);
-    return parsed.toString();
-  } catch {
-    return url;
-  }
-};
 
 const ensureInitialized = () => {
   if (initialized) return;
@@ -46,7 +28,6 @@ export default async <TComponent>(
   module: string,
   remoteEntryUrl: string,
   shareScope = 'default',
-  options: LoadAppshellComponentOptions = {},
 ) => {
   // eslint-disable-next-line no-console
   console.debug(
@@ -55,20 +36,17 @@ export default async <TComponent>(
 
   ensureInitialized();
 
-  const entry = withCacheBust(remoteEntryUrl, options.cacheBust);
-  // The caller (dev HMR watcher) decides when to force a reload; don't gate on NODE_ENV here
-  // since this package is built in production mode and consumed by dev apps.
-  const shouldForceReload = Boolean(options.forceReload || options.cacheBust);
-
+  // Registered exactly once, and never re-registered or cache-busted afterwards.
+  //
+  // A remote served by a dev server updates itself: its `remoteEntry` already carries
+  // webpack's HMR runtime and a dev-server client, so an edit is applied in place
+  // behind a container identity that does not move. Re-registering the same scope, or
+  // appending a cache-busting query to its entry, changes that identity and the
+  // `publicPath` derived from it mid-flight, which strands the `*.hot-update.json` and
+  // `*.hot-update.js` requests the remote is midway through making.
   if (!registeredScopes.has(scope)) {
     registeredScopes.add(scope);
-    registeredEntries.set(scope, entry);
-    registerRemotes([{ name: scope, entry }]);
-  } else if (shouldForceReload || registeredEntries.get(scope) !== entry) {
-    // eslint-disable-next-line no-console
-    console.log(`[appshell-hmr] force re-register remote ${scope} -> ${entry}`);
-    registeredEntries.set(scope, entry);
-    registerRemotes([{ name: scope, entry }], { force: true });
+    registerRemotes([{ name: scope, entry: remoteEntryUrl }]);
   }
 
   // Federation ids drop the leading `./` that `exposes` keys use.

@@ -20,79 +20,21 @@ export type AppshellComponentProps<TProps extends ExtendedProps = ExtendedProps>
   fallback?: ReactNode;
 } & TProps;
 
-const isDevServerHost = (host: string): boolean => {
-  const hostname = host.split(':')[0];
-  return (
-    hostname === 'localhost' ||
-    hostname === '127.0.0.1' ||
-    hostname === '0.0.0.0' ||
-    hostname.endsWith('.local') ||
-    /^10\./.test(hostname) ||
-    /^192\.168\./.test(hostname) ||
-    /^172\.(1[6-9]|2\d|3[01])\./.test(hostname)
-  );
-};
-
-const toWebpackDevServerWsUrl = (remoteEntryUrl: string): string | null => {
-  try {
-    const url = new URL(remoteEntryUrl);
-    if (!isDevServerHost(url.host)) return null;
-    const wsProtocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
-    return `${wsProtocol}//${url.host}/ws`;
-  } catch {
-    return null;
-  }
-};
-
-const watchRemoteHmr = (remoteEntryUrl: string, onUpdated: () => void): (() => void) => {
-  const wsUrl = toWebpackDevServerWsUrl(remoteEntryUrl);
-  if (!wsUrl) return () => undefined;
-
-  let closed = false;
-  let pendingHash: string | null = null;
-  let lastAppliedHash: string | null = null;
-  const socket = new WebSocket(wsUrl);
-
-  socket.onmessage = (event) => {
-    if (closed) return;
-
-    try {
-      const payload = JSON.parse(`${event.data}`) as { type?: string; data?: string };
-
-      if (payload.type === 'hash' && typeof payload.data === 'string') {
-        pendingHash = payload.data;
-        return;
-      }
-
-      // "ok" indicates the remote dev-server finished rebuilding.
-      if (payload.type === 'ok' && pendingHash) {
-        if (!lastAppliedHash) {
-          // Prime baseline on first connect; don't reload immediately.
-          lastAppliedHash = pendingHash;
-          pendingHash = null;
-          return;
-        }
-
-        if (pendingHash !== lastAppliedHash) {
-          lastAppliedHash = pendingHash;
-          pendingHash = null;
-          onUpdated();
-          return;
-        }
-
-        pendingHash = null;
-      }
-    } catch {
-      // Ignore non-JSON frames.
-    }
-  };
-
-  return () => {
-    closed = true;
-    socket.close();
-  };
-};
-
+/**
+ * Loads a remote once and leaves it alone.
+ *
+ * Keeping a remote current while it is being developed is not this component's job.
+ * A remote served by a dev server ships webpack's HMR runtime and a dev-server client
+ * inside its own `remoteEntry`, so it applies its own edits in place and React Fast
+ * Refresh swaps the component implementations underneath this tree — no reload, and no
+ * remount that would discard state this component never owned.
+ *
+ * Watching the remote's socket from here and reloading the page was strictly worse: it
+ * raced the remote's own update, and it threw away the entire composed app to deliver a
+ * change to one subtree. When webpack genuinely cannot apply an update, the remote's own
+ * client still falls back to a full reload — which is the right place for that decision,
+ * because it is the only side that knows whether the update applied.
+ */
 const AppshellComponent = <TProps extends ExtendedProps>({
   remote,
   fallback,
@@ -102,42 +44,17 @@ const AppshellComponent = <TProps extends ExtendedProps>({
   const [element, setElement] = useState<ReactElement>();
 
   useEffect(() => {
-    let active = false;
     let disposed = false;
-    let isLoading = false;
-    let pendingReload = false;
-    let watching = false;
-    let reloading = false;
-    let stopWatching: () => void = () => undefined;
     const loadComponent = remoteLoader(config);
 
     async function load() {
-      if (isLoading) {
-        pendingReload = true;
-        return;
-      }
-
-      isLoading = true;
-
       try {
-        active = true;
-        setElement(undefined);
         const [Component, manifest] = await loadComponent<ComponentType>(remote);
-        if (!Component) {
+
+        if (disposed || !Component) {
           return;
         }
 
-        if (!watching && manifest.remotes[remote]?.remoteEntryUrl) {
-          watching = true;
-          stopWatching = watchRemoteHmr(manifest.remotes[remote].remoteEntryUrl, () => {
-            if (disposed) return;
-            if (reloading) return;
-            reloading = true;
-            window.location.reload();
-          });
-        }
-
-        active = false;
         setElement(
           <ManifestProvider manifest={manifest}>
             <RemoteProvider remote={manifest.remotes[remote]}>
@@ -146,24 +63,17 @@ const AppshellComponent = <TProps extends ExtendedProps>({
           </ManifestProvider>,
         );
       } catch (err) {
-        setElement(<LoadingError remote={remote} reason={`${err}`} />);
-      } finally {
-        isLoading = false;
-        if (pendingReload && !disposed) {
-          pendingReload = false;
-          load();
+        if (!disposed) {
+          setElement(<LoadingError remote={remote} reason={`${err}`} />);
         }
       }
     }
 
-    if (!active) {
-      load();
-    }
+    setElement(undefined);
+    load();
 
     return () => {
       disposed = true;
-      active = false;
-      stopWatching();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [remote, config, ...Object.values(rest)]);
