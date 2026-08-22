@@ -4,6 +4,7 @@ import { ReactHost } from '@appshell/react';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import Splash from './components/Splash';
+import mountOverlayBadge from './overlayBadge';
 import reportWebVitals from './reportWebVitals';
 import './reset.css';
 
@@ -11,6 +12,10 @@ const root = createRoot(document.getElementById('root') as HTMLElement);
 
 // A registry-served shell inlines these; the build-time env is the standalone fallback.
 const composition = window.__appshell_config__;
+
+// Outside the React root on purpose, so it outlives a crash in the composed app.
+mountOverlayBadge(composition);
+
 const remote = composition?.root || APPSHELL_ENV.APPSHELL_ROOT;
 const props = composition?.rootProps ?? JSON.parse(APPSHELL_ENV.APPSHELL_ROOT_PROPS);
 
