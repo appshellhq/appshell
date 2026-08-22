@@ -1,3 +1,4 @@
+const path = require('path');
 const webpack = require('webpack');
 const { ModuleFederationPlugin } = require('@module-federation/enhanced/webpack');
 const CopyPlugin = require('copy-webpack-plugin');
@@ -8,6 +9,15 @@ const { dependencies } = require('../../package.json');
 
 module.exports = (env, { mode }) => {
   const isDevelopment = mode === 'development';
+  /**
+   * The dev-flavored bundle ships development React and the Fast Refresh runtime,
+   * but the registry serves it as a static artifact. It is therefore not the same
+   * thing as running under webpack-dev-server: nothing hot-updates the shell
+   * itself, so it carries no HMR client of its own. The remotes are what get
+   * edited, and each one already ships its own client inside its remoteEntry.
+   */
+  const isDevBundle = env?.flavor === 'dev';
+  const isDevServer = isDevelopment && !isDevBundle;
 
   const browser = {
     entry: './src/index',
@@ -37,6 +47,7 @@ module.exports = (env, { mode }) => {
       port: process.env.APPSHELL_PORT,
     },
     output: {
+      ...(isDevBundle ? { path: path.resolve(__dirname, 'dist', 'dev') } : {}),
       publicPath: 'auto',
       uniqueName: `appshell-react-shell`,
     },
@@ -54,7 +65,11 @@ module.exports = (env, { mode }) => {
               loader: 'babel-loader',
               options: {
                 presets: ['@babel/preset-react', '@babel/preset-typescript'],
-                plugins: [isDevelopment && require.resolve('react-refresh/babel')].filter(Boolean),
+                // Only under the dev server. The babel plugin emits `$RefreshReg$`/
+                // `$RefreshSig$` calls that ReactRefreshWebpackPlugin defines, and the
+                // dev bundle deliberately omits that plugin: nothing hot-updates the
+                // shell itself, so its own modules need no refresh boundaries.
+                plugins: [isDevServer && require.resolve('react-refresh/babel')].filter(Boolean),
               },
             },
           ],
@@ -91,10 +106,13 @@ module.exports = (env, { mode }) => {
           },
         },
       }),
-      isDevelopment && new webpack.HotModuleReplacementPlugin(),
+      isDevServer && new webpack.HotModuleReplacementPlugin(),
       // Its own error overlay (separate from devServer.client.overlay) catches any
       // uncaught window error, including unrelated ones from browser extensions.
-      isDevelopment && new ReactRefreshWebpackPlugin({ overlay: false }),
+      isDevServer && new ReactRefreshWebpackPlugin({ overlay: false }),
+      // Aliases `react-refresh/runtime` onto one global instance. The dev bundle
+      // needs it too: the shell installs the runtime first, so every remote that
+      // loads later reuses the shell's rather than minting a second one.
       isDevelopment && new ReactRefreshSingleton(),
     ].filter(Boolean),
   };

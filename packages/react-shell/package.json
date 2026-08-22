@@ -18,7 +18,9 @@
     "start": "dotenv -- run-s generate:env start:bundle",
     "start:bundle": "webpack serve --mode development",
     "prebuild": "npm run clean",
-    "build": "webpack --mode production",
+    "build": "run-s build:prod build:dev",
+    "build:prod": "webpack --mode production",
+    "build:dev": "webpack --mode development --env flavor=dev",
     "clean": "rm -rf dist"
   },
   "author": "Robert Hamilton <rh@navaris.com>",
