@@ -132,12 +132,14 @@ export type AppshellComposition<TMetadata = Metadata> = {
   remotes: Record<string, ResolvedRemote<TMetadata>>;
   environment: Record<string, Record<string, string | number | undefined>>;
   /**
-   * Present only when a per-developer overlay redirected one or more remotes at
-   * something other than what the environment publishes. The shell is expected to
+   * Present whenever a per-developer overlay changed anything about this render — a
+   * redirected remote, a different shell bundle, or both. The shell is expected to
    * surface it: a page that quietly runs code from somewhere else is the one thing
-   * this feature must never be.
+   * this feature must never be, and swapping the shell out counts.
+   *
+   * `shellFlavor` is what was actually served, not what was asked for.
    */
-  overlay?: { id: string; remotes: string[] };
+  overlay?: { id: string; remotes: string[]; shellFlavor: 'prod' | 'dev' };
 };
 
 /**

@@ -34,31 +34,41 @@ const styles = {
   list: 'margin:6px 0 0;padding-left:16px',
 };
 
-export const overlayBadgeMarkup = (remotes: string[]): string => {
-  const count = `${remotes.length} remote${remotes.length === 1 ? '' : 's'} redirected`;
+const escape = (value: string) => value.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+
+export const overlayBadgeMarkup = (
+  remotes: string[],
+  shellFlavor: 'prod' | 'dev' = 'prod',
+): string => {
+  const changes = [
+    shellFlavor === 'dev' && 'development shell',
+    remotes.length && `${remotes.length} remote${remotes.length === 1 ? '' : 's'} redirected`,
+  ].filter(Boolean);
 
   const items = remotes
     // The keys come from the registry's own composition, but this string is written
     // straight into innerHTML, so it is escaped rather than trusted by provenance.
-    .map((key) => `<li>${key.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</li>`)
+    .map((key) => `<li>${escape(key)}</li>`)
     .join('');
 
-  return (
-    `<details style="${styles.container}" open>` +
-    `<summary style="${styles.summary}">⚠ Development overlay — ${count}</summary>` +
-    `<ul style="${styles.list}">${items}</ul>` +
-    `</details>`
-  );
+  return [
+    `<details style="${styles.container}" open>`,
+    `<summary style="${styles.summary}">⚠ Development overlay — ${changes.join(', ')}</summary>`,
+    items ? `<ul style="${styles.list}">${items}</ul>` : '',
+    '</details>',
+  ].join('');
 };
 
 export default (composition?: AppshellComposition): void => {
-  const remotes = composition?.overlay?.remotes;
+  const overlay = composition?.overlay;
 
-  if (!remotes?.length || document.getElementById(CONTAINER_ID)) return;
+  // The registry only emits the block when an overlay changed something, so its mere
+  // presence is the signal. A shell-only overlay has no remotes and still has to show.
+  if (!overlay || document.getElementById(CONTAINER_ID)) return;
 
   const container = document.createElement('div');
   container.id = CONTAINER_ID;
-  container.innerHTML = overlayBadgeMarkup(remotes);
+  container.innerHTML = overlayBadgeMarkup(overlay.remotes ?? [], overlay.shellFlavor);
 
   document.body.appendChild(container);
 };

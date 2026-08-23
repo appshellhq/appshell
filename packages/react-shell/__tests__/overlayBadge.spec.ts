@@ -22,6 +22,17 @@ describe('overlayBadgeMarkup', () => {
     expect(overlayBadgeMarkup(['A/One', 'B/Two'])).toContain('2 remotes redirected');
   });
 
+  it('should name the development shell, which is a change the page cannot otherwise show', () => {
+    expect(overlayBadgeMarkup([], 'dev')).toContain('development shell');
+    expect(overlayBadgeMarkup(['A/One'], 'prod')).not.toContain('development shell');
+  });
+
+  it('should list both changes when an overlay made both', () => {
+    expect(overlayBadgeMarkup(['A/One'], 'dev')).toContain(
+      'development shell, 1 remote redirected',
+    );
+  });
+
   it('should escape a remote key rather than trusting where it came from', () => {
     const markup = overlayBadgeMarkup(['<img src=x onerror=alert(1)>']);
 
@@ -41,10 +52,11 @@ describe('mountOverlayBadge', () => {
     expect(badge()).toBeNull();
   });
 
-  it('should render nothing when an overlay redirected no remotes', () => {
-    mountOverlayBadge(compositionWith({ id: 'o1', remotes: [] }));
+  it('should still render for an overlay that only swapped the shell bundle', () => {
+    mountOverlayBadge(compositionWith({ id: 'o1', remotes: [], shellFlavor: 'dev' }));
 
-    expect(badge()).toBeNull();
+    expect(badge()?.textContent).toContain('development shell');
+    expect(badge()?.querySelector('ul')).toBeNull();
   });
 
   it('should render nothing when there is no composition at all', () => {
@@ -54,7 +66,7 @@ describe('mountOverlayBadge', () => {
   });
 
   it('should name every redirected remote so the page cannot lie by omission', () => {
-    mountOverlayBadge(compositionWith({ id: 'o1', remotes: ['PingModule/Ping', 'PongModule/Pong'] }));
+    mountOverlayBadge(compositionWith({ id: 'o1', remotes: ['PingModule/Ping', 'PongModule/Pong'], shellFlavor: 'dev' }));
 
     const items = [...(badge()?.querySelectorAll('li') ?? [])].map((li) => li.textContent);
 
@@ -63,20 +75,20 @@ describe('mountOverlayBadge', () => {
 
   it('should mount outside the react root so a crash in the app cannot take it down', () => {
     document.body.innerHTML = '<div id="root"></div>';
-    mountOverlayBadge(compositionWith({ id: 'o1', remotes: ['PongModule/Pong'] }));
+    mountOverlayBadge(compositionWith({ id: 'o1', remotes: ['PongModule/Pong'], shellFlavor: 'dev' }));
 
     expect(document.getElementById('root')?.contains(badge())).toBe(false);
     expect(badge()?.parentElement).toBe(document.body);
   });
 
   it('should stay open by default rather than hiding behind a click', () => {
-    mountOverlayBadge(compositionWith({ id: 'o1', remotes: ['PongModule/Pong'] }));
+    mountOverlayBadge(compositionWith({ id: 'o1', remotes: ['PongModule/Pong'], shellFlavor: 'dev' }));
 
     expect(badge()?.querySelector('details')?.hasAttribute('open')).toBe(true);
   });
 
   it('should not stack a second badge if called twice', () => {
-    const composition = compositionWith({ id: 'o1', remotes: ['PongModule/Pong'] });
+    const composition = compositionWith({ id: 'o1', remotes: ['PongModule/Pong'], shellFlavor: 'dev' });
 
     mountOverlayBadge(composition);
     mountOverlayBadge(composition);
