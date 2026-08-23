@@ -14,6 +14,8 @@ import initConfigHandler, { InitArgs } from './handlers/config/init';
 import listConfigHandler, { ListConfigArgs } from './handlers/config/list';
 import setConfigHandler, { SetConfigArgs } from './handlers/config/set';
 import deregisterManifestHandler, { DeregisterManifestArgs } from './handlers/deregister';
+import * as dev from './handlers/dev';
+import { DevArgs } from './handlers/dev';
 import * as env from './handlers/env';
 import generateEnvHandler, { GenerateEnvArgs } from './handlers/generate.env';
 import generateGlobalConfigHandler, {
@@ -39,6 +41,70 @@ const config = loadConfig(configPath);
 
 /** Deprecated file-registry commands predate the registry service. */
 const legacyRegistry = './appshell_registry';
+
+const devCommand: yargs.CommandModule<unknown, DevArgs> = {
+  command: 'dev',
+  describe: 'Point an environment at this app running locally, for this browser only',
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  builder: (yargs) =>
+    yargs
+      .command({
+        // `$0` keeps bare `appshell dev` working; starting is the common case.
+        command: ['start', '$0'],
+        describe: 'Open an overlay and print the url that applies it',
+        // eslint-disable-next-line @typescript-eslint/no-shadow
+        builder: (yargs) =>
+          yargs
+            .option('url', {
+              type: 'string',
+              description:
+                'Origin this app is served from locally. Without it, only the shell flavor changes',
+            })
+            .option('app', {
+              type: 'string',
+              description:
+                'App whose remotes to redirect. Defaults to the package.json in this directory',
+            })
+            .option('remote', {
+              type: 'array',
+              string: true,
+              description:
+                'Redirect only these remote keys. Defaults to every remote the app publishes',
+            })
+            .option('shell', {
+              choices: ['prod', 'dev'] as const,
+              default: 'dev' as const,
+              description:
+                'Shell bundle to serve. The development bundle is what makes Fast Refresh possible',
+            })
+            .option('open', {
+              boolean: true,
+              default: true,
+              description: 'Open the confirmation page in a browser',
+            }) as yargs.Argv<DevArgs>,
+        handler: dev.start,
+      })
+      .command({
+        command: 'status',
+        describe: 'List the overlays currently open on the environment',
+        handler: dev.status,
+      })
+      .command({
+        command: 'stop [id]',
+        describe: 'Close an overlay, reverting the environment for anyone holding it',
+        // eslint-disable-next-line @typescript-eslint/no-shadow
+        builder: (yargs) =>
+          yargs
+            .positional('id', { type: 'string', description: 'Overlay to close' })
+            .option('all', {
+              boolean: true,
+              default: false,
+              description: 'Close every overlay open on this environment',
+            }) as yargs.Argv<DevArgs>,
+        handler: dev.stop,
+      }) as unknown as yargs.Argv<DevArgs>,
+  handler: () => undefined,
+};
 
 const registerManifestCommand: yargs.CommandModule<unknown, RegisterManifestArgs> = {
   command: 'register',
@@ -575,6 +641,7 @@ yargs(hideBin(process.argv))
         })
         .demandCommand(),
   })
+  .command(devCommand)
   .command(loginCommand)
   .command(logoutCommand)
   .command(publishCommand)

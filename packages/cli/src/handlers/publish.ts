@@ -3,8 +3,8 @@ import { activate, AppshellManifest, generateManifest, publish } from '@appshell
 import chalk from 'chalk';
 import chokidar from 'chokidar';
 import fs from 'fs';
-import path from 'path';
 import { requireToken } from '../util/credentials';
+import { identify } from '../util/identity';
 import { parseEnvironment } from '../util/registry';
 
 export type PublishArgs = {
@@ -16,33 +16,6 @@ export type PublishArgs = {
   version?: string;
   visibility?: 'public' | 'private';
   watch: boolean;
-};
-
-/**
- * The registry needs a lowercase name and a version; module federation config
- * carries neither, so identity comes from the package being published.
- */
-const identify = (cwd: string, nameOverride?: string, versionOverride?: string) => {
-  if (nameOverride && versionOverride) {
-    return { name: nameOverride, version: versionOverride };
-  }
-
-  const packageFile = path.resolve(cwd, 'package.json');
-  if (!fs.existsSync(packageFile)) {
-    throw new Error(`Cannot determine what to publish: no package.json at ${cwd}.`);
-  }
-
-  const { name, version } = JSON.parse(fs.readFileSync(packageFile, 'utf-8'));
-  const resolved = {
-    name: nameOverride ?? (name as string | undefined)?.replace(/^@[^/]+\//, ''),
-    version: versionOverride ?? (version as string | undefined),
-  };
-
-  if (!resolved.name || !resolved.version) {
-    throw new Error(`Cannot determine what to publish: ${packageFile} needs a name and version.`);
-  }
-
-  return resolved as { name: string; version: string };
 };
 
 const publishOnce = async (argv: PublishArgs) => {

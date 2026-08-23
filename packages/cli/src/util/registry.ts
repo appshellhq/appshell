@@ -43,6 +43,36 @@ export type SharedDependencyReport = {
   dependencies: SharedDependencyUsage[];
 };
 
+export type OverlayRemoteBody = {
+  remoteEntryUrl: string;
+  manifestUrl?: string;
+};
+
+export type CreateOverlayBody = {
+  remotes: Record<string, OverlayRemoteBody>;
+  shellFlavor?: 'prod' | 'dev';
+};
+
+export type CreatedOverlay = {
+  id: string;
+  /** Registry-relative; the browser, not the CLI, is what redeems it. */
+  confirmUrl: string;
+  url: string;
+  remotes: string[];
+  shellFlavor: 'prod' | 'dev';
+  expiresAt: string;
+};
+
+export type OpenOverlay = {
+  id: string;
+  owner: string;
+  remotes: string[];
+  shellFlavor: 'prod' | 'dev';
+  createdAt: string;
+  expiresAt: string;
+  confirmUrl: string;
+};
+
 export type CreateEnvironmentBody = {
   name: string;
   visibility?: 'public' | 'private';
@@ -199,6 +229,40 @@ export class RegistryClient {
       'get',
       `/v1/environments/${scopeId}/${name}/shared-deps`,
       `fetch shared dependencies for ${scopeId}/${name}`,
+    );
+  }
+
+  /** What the registry actually has published for an app, not what a local build says. */
+  appManifest(scopeId: string, name: string) {
+    return this.send<{ remotes: Record<string, { remoteEntryUrl: string; manifestUrl: string }> }>(
+      'get',
+      `/v1/apps/${scopeId}/${name}/manifest`,
+      `fetch the published manifest for ${scopeId}/${name}`,
+    );
+  }
+
+  listOverlays(scopeId: string, name: string) {
+    return this.send<OpenOverlay[]>(
+      'get',
+      `/v1/environments/${scopeId}/${name}/overlays`,
+      `list overlays on ${scopeId}/${name}`,
+    );
+  }
+
+  createOverlay(scopeId: string, name: string, body: CreateOverlayBody) {
+    return this.send<CreatedOverlay>(
+      'post',
+      `/v1/environments/${scopeId}/${name}/overlays`,
+      `open an overlay on ${scopeId}/${name}`,
+      body,
+    );
+  }
+
+  closeOverlay(scopeId: string, name: string, id: string) {
+    return this.send<{ id: string; revoked: boolean }>(
+      'delete',
+      `/v1/environments/${scopeId}/${name}/overlays/${id}`,
+      `close overlay ${id}`,
     );
   }
 

@@ -32,7 +32,8 @@
   "license": "MIT",
   "dependencies": {
     "change-case": "^5.4.4",
-    "chokidar": "^3.6.0"
+    "chokidar": "^3.6.0",
+    "fast-glob": "^3.3.3"
   },
   "gitHead": "e8105f3c5eeb4aec8e3f0e06b151d0a0ef394d12"
 }
