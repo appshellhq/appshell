@@ -241,6 +241,44 @@ const reportWorkspace = (
   });
 };
 
+/**
+ * Which app publishes each redirected remote, asked of the registry so this works
+ * outside a workspace too. Without it a developer reads `PongModule/Pong` off the
+ * listing and still has to work out which app to name to stop it.
+ */
+const appsByRemoteKey = async (
+  client: RegistryClient,
+  scopeId: string,
+  apps: string[],
+): Promise<Record<string, string>> => {
+  const manifests = await Promise.all(
+    apps.map(async (app) => {
+      try {
+        return [app, await client.appManifest(scopeId, app)] as const;
+      } catch {
+        // An app can be activated and then unpublished; the rest of the listing is
+        // still worth printing.
+        return [app, undefined] as const;
+      }
+    }),
+  );
+
+  return manifests.reduce<Record<string, string>>((acc, [app, manifest]) => {
+    Object.keys(manifest?.remotes ?? {}).forEach((key) => {
+      acc[key] = app;
+    });
+
+    return acc;
+  }, {});
+};
+
+const groupByApp = (remotes: string[], owners: Record<string, string>) =>
+  remotes.reduce<Record<string, string[]>>((acc, key) => {
+    const app = owners[key] ?? 'unknown app';
+
+    return { ...acc, [app]: [...(acc[app] ?? []), key] };
+  }, {});
+
 export const status = async (argv: DevArgs) => {
   const { scopeId, name } = target(argv);
   const client = new RegistryClient(argv.registry);
@@ -249,6 +287,7 @@ export const status = async (argv: DevArgs) => {
     client.getEnvironment(scopeId, name),
   ]);
 
+  const activated = Object.keys(environment.apps ?? {}).map((id) => id.split('/').pop() as string);
   const workspace = findWorkspace(process.cwd());
 
   if (workspace?.apps.length) {
@@ -264,16 +303,24 @@ export const status = async (argv: DevArgs) => {
     return;
   }
 
+  const owners = await appsByRemoteKey(client, scopeId, activated);
+
   console.log(chalk.bold(`\nOverlays open on ${scopeId}/${name}\n`));
   overlays.forEach((overlay) => {
     console.log(`  ${chalk.cyan(overlay.id)}  ${describeOverlay(overlay)}`);
-    overlay.remotes.forEach((key) => console.log(`    ${chalk.dim(key)}`));
+
+    Object.entries(groupByApp(overlay.remotes, owners)).forEach(([app, keys]) => {
+      console.log(`    ${app} ${chalk.dim(keys.join(', '))}`);
+      console.log(chalk.dim(`      stop:  appshell dev stop --app ${app}`));
+    });
+
     console.log(
       chalk.dim(
         `    opened by ${overlay.owner} \u00b7 expires ${new Date(overlay.expiresAt).toLocaleString()}`,
       ),
     );
     console.log(chalk.dim(`    apply: ${client.baseUrl}${overlay.confirmUrl}`));
+    console.log(chalk.dim(`    close: appshell dev stop ${overlay.id}`));
   });
 
   // An overlay only takes effect in a browser that confirmed it, so what is listed
