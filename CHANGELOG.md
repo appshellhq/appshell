@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.14](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.13...v1.0.0-alpha.14) (2026-08-23)
+
+### Features
+
+- **cli:** add appshell dev to open and manage development overlays ([1e55585](https://github.com/appshell-org/appshell/commit/1e5558503c815af742cf2cd394a2e1232b4c17ae))
+- **react-shell:** announce an overlay that only changed the shell ([55a5faf](https://github.com/appshell-org/appshell/commit/55a5faf25255c33494d1fbbec86f38a71b2875b2))
+
 # [1.0.0-alpha.13](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.12...v1.0.0-alpha.13) (2026-08-22)
 
 ### Bug Fixes
