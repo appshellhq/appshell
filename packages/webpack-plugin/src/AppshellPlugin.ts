@@ -19,6 +19,7 @@ import { entries, keys } from 'lodash';
 import path from 'path';
 import { validate } from 'schema-utils';
 import { Compiler, container, WebpackOptionsNormalized, WebpackPluginInstance } from 'webpack';
+import { isServing, writeDevHint } from './devHint';
 
 type AppshellPluginOptions = {
   config?: string;
@@ -298,6 +299,12 @@ export default class AppshellPlugin {
       }
 
       fs.writeFileSync(outputFile, JSON.stringify(template));
+
+      // Only while actually serving. A production build must never leave one behind for
+      // tooling to mistake for a running dev server.
+      if (isServing()) {
+        writeDevHint(outputDir, compiler.options.devServer, `${template.module.filename ?? ''}`);
+      }
 
       if (!shouldPublish) {
         return;
