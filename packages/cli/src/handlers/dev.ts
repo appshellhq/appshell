@@ -17,6 +17,7 @@ export type DevArgs = {
   environment?: string;
   app?: string;
   url?: string;
+  port?: number;
   remote?: string[];
   shell: 'prod' | 'dev';
   open: boolean;
@@ -32,6 +33,23 @@ const target = (argv: DevArgs) => {
   }
 
   return parseEnvironment(argv.environment, argv.scopeId);
+};
+
+/**
+ * Where this app is running locally. A port is what a developer actually knows, so it
+ * is the ergonomic form; `--url` covers everything else, such as a devbox or Codespace
+ * that is not on localhost.
+ *
+ * Deliberately not inferred from the app's own config. `${SOME_APP_URL}` resolves to
+ * wherever the loaded build context says the app is served from, which is not the same
+ * question — with a staging env file loaded it would resolve to the deployed URL and
+ * mint an overlay that redirects an app to where it already points, silently doing
+ * nothing in exactly the case this feature exists for.
+ */
+const localOrigin = (argv: DevArgs): string | undefined => {
+  if (argv.url) return argv.url;
+
+  return argv.port ? `http://localhost:${argv.port}` : undefined;
 };
 
 /**
@@ -61,10 +79,12 @@ const remotesOf = async (
   client: RegistryClient,
   scopeId: string,
 ): Promise<Record<string, OverlayRemoteBody>> => {
+  const origin = localOrigin(argv);
+
   // With no local origin to point at there is nothing to redirect; the overlay still
   // carries the shell flavor, which is the half that matters on a machine where the
   // environment already resolves to localhost.
-  if (!argv.url) return {};
+  if (!origin) return {};
 
   const app = argv.app ?? identify(process.cwd()).name;
   const { remotes } = await client.appManifest(scopeId, app);
@@ -86,8 +106,8 @@ const remotesOf = async (
       (acc, [key, remote]) => ({
         ...acc,
         [key]: {
-          remoteEntryUrl: withOrigin(remote.remoteEntryUrl, argv.url),
-          manifestUrl: withOrigin(remote.manifestUrl, argv.url),
+          remoteEntryUrl: withOrigin(remote.remoteEntryUrl, origin),
+          manifestUrl: withOrigin(remote.manifestUrl, origin),
         },
       }),
       {},
@@ -130,7 +150,9 @@ export const start = async (argv: DevArgs) => {
     console.log(`  ${key} ${chalk.dim('->')} ${remote.remoteEntryUrl}`);
   });
   if (!Object.keys(remotes).length) {
-    console.log(chalk.dim('  no remotes redirected (pass --url to point some at this machine)'));
+    console.log(
+      chalk.dim('  no remotes redirected (pass --port to point this app at your dev server)'),
+    );
   }
   if (argv.shell === 'dev') {
     console.log(`  ${chalk.dim('shell')} ${chalk.dim('->')} development bundle`);

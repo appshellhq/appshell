@@ -55,11 +55,15 @@ const devCommand: yargs.CommandModule<unknown, DevArgs> = {
         // eslint-disable-next-line @typescript-eslint/no-shadow
         builder: (yargs) =>
           yargs
+            .option('port', {
+              type: 'number',
+              description: 'Port this app is running on locally, as http://localhost:<port>',
+            })
             .option('url', {
               type: 'string',
-              description:
-                'Origin this app is served from locally. Without it, only the shell flavor changes',
+              description: 'Full origin this app is served from, when it is not localhost',
             })
+            .conflicts('port', 'url')
             .option('app', {
               type: 'string',
               description:
@@ -75,7 +79,7 @@ const devCommand: yargs.CommandModule<unknown, DevArgs> = {
               choices: ['prod', 'dev'] as const,
               default: 'dev' as const,
               description:
-                'Shell bundle to serve. The development bundle is what makes Fast Refresh possible',
+                'Shell bundle to serve. The development build is what supports hot reloading remotes in place',
             })
             .option('open', {
               boolean: true,
@@ -384,9 +388,11 @@ const publishCommand: yargs.CommandModule<unknown, PublishArgs> = {
         type: 'string',
         description: 'App name. Defaults to the unscoped package.json name',
       })
-      .option('version', {
+      // Not `version`: yargs reserves that word for its own flag, so the value never
+      // reaches the handler and the app silently publishes at its package.json version.
+      .option('app-version', {
         type: 'string',
-        description: 'App version. Defaults to the package.json version',
+        description: 'App version to publish as. Defaults to the package.json version',
       })
       .option('visibility', {
         type: 'string',
