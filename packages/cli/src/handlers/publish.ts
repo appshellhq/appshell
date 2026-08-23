@@ -13,7 +13,7 @@ export type PublishArgs = {
   scopeId: string;
   template: string;
   name?: string;
-  version?: string;
+  appVersion?: string;
   visibility?: 'public' | 'private';
   watch: boolean;
 };
@@ -31,7 +31,7 @@ const publishOnce = async (argv: PublishArgs) => {
     throw new Error(`No manifest was generated from ${template}.`);
   }
 
-  const { name, version } = identify(process.cwd(), argv.name, argv.version);
+  const { name, version } = identify(process.cwd(), argv.name, argv.appVersion);
   const { id, created } = await publish({
     registry,
     token,
