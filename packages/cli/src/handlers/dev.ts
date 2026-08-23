@@ -169,11 +169,18 @@ export const start = async (argv: DevArgs) => {
   const overlay = await client.createOverlay(scopeId, name, body);
   const confirmUrl = `${client.baseUrl}${overlay.confirmUrl}`;
 
-  console.log(chalk.green(`\nOverlay opened on ${scopeId}/${name}`));
+  // The registry keeps one overlay per developer per environment, so this may have
+  // extended an existing one; report what is in effect now, not just what was sent.
+  const carried = overlay.remotes.filter((key) => !remotes[key]);
+
+  console.log(chalk.green(`\nOverlay ${carried.length ? 'extended' : 'opened'} on ${scopeId}/${name}`));
   Object.entries(remotes).forEach(([key, remote]) => {
     console.log(`  ${key} ${chalk.dim('->')} ${remote.remoteEntryUrl}`);
   });
-  if (!Object.keys(remotes).length) {
+  carried.forEach((key) => {
+    console.log(`  ${key} ${chalk.dim('-> still redirected from an earlier run')}`);
+  });
+  if (!overlay.remotes.length) {
     console.log(
       chalk.dim('  no remotes redirected (pass --port to point this app at your dev server)'),
     );
