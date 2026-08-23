@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import chalk from 'chalk';
 import { spawn } from 'child_process';
+import { readDevHint, verifyDevHint } from '../util/devHint';
 import { identify } from '../util/identity';
 import { findWorkspace, WorkspaceApp } from '../util/workspace';
 import {
@@ -79,12 +80,14 @@ const remotesOf = async (
   client: RegistryClient,
   scopeId: string,
 ): Promise<Record<string, OverlayRemoteBody>> => {
-  const origin = localOrigin(argv);
+  const explicit = localOrigin(argv);
+  // An explicit port or url always wins. The hint cannot know about a devbox or
+  // Codespace where the browser reaches this app somewhere other than where it binds.
+  const hint = explicit ? undefined : readDevHint(process.cwd());
 
-  // With no local origin to point at there is nothing to redirect; the overlay still
-  // carries the shell flavor, which is the half that matters on a machine where the
-  // environment already resolves to localhost.
-  if (!origin) return {};
+  // Nothing to point at and nothing to ask: the overlay still carries the shell flavor,
+  // which is the half that matters where the environment already resolves to localhost.
+  if (!explicit && !hint) return {};
 
   const app = argv.app ?? identify(process.cwd()).name;
   const { remotes } = await client.appManifest(scopeId, app);
@@ -100,18 +103,39 @@ const remotesOf = async (
     throw new Error(`${scopeId}/${app} does not publish ${missing.join(', ')}.`);
   }
 
-  return Object.entries(remotes)
-    .filter(([key]) => !wanted || wanted.has(key))
-    .reduce<Record<string, OverlayRemoteBody>>(
-      (acc, [key, remote]) => ({
-        ...acc,
-        [key]: {
-          remoteEntryUrl: withOrigin(remote.remoteEntryUrl, origin),
-          manifestUrl: withOrigin(remote.manifestUrl, origin),
-        },
-      }),
-      {},
+  const selected = Object.entries(remotes).filter(([key]) => !wanted || wanted.has(key));
+  let origin = explicit;
+
+  if (!origin && hint) {
+    const serving = await verifyDevHint(
+      hint,
+      selected.map(([key]) => key),
     );
+
+    if (serving) {
+      origin = hint.origin;
+      console.log(chalk.dim(`Found ${app} serving at ${hint.origin}`));
+    } else {
+      console.log(
+        chalk.yellow(
+          `${hint.origin} is not serving ${app} any more; ignoring the stale dev-server hint.`,
+        ),
+      );
+    }
+  }
+
+  if (!origin) return {};
+
+  return selected.reduce<Record<string, OverlayRemoteBody>>(
+    (acc, [key, remote]) => ({
+      ...acc,
+      [key]: {
+        remoteEntryUrl: withOrigin(remote.remoteEntryUrl, origin),
+        manifestUrl: withOrigin(remote.manifestUrl, origin),
+      },
+    }),
+    {},
+  );
 };
 
 const OPENERS: Record<string, string> = { darwin: 'open', win32: 'start' };
