@@ -100,6 +100,11 @@ const devCommand: yargs.CommandModule<unknown, DevArgs> = {
         builder: (yargs) =>
           yargs
             .positional('id', { type: 'string', description: 'Overlay to close' })
+            .option('app', {
+              type: 'string',
+              description:
+                'Stop redirecting just this app, leaving the rest of the overlay in place. Defaults to the package.json in this directory',
+            })
             .option('all', {
               boolean: true,
               default: false,

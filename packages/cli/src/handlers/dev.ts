@@ -285,12 +285,64 @@ export const status = async (argv: DevArgs) => {
   );
 };
 
+/**
+ * Which overlay carries this app's redirects. There is one per developer, so in
+ * practice this is unambiguous; when it is not, the caller is asked to name one rather
+ * than have an arbitrary developer's overlay edited on their behalf.
+ */
+const overlayRedirecting = async (
+  argv: DevArgs,
+  client: RegistryClient,
+  scopeId: string,
+  name: string,
+  app: string,
+): Promise<{ id: string; keys: string[] }> => {
+  const { remotes } = await client.appManifest(scopeId, app);
+  const owned = Object.keys(remotes ?? {});
+  const open = await client.listOverlays(scopeId, name);
+  const candidates = argv.id
+    ? open.filter((overlay) => overlay.id === argv.id)
+    : open.filter((overlay) => overlay.remotes.some((key) => owned.includes(key)));
+
+  if (!candidates.length) {
+    throw new Error(`No open overlay on ${scopeId}/${name} is redirecting ${app}.`);
+  }
+
+  if (candidates.length > 1) {
+    throw new Error(
+      `More than one overlay is redirecting ${app}. Name one: ${candidates
+        .map((overlay) => `appshell dev stop ${overlay.id} --app ${app}`)
+        .join(', ')}`,
+    );
+  }
+
+  return { id: candidates[0].id, keys: owned };
+};
+
 export const stop = async (argv: DevArgs) => {
   const { scopeId, name } = target(argv);
   const client = new RegistryClient(argv.registry);
 
+  // Stepping away from one micro-frontend should not revert every other one.
+  if (argv.app !== undefined) {
+    const app = argv.app || identify(process.cwd()).name;
+    const { id, keys } = await overlayRedirecting(argv, client, scopeId, name, app);
+    const { remotes } = await client.stopRedirecting(scopeId, name, id, keys);
+
+    console.log(chalk.green(`Stopped redirecting ${app}.`));
+    console.log(
+      remotes.length
+        ? chalk.dim(`  still redirected: ${remotes.join(', ')}`)
+        : chalk.dim('  nothing redirected now; the overlay still selects the shell bundle'),
+    );
+
+    return;
+  }
+
   if (!argv.id && !argv.all) {
-    throw new Error("Pass an overlay id, or --all to stop every overlay on this environment.");
+    throw new Error(
+      'Pass an overlay id, --app to stop just one app, or --all to stop every overlay on this environment.',
+    );
   }
 
   const ids = argv.id

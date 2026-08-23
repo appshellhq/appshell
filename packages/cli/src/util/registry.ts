@@ -258,6 +258,15 @@ export class RegistryClient {
     );
   }
 
+  stopRedirecting(scopeId: string, name: string, id: string, removeRemotes: string[]) {
+    return this.send<{ id: string; remotes: string[] }>(
+      'patch',
+      `/v1/environments/${scopeId}/${name}/overlays/${id}`,
+      `stop redirecting ${removeRemotes.join(', ')}`,
+      { removeRemotes },
+    );
+  }
+
   closeOverlay(scopeId: string, name: string, id: string) {
     return this.send<{ id: string; revoked: boolean }>(
       'delete',
