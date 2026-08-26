@@ -304,19 +304,16 @@ module.exports = {
 
 ### `Options`
 
-- [`config`](#config)
+| Option | Type | Default | Purpose |
+| ------ | ---- | ------- | ------- |
+| `config` | `string` | `appshell.config.yaml` | Location of the config file |
+| `registry` | `string` | CLI context | Registry to publish to |
+| `application` | `string` | CLI context | Application to activate the published version in |
+| `publish` | `boolean` | `true` in development | Publish after every successful build |
+| `force` | `boolean` | `true` in development | Ask the registry to overwrite an existing version whose content differs |
 
-#### `config`
-
-Type:
-
-```ts
-type config = string;
-```
-
-Default: `appshell.config.yaml`
-
-Location of the `appshell.config.yaml` file.
+`registry` and `application` are usually omitted — see
+[Publishing on build](#publishing-on-build) for the resolution order.
 
 ## License
 

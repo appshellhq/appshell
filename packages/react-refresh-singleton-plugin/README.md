@@ -15,6 +15,11 @@ A single instance of react-refresh/runtime to enable react-refresh hot module re
 
 Working examples can be found [here](https://github.com/navaris/appshell/tree/main/examples).
 
+> **Note**
+> The bundled example does not use this package — it uses the third-party
+> `single-react-refresh-plugin`. Treat the usage below as the intended shape rather
+> than something the examples exercise.
+
 ## Getting Started
 
 To begin, you'll need to install `@appshell/react-refresh-singleton-plugin`:

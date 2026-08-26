@@ -20,19 +20,19 @@ Working examples can be found [here](https://github.com/navaris/appshell/tree/ma
 To begin, you'll need to install `@appshell/react`:
 
 ```console
-npm install @appshell/react --save-dev
+npm install @appshell/react
 ```
 
 or
 
 ```console
-yarn add -D @appshell/react
+yarn add @appshell/react
 ```
 
 or
 
 ```console
-pnpm add -D @appshell/react
+pnpm add @appshell/react
 ```
 
 ## RemoteSlot
@@ -69,3 +69,65 @@ const MyComponent = () => {
   ...
 }
 ```
+
+## RemoteProvider
+
+Supplies the remote a subtree is running as. `RemoteSlot` wraps what it mounts in one
+already, so you rarely construct it yourself — reach for it in tests, where it is what
+makes `useRemote` return something.
+
+```tsx
+import { RemoteProvider } from '@appshell/react';
+
+render(
+  <RemoteProvider remote={manifest.remotes['PingModule/Ping']}>
+    <Ping />
+  </RemoteProvider>,
+);
+```
+
+## useMetadata / MetadataProvider
+
+Reads the metadata a remote was published with — `route`, `displayName`,
+`displayGroup`, `order`, `icon`, or whatever shape you declare in
+`appshell.config.yaml`.
+
+```tsx
+import { MetadataProvider, useMetadata } from '@appshell/react';
+
+const Nav = () => {
+  const metadata = useMetadata();
+
+  ...
+};
+```
+
+```tsx
+<MetadataProvider metadata={remote.metadata}>
+  <Nav />
+</MetadataProvider>
+```
+
+> **Note**
+> Nothing supplies this context today — `RemoteSlot` provides the remote but not its
+> metadata — so `useMetadata()` returns `{}` unless you render a `MetadataProvider`
+> yourself. Prefer `useRemote()`, whose `remote.metadata` carries the same values and
+> is populated.
+
+## jsonResource
+
+Wraps a fetch in a Suspense-compatible resource, so a component can read JSON during
+render instead of threading loading state through it.
+
+```tsx
+import { jsonResource } from '@appshell/react';
+
+const settings = jsonResource<Settings>('/api/settings');
+
+const Panel = () => <pre>{settings.read().theme}</pre>;
+```
+
+## License
+
+[MIT](./LICENSE)
+

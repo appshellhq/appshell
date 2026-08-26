@@ -39,21 +39,40 @@ pnpm add -D @appshell/config
 
 ## Functions
 
+`@appshell/config` is the library the CLI is built on. Most of it is reachable through
+`appshell` commands; reach for the package directly when you are scripting a build.
+
+| Export | Purpose | CLI equivalent |
+| ------ | ------- | -------------- |
+| `generateManifest` | Template → manifest, expanding `${VAR}` | `appshell generate manifest` |
+| `generateEnv` | Capture `process.env` by prefix | `appshell generate env` |
+| `publish` | Publish a manifest as a package version | `appshell publish` |
+| `activate` | Activate a version into an application | `appshell publish --application` |
+| `outdated` | Compare shared dependencies against baselines | `appshell outdated` |
+| `sync` | Install shared dependencies at the declared versions | — |
+| `resolveContext` / `persistedContext` | Registry, application and token, resolved as the CLI resolves them | `appshell config list` |
+| `resolveToken` / `saveCredential` / `clearCredential` / `credentialsPath` | Stored credentials, per registry | `appshell login` / `logout` |
+| `configmap` | `${VAR}` placeholder expansion | — |
+| `utils` | File loading, comparison and formatting helpers | — |
+| `validators` | `AppshellTemplateValidator` | — |
+
+
 ### `generateManifest`
 
-The `generateManifest` function is given a configs dir to process and produces a merged appshell manifest.
+Processes one manifest template into an appshell manifest, expanding `${VAR}`
+placeholders from the current environment.
 
 ```ts
 import { generateManifest } from '@appshell/config';
 
-const manifest = generateManifest<MyMetadata>(process.env.CONFIGS_DIR);
+const manifest = await generateManifest<MyMetadata>('dist/appshell.template.json');
 ```
 
-**Where does the content of CONFIGS_DIR come from?**
+**Where does the template come from?**
 
-> Each micro-frontend configured to use [@appshell/webpack-plugin](https://www.npmjs.com/package/@appshell/webpack-plugin) emits it's configuration to the configs directory at build time, which is subsequently processed with this utility to reflect the current runtime environment.
+> Each micro-frontend configured with [@appshell/webpack-plugin](https://www.npmjs.com/package/@appshell/webpack-plugin) emits `appshell.template.json` at build time. This function turns that into the manifest a package version is published with.
 
-Sample content from CONFIGS_DIR:
+Sample template:
 
 ```json
 {
@@ -193,7 +212,8 @@ Sample appshell manifest produced by the `generateManifest` function:
 }
 ```
 
-This `appshell manifest` is registered with `APPSHELL_REGISTRY` consumed by the appshell host.
+This manifest is what `publish` sends to the registry as a package version. The registry composes
+every activated package into the payload it serves to the shell.
 
 **What if I want to generate the manifest by a startup script instead?**
 

@@ -20,22 +20,24 @@ Working examples can be found [here](https://github.com/navaris/appshell/tree/ma
 To begin, you'll need to install `@appshell/loader`:
 
 ```console
-npm install @appshell/loader --save-dev
+npm install @appshell/loader
 ```
 
 or
 
 ```console
-yarn add -D @appshell/loader
+yarn add @appshell/loader
 ```
 
 or
 
 ```console
-pnpm add -D @appshell/loader
+pnpm add @appshell/loader
 ```
 
-The default export from this package is the loader function. It is given the global appshell configuration, and returns an async function that can be called to dynamically load Appshell components.
+The default export is the loader factory. It returns an async function that resolves a remote
+key and loads the component behind it. It needs no configuration — the composition is read
+from the document the registry served.
 
 ```ts
 import componentLoader from '@appshell/loader';
