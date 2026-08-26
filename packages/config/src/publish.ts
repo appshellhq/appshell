@@ -32,8 +32,10 @@ const describe = (error: unknown) => {
   }
 
   const { message } = response.data ?? {};
+  const detail =
+    `${response.status} ${Array.isArray(message) ? message.join(', ') : message ?? ''}`.trim();
 
-  return `${response.status} ${Array.isArray(message) ? message.join(', ') : message ?? ''}`.trim();
+  return response.status === 401 ? `${detail} Run \`appshell login\` or set APPSHELL_TOKEN.` : detail;
 };
 
 /**
@@ -53,7 +55,7 @@ export const publish = async ({
 }: PublishOptions): Promise<PublishResult> => {
   try {
     const { data } = await axios.post<PublishResult>(
-      `${registry.replace(/\/$/, '')}/v1/apps`,
+      `${registry.replace(/\/$/, '')}/v1/packages`,
       { name, version, manifest, visibility, metadata, force },
       { headers: authorization(token) },
     );
@@ -65,28 +67,28 @@ export const publish = async ({
 };
 
 /**
- * Activating a newer version of an already active app upgrades it in place.
- * @param environment `scope/name`
+ * Activating a newer version of an already active package upgrades it in place.
+ * @param application `scope/name`
  */
 export const activate = async (
   registry: string,
-  environment: string,
-  appId: string,
+  application: string,
+  packageId: string,
   token?: string,
 ): Promise<void> => {
-  const [scopeId, name] = environment.split('/');
+  const [scopeId, name] = application.split('/');
 
   if (!scopeId || !name) {
-    throw new Error(`Invalid environment '${environment}'. Expected 'scope/name'.`);
+    throw new Error(`Invalid application '${application}'. Expected 'scope/name'.`);
   }
 
   try {
     await axios.post(
-      `${registry.replace(/\/$/, '')}/v1/environments/${scopeId}/${name}/apps`,
-      { appId },
+      `${registry.replace(/\/$/, '')}/v1/applications/${scopeId}/${name}/packages`,
+      { packageId },
       { headers: authorization(token) },
     );
   } catch (error) {
-    throw new Error(`Failed to activate ${appId} in ${environment}: ${describe(error)}`);
+    throw new Error(`Failed to activate ${packageId} in ${application}: ${describe(error)}`);
   }
 };

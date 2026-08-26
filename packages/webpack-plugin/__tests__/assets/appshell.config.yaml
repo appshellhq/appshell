@@ -29,6 +29,6 @@ remotes:
       order: 30
       icon: ViewList
 
-environment:
+vars:
   RUNTIME_ENV: ${RUNTIME_ENV}
   RUNTIME_ENV_VERSION: ${RUNTIME_ENV_VERSION}

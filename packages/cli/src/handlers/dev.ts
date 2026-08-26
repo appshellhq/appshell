@@ -3,20 +3,20 @@ import chalk from 'chalk';
 import { spawn } from 'child_process';
 import { readDevHint, verifyDevHint } from '../util/devHint';
 import { identify } from '../util/identity';
-import { findWorkspace, WorkspaceApp } from '../util/workspace';
+import { findWorkspace, WorkspacePackage } from '../util/workspace';
 import {
   CreateOverlayBody,
   OpenOverlay,
   OverlayRemoteBody,
-  parseEnvironment,
+  parseApplication,
   RegistryClient,
 } from '../util/registry';
 
 export type DevArgs = {
   registry: string;
   scopeId: string;
-  environment?: string;
-  app?: string;
+  application?: string;
+  package?: string;
   url?: string;
   port?: number;
   remote?: string[];
@@ -27,24 +27,24 @@ export type DevArgs = {
 };
 
 const target = (argv: DevArgs) => {
-  if (!argv.environment) {
+  if (!argv.application) {
     throw new Error(
-      "No environment given. Pass --environment or set one with 'appshell config set environment <name>'.",
+      "No application given. Pass --application or set one with 'appshell config set application <name>'.",
     );
   }
 
-  return parseEnvironment(argv.environment, argv.scopeId);
+  return parseApplication(argv.application, argv.scopeId);
 };
 
 /**
- * Where this app is running locally. A port is what a developer actually knows, so it
+ * Where this package is running locally. A port is what a developer actually knows, so it
  * is the ergonomic form; `--url` covers everything else, such as a devbox or Codespace
  * that is not on localhost.
  *
- * Deliberately not inferred from the app's own config. `${SOME_APP_URL}` resolves to
- * wherever the loaded build context says the app is served from, which is not the same
+ * Deliberately not inferred from the package's own config. `${SOME_APP_URL}` resolves to
+ * wherever the loaded build context says the package is served from, which is not the same
  * question — with a staging env file loaded it would resolve to the deployed URL and
- * mint an overlay that redirects an app to where it already points, silently doing
+ * mint an overlay that redirects a package to where it already points, silently doing
  * nothing in exactly the case this feature exists for.
  */
 const localOrigin = (argv: DevArgs): string | undefined => {
@@ -55,7 +55,7 @@ const localOrigin = (argv: DevArgs): string | undefined => {
 
 /**
  * Swaps in the origin the dev server is actually listening on, keeping the path the
- * manifest already describes. A published app usually points at a CDN, and the whole
+ * manifest already describes. A published pkg usually points at a CDN, and the whole
  * point of an overlay is to aim that same remote somewhere local instead.
  */
 const withOrigin = (url: string, origin?: string): string => {
@@ -70,10 +70,10 @@ const withOrigin = (url: string, origin?: string): string => {
 };
 
 /**
- * The overlay redirects exactly the remotes this app has published into the target
- * environment, asked of the registry rather than read out of a local build. The
+ * The overlay redirects exactly the remotes this package has published into the target
+ * application, asked of the registry rather than read out of a local build. The
  * registry is the only thing that knows what is actually activated there, and it
- * answers without this app having been built in the current working tree at all.
+ * answers without this package having been built in the current working tree at all.
  */
 const remotesOf = async (
   argv: DevArgs,
@@ -82,25 +82,25 @@ const remotesOf = async (
 ): Promise<Record<string, OverlayRemoteBody>> => {
   const explicit = localOrigin(argv);
   // An explicit port or url always wins. The hint cannot know about a devbox or
-  // Codespace where the browser reaches this app somewhere other than where it binds.
+  // Codespace where the browser reaches this package somewhere other than where it binds.
   const hint = explicit ? undefined : readDevHint(process.cwd());
 
   // Nothing to point at and nothing to ask: the overlay still carries the shell flavor,
-  // which is the half that matters where the environment already resolves to localhost.
+  // which is the half that matters where the application already resolves to localhost.
   if (!explicit && !hint) return {};
 
-  const app = argv.app ?? identify(process.cwd()).name;
-  const { remotes } = await client.appManifest(scopeId, app);
+  const pkg = argv.package ?? identify(process.cwd()).name;
+  const { remotes } = await client.packageManifest(scopeId, pkg);
 
   if (!remotes || !Object.keys(remotes).length) {
-    throw new Error(`${scopeId}/${app} publishes no remotes.`);
+    throw new Error(`${scopeId}/${pkg} publishes no remotes.`);
   }
 
   const wanted = argv.remote?.length ? new Set(argv.remote) : undefined;
   const missing = [...(wanted ?? [])].filter((key) => !remotes[key]);
 
   if (missing.length) {
-    throw new Error(`${scopeId}/${app} does not publish ${missing.join(', ')}.`);
+    throw new Error(`${scopeId}/${pkg} does not publish ${missing.join(', ')}.`);
   }
 
   const selected = Object.entries(remotes).filter(([key]) => !wanted || wanted.has(key));
@@ -114,11 +114,11 @@ const remotesOf = async (
 
     if (serving) {
       origin = hint.origin;
-      console.log(chalk.dim(`Found ${app} serving at ${hint.origin}`));
+      console.log(chalk.dim(`Found ${pkg} serving at ${hint.origin}`));
     } else {
       console.log(
         chalk.yellow(
-          `${hint.origin} is not serving ${app} any more; ignoring the stale dev-server hint.`,
+          `${hint.origin} is not serving ${pkg} any more; ignoring the stale dev-server hint.`,
         ),
       );
     }
@@ -169,7 +169,7 @@ export const start = async (argv: DevArgs) => {
   const overlay = await client.createOverlay(scopeId, name, body);
   const confirmUrl = `${client.baseUrl}${overlay.confirmUrl}`;
 
-  // The registry keeps one overlay per developer per environment, so this may have
+  // The registry keeps one overlay per developer per application, so this may have
   // extended an existing one; report what is in effect now, not just what was sent.
   const carried = overlay.remotes.filter((key) => !remotes[key]);
 
@@ -182,7 +182,7 @@ export const start = async (argv: DevArgs) => {
   });
   if (!overlay.remotes.length) {
     console.log(
-      chalk.dim('  no remotes redirected (pass --port to point this app at your dev server)'),
+      chalk.dim('  no remotes redirected (pass --port to point this package at your dev server)'),
     );
   }
   if (argv.shell === 'dev') {
@@ -205,28 +205,28 @@ export const start = async (argv: DevArgs) => {
 };
 
 /** `default/sample-mfe-pong@0.0.1` -> `0.0.1` */
-const activatedVersion = (appId?: string) => appId?.split('@').pop();
+const activatedVersion = (packageId?: string) => packageId?.split('@').pop();
 
 const reportWorkspace = (
-  apps: WorkspaceApp[],
-  environmentApps: Record<string, { appId: string }>,
+  packages: WorkspacePackage[],
+  applicationPackages: Record<string, { packageId: string }>,
   overlays: OpenOverlay[],
   scopeId: string,
 ) => {
-  const width = Math.max(...apps.map((app) => app.name.length));
+  const width = Math.max(...packages.map((pkg) => pkg.name.length));
 
-  apps.forEach((app) => {
-    const activated = activatedVersion(environmentApps[`${scopeId}/${app.name}`]?.appId);
-    const owned = new Set(app.remotes);
+  packages.forEach((pkg) => {
+    const activated = activatedVersion(applicationPackages[`${scopeId}/${pkg.name}`]?.packageId);
+    const owned = new Set(pkg.remotes);
     const redirecting = overlays.filter((overlay) => overlay.remotes.some((key) => owned.has(key)));
 
     // A local version ahead of what is activated is the usual reason an edit seems to
     // have no effect, so it is called out rather than left to be inferred.
     const describeState = () => {
       if (!activated) return chalk.yellow('not activated');
-      if (activated === app.version) return chalk.dim(`activated ${activated}`);
+      if (activated === pkg.version) return chalk.dim(`activated ${activated}`);
 
-      return chalk.yellow(`activated ${activated}, local ${app.version}`);
+      return chalk.yellow(`activated ${activated}, local ${pkg.version}`);
     };
 
     const state = describeState();
@@ -237,65 +237,65 @@ const reportWorkspace = (
         )}`
       : '';
 
-    console.log(`  ${app.name.padEnd(width)}  ${state}${overlaid}`);
+    console.log(`  ${pkg.name.padEnd(width)}  ${state}${overlaid}`);
   });
 };
 
 /**
- * Which app publishes each redirected remote, asked of the registry so this works
+ * Which pkg publishes each redirected remote, asked of the registry so this works
  * outside a workspace too. Without it a developer reads `PongModule/Pong` off the
- * listing and still has to work out which app to name to stop it.
+ * listing and still has to work out which package to name to stop it.
  */
 const appsByRemoteKey = async (
   client: RegistryClient,
   scopeId: string,
-  apps: string[],
+  packages: string[],
 ): Promise<Record<string, string>> => {
   const manifests = await Promise.all(
-    apps.map(async (app) => {
+    packages.map(async (pkg) => {
       try {
-        return [app, await client.appManifest(scopeId, app)] as const;
+        return [pkg, await client.packageManifest(scopeId, pkg)] as const;
       } catch {
-        // An app can be activated and then unpublished; the rest of the listing is
+        // An pkg can be activated and then unpublished; the rest of the listing is
         // still worth printing.
-        return [app, undefined] as const;
+        return [pkg, undefined] as const;
       }
     }),
   );
 
-  return manifests.reduce<Record<string, string>>((acc, [app, manifest]) => {
+  return manifests.reduce<Record<string, string>>((acc, [pkg, manifest]) => {
     Object.keys(manifest?.remotes ?? {}).forEach((key) => {
-      acc[key] = app;
+      acc[key] = pkg;
     });
 
     return acc;
   }, {});
 };
 
-const groupByApp = (remotes: string[], owners: Record<string, string>) =>
+const groupByPackage = (remotes: string[], owners: Record<string, string>) =>
   remotes.reduce<Record<string, string[]>>((acc, key) => {
-    const app = owners[key] ?? 'unknown app';
+    const pkg = owners[key] ?? 'unknown package';
 
-    return { ...acc, [app]: [...(acc[app] ?? []), key] };
+    return { ...acc, [pkg]: [...(acc[pkg] ?? []), key] };
   }, {});
 
 export const status = async (argv: DevArgs) => {
   const { scopeId, name } = target(argv);
   const client = new RegistryClient(argv.registry);
-  const [overlays, environment] = await Promise.all([
+  const [overlays, application] = await Promise.all([
     client.listOverlays(scopeId, name),
-    client.getEnvironment(scopeId, name),
+    client.getApplication(scopeId, name),
   ]);
 
-  const activated = Object.keys(environment.apps ?? {}).map((id) => id.split('/').pop() as string);
+  const activated = Object.keys(application.packages ?? {}).map((id) => id.split('/').pop() as string);
   const workspace = findWorkspace(process.cwd());
 
-  if (workspace?.apps.length) {
+  if (workspace?.packages.length) {
     console.log(
       chalk.bold(`\n${workspace.root}`) +
-        chalk.dim(` \u00b7 ${workspace.apps.length} apps \u00b7 ${scopeId}/${name}\n`),
+        chalk.dim(` \u00b7 ${workspace.packages.length} packages \u00b7 ${scopeId}/${name}\n`),
     );
-    reportWorkspace(workspace.apps, environment.apps ?? {}, overlays, scopeId);
+    reportWorkspace(workspace.packages, application.packages ?? {}, overlays, scopeId);
   }
 
   if (!overlays.length) {
@@ -309,9 +309,9 @@ export const status = async (argv: DevArgs) => {
   overlays.forEach((overlay) => {
     console.log(`  ${chalk.cyan(overlay.id)}  ${describeOverlay(overlay)}`);
 
-    Object.entries(groupByApp(overlay.remotes, owners)).forEach(([app, keys]) => {
-      console.log(`    ${app} ${chalk.dim(keys.join(', '))}`);
-      console.log(chalk.dim(`      stop:  appshell dev stop --app ${app}`));
+    Object.entries(groupByPackage(overlay.remotes, owners)).forEach(([pkg, keys]) => {
+      console.log(`    ${pkg} ${chalk.dim(keys.join(', '))}`);
+      console.log(chalk.dim(`      stop:  appshell dev stop --pkg ${pkg}`));
     });
 
     console.log(
@@ -333,7 +333,7 @@ export const status = async (argv: DevArgs) => {
 };
 
 /**
- * Which overlay carries this app's redirects. There is one per developer, so in
+ * Which overlay carries this package's redirects. There is one per developer, so in
  * practice this is unambiguous; when it is not, the caller is asked to name one rather
  * than have an arbitrary developer's overlay edited on their behalf.
  */
@@ -342,9 +342,9 @@ const overlayRedirecting = async (
   client: RegistryClient,
   scopeId: string,
   name: string,
-  app: string,
+  pkg: string,
 ): Promise<{ id: string; keys: string[] }> => {
-  const { remotes } = await client.appManifest(scopeId, app);
+  const { remotes } = await client.packageManifest(scopeId, pkg);
   const owned = Object.keys(remotes ?? {});
   const open = await client.listOverlays(scopeId, name);
   const candidates = argv.id
@@ -352,13 +352,13 @@ const overlayRedirecting = async (
     : open.filter((overlay) => overlay.remotes.some((key) => owned.includes(key)));
 
   if (!candidates.length) {
-    throw new Error(`No open overlay on ${scopeId}/${name} is redirecting ${app}.`);
+    throw new Error(`No open overlay on ${scopeId}/${name} is redirecting ${pkg}.`);
   }
 
   if (candidates.length > 1) {
     throw new Error(
-      `More than one overlay is redirecting ${app}. Name one: ${candidates
-        .map((overlay) => `appshell dev stop ${overlay.id} --app ${app}`)
+      `More than one overlay is redirecting ${pkg}. Name one: ${candidates
+        .map((overlay) => `appshell dev stop ${overlay.id} --pkg ${pkg}`)
         .join(', ')}`,
     );
   }
@@ -371,12 +371,12 @@ export const stop = async (argv: DevArgs) => {
   const client = new RegistryClient(argv.registry);
 
   // Stepping away from one micro-frontend should not revert every other one.
-  if (argv.app !== undefined) {
-    const app = argv.app || identify(process.cwd()).name;
-    const { id, keys } = await overlayRedirecting(argv, client, scopeId, name, app);
+  if (argv.package !== undefined) {
+    const pkg = argv.package || identify(process.cwd()).name;
+    const { id, keys } = await overlayRedirecting(argv, client, scopeId, name, pkg);
     const { remotes } = await client.stopRedirecting(scopeId, name, id, keys);
 
-    console.log(chalk.green(`Stopped redirecting ${app}.`));
+    console.log(chalk.green(`Stopped redirecting ${pkg}.`));
     console.log(
       remotes.length
         ? chalk.dim(`  still redirected: ${remotes.join(', ')}`)
@@ -388,7 +388,7 @@ export const stop = async (argv: DevArgs) => {
 
   if (!argv.id && !argv.all) {
     throw new Error(
-      'Pass an overlay id, --app to stop just one app, or --all to stop every overlay on this environment.',
+      'Pass an overlay id, --package to stop just one package, or --all to stop every overlay on this application.',
     );
   }
 
@@ -414,7 +414,7 @@ export const stop = async (argv: DevArgs) => {
   );
 
   console.log(
-    chalk.dim('A browser holding a stopped overlay reverts on its next load of the environment.'),
+    chalk.dim('A browser holding a stopped overlay reverts on its next load of the application.'),
   );
 };
 

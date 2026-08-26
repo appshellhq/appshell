@@ -87,7 +87,7 @@ Sample content from CONFIGS_DIR:
       }
     }
   },
-  "environment": {
+  "vars": {
     "RUNTIME_ARG_1": "${RUNTIME_ARG_1}",
     "RUNTIME_ARG_2": "${RUNTIME_ARG_2}"
   }
@@ -98,7 +98,7 @@ Sample content from CONFIGS_DIR:
 
 > Note the variable expansion syntax `${CRA_MFE_URL}`. When `generateManifest` is called the actual runtime environment values are injected and an appshell manifest is emitted.
 
-> **Note** the `environment` section defines runtime environment variables that are injected into the global namesapce `window.__appshell_env__[module_name]` when an Appshell component is loaded. See the examples for a use case.
+> **Note** the `vars` section defines runtime configuration values that are injected into the global namespace `window.__appshell_vars__[module_name]` when an Appshell component is loaded. See the examples for a use case.
 
 Sample appshell manifest produced by the `generateManifest` function:
 
@@ -181,7 +181,7 @@ Sample appshell manifest produced by the `generateManifest` function:
       }
     }
   },
-  "environment": {
+  "vars": {
     "CraModule": {
       "RUNTIME_ARG_1": "Foo",
       "RUNTIME_ARG_2": "Biz"

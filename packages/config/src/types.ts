@@ -49,7 +49,7 @@ export type ComparisonTarget = {
 export type CliConfig = Record<string, string> & {
   apiKey: string;
   registry: string;
-  environment: string;
+  application: string;
   scopeId: string;
   authIssuer: string;
   clientId: string;
@@ -66,7 +66,7 @@ export type AppshellConfigRemote<TMetadata = Metadata> = {
 export type AppshellConfig<TMetadata = Metadata> = {
   name?: string;
   remotes?: Record<string, AppshellConfigRemote<TMetadata>>;
-  environment?: Record<string, unknown>;
+  vars?: Record<string, unknown>;
   overrides?: AppshellOverrides;
 };
 
@@ -75,7 +75,7 @@ export type AppshellTemplate<TMetadata = Metadata> = {
   name?: string;
   remotes?: Record<string, AppshellConfigRemote<TMetadata>>;
   module: ModuleFederationPluginOptions;
-  environment?: Record<string, unknown>;
+  vars?: Record<string, unknown>;
   overrides?: AppshellOverrides;
 };
 
@@ -91,25 +91,19 @@ export type AppshellRemote<TMetadata = Metadata> = {
 };
 
 export type AppshellOverrides = {
-  environment: Record<string, Record<string, string | number | undefined>>;
+  vars: Record<string, Record<string, string | number | undefined>>;
 };
 
 export type AppshellManifest<TMetadata = Metadata> = {
   remotes: Record<string, AppshellRemote<TMetadata>>;
   modules: Record<string, ModuleFederationPluginOptions>;
-  environment: Record<string, Record<string, string | number | undefined>>;
+  vars: Record<string, Record<string, string | number | undefined>>;
   overrides?: AppshellOverrides;
 };
 
 export type AppshellIndex = Record<string, string>;
 
 export type Metadata = Record<string, unknown>;
-
-export type AppshellGlobalConfig<TMetadata = Metadata> = {
-  index: AppshellIndex;
-  metadata?: Record<string, TMetadata>;
-  overrides?: AppshellOverrides;
-};
 
 /** An `AppshellRemote` the registry already resolved, so the browser needs no manifest fetch. */
 export type ResolvedRemote<TMetadata = Metadata> = AppshellRemote<TMetadata>;
@@ -118,19 +112,19 @@ export type ResolvedRemote<TMetadata = Metadata> = AppshellRemote<TMetadata>;
  * The wire contract for `window.__appshell_config__`. Deliberately not an
  * `AppshellManifest`: that is a build artifact, and reusing it left it unclear
  * which fields the browser actually needs. `modules` is build-time webpack
- * config and never crosses the wire; `environment` arrives already merged with
- * the environment's overrides, leaving the browser only local overrides to apply.
+ * config and never crosses the wire; `vars` arrives already merged with the
+ * application's overrides, leaving the browser only local overrides to apply.
  */
 export type AppshellComposition<TMetadata = Metadata> = {
   /** `scope/name` — makes the payload self-describing for fetch-on-miss and for `env diff`. */
-  environmentId: string;
+  applicationId: string;
   revision: number;
   /** The remote key the host mounts at the root, and the props it is given. */
   root: string;
   rootProps: Record<string, unknown>;
   index: AppshellIndex;
   remotes: Record<string, ResolvedRemote<TMetadata>>;
-  environment: Record<string, Record<string, string | number | undefined>>;
+  vars: Record<string, Record<string, string | number | undefined>>;
   /**
    * Present whenever a per-developer overlay changed anything about this render — a
    * redirected remote, a different shell bundle, or both. The shell is expected to

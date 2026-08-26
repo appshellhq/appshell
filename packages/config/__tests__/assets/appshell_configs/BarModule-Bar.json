@@ -13,7 +13,7 @@
       }
     }
   },
-  "environment": {
+  "vars": {
     "bar_module": {
       "RUNTIME_ENV": "${RUNTIME_ENV}",
       "RUNTIME_ENV_VERSION": "${RUNTIME_ENV_VERSION}"
@@ -50,7 +50,7 @@
     "shareScope": "@sharedscope"
   },
   "overrides": {
-    "environment": {
+    "vars": {
       "bar_module": {
         "RUNTIME_ENV": "New value for RUNTIME_ENV"
       }

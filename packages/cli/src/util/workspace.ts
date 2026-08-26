@@ -3,18 +3,18 @@ import fg from 'fast-glob';
 import fs from 'fs';
 import path from 'path';
 
-export type WorkspaceApp = {
+export type WorkspacePackage = {
   dir: string;
   /** Registry identity: the unscoped package name, matching what `publish` sends. */
   name: string;
   version: string;
-  /** Remote keys this app declares, which is how an overlay is traced back to it. */
+  /** Remote keys this package declares, which is how an overlay is traced back to it. */
   remotes: string[];
 };
 
 export type Workspace = {
   root: string;
-  apps: WorkspaceApp[];
+  packages: WorkspacePackage[];
 };
 
 const readJson = (file: string) => JSON.parse(fs.readFileSync(file, 'utf-8'));
@@ -61,11 +61,11 @@ export const findWorkspaceRoot = (from: string): string | undefined => {
 };
 
 /**
- * A workspace member is an appshell app when it has an `appshell.config.yaml`. That is
+ * A workspace member is an appshell pkg when it has an `appshell.config.yaml`. That is
  * what separates the micro-frontends from the plain libraries sitting beside them, and
  * it is a local signal, so this works before anything has been published.
  */
-const appAt = (dir: string): WorkspaceApp | undefined => {
+const packageAt = (dir: string): WorkspacePackage | undefined => {
   const configFile = path.join(dir, 'appshell.config.yaml');
   const packageFile = path.join(dir, 'package.json');
 
@@ -84,7 +84,7 @@ const appAt = (dir: string): WorkspaceApp | undefined => {
       remotes: Object.keys(config?.remotes ?? {}),
     };
   } catch {
-    // An unreadable config means we cannot say what this app exposes, and reporting
+    // An unreadable config means we cannot say what this package exposes, and reporting
     // the rest of the workspace is more useful than failing the whole command.
     return undefined;
   }
@@ -102,12 +102,12 @@ export const findWorkspace = (from: string): Workspace | undefined => {
     ignore: ['**/node_modules/**'],
   });
 
-  const apps = dirs
-    .map(appAt)
-    .filter((app): app is WorkspaceApp => Boolean(app))
+  const packages = dirs
+    .map(packageAt)
+    .filter((pkg): pkg is WorkspacePackage => Boolean(pkg))
     .sort((a, b) => a.name.localeCompare(b.name));
 
-  return { root, apps };
+  return { root, packages };
 };
 
 export default findWorkspace;

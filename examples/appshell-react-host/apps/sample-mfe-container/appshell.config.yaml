@@ -9,5 +9,5 @@ remotes:
       order: 0
       icon: ViewList
 
-environment:
+vars:
   BACKGROUND_COLOR: ${BACKGROUND_COLOR}

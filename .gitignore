@@ -2,7 +2,6 @@
 
 # dependencies
 node_modules
-global-runtime-manifest/
 
 # testing
 /coverage

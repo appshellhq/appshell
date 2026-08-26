@@ -24,7 +24,7 @@ import { isServing, writeDevHint } from './devHint';
 type AppshellPluginOptions = {
   config?: string;
   registry?: string;
-  environment?: string;
+  application?: string;
   publish?: boolean;
   force?: boolean;
 };
@@ -58,21 +58,21 @@ const isConcurrentActivationError = (error: unknown): boolean => {
 
 const activateWithRetry = async (
   registry: string,
-  environment: string,
+  application: string,
   id: string,
   token: string | undefined,
   retries: number,
   attempt = 1,
 ): Promise<void> => {
   try {
-    await activate(registry, environment, id, token);
+    await activate(registry, application, id, token);
   } catch (error) {
     if (!isConcurrentActivationError(error) || attempt >= retries) {
       throw error;
     }
 
     await delay(150 * attempt);
-    await activateWithRetry(registry, environment, id, token, retries, attempt + 1);
+    await activateWithRetry(registry, application, id, token, retries, attempt + 1);
   }
 };
 
@@ -88,8 +88,8 @@ const schema: Schema = {
       description: 'Base url of the appshell registry to publish to',
       type: 'string',
     },
-    environment: {
-      description: "Environment to activate the published app in, as 'scope/name'",
+    application: {
+      description: "Application to activate the published app in, as 'scope/name'",
       type: 'string',
     },
     publish: {
@@ -123,7 +123,7 @@ export default class AppshellPlugin {
       validate(schema, options, { name: PLUGIN_NAME });
     }
 
-    // Registry, environment, and token are resolved from the CLI context at apply()
+    // Registry, application, and token are resolved from the CLI context at apply()
     // time; only explicit options are captured here.
     this.options = {
       ...this.defaults,
@@ -149,9 +149,9 @@ export default class AppshellPlugin {
       name,
       ...config,
       module: pluginOptions || {},
-      environment: config.environment
+      vars: config.vars
         ? {
-            [name || 'unknown']: config.environment,
+            [name || 'unknown']: config.vars,
           }
         : {},
     };
@@ -221,8 +221,8 @@ export default class AppshellPlugin {
    * developer's persisted CLI context, so an overridden target is never silent.
    */
   static overrideNotices(
-    effective: { registry?: string; environment?: string },
-    persisted: { registry?: string; environment?: string },
+    effective: { registry?: string; application?: string },
+    persisted: { registry?: string; application?: string },
   ): string[] {
     const notices: string[] = [];
 
@@ -233,12 +233,12 @@ export default class AppshellPlugin {
     }
 
     if (
-      persisted.environment &&
-      effective.environment &&
-      persisted.environment !== effective.environment
+      persisted.application &&
+      effective.application &&
+      persisted.application !== effective.application
     ) {
       notices.push(
-        `Using environment ${effective.environment}, overriding your CLI context (${persisted.environment}).`,
+        `Using application ${effective.application}, overriding your CLI context (${persisted.application}).`,
       );
     }
 
@@ -269,7 +269,7 @@ export default class AppshellPlugin {
 
     // Precedence: explicit option, then the CLI context (env var, then ~/.appshell).
     const registry = this.options.registry ?? context.registry;
-    const environment = this.options.environment ?? context.environment;
+    const application = this.options.application ?? context.application;
     const { token } = context;
 
     const requested = this.options.publish ?? truthy(process.env.APPSHELL_PUBLISH_ON_BUILD);
@@ -285,7 +285,7 @@ export default class AppshellPlugin {
       );
     }
 
-    const notices = AppshellPlugin.overrideNotices({ registry, environment }, persistedContext());
+    const notices = AppshellPlugin.overrideNotices({ registry, application }, persistedContext());
 
     compiler.hooks.afterEmit.tapPromise(PLUGIN_NAME, async (compilation) => {
       const logger = compilation.getLogger(PLUGIN_NAME);
@@ -334,17 +334,17 @@ export default class AppshellPlugin {
           force,
         });
 
-        if (environment) {
-          // Concurrent app startups can race on environment revisions.
+        if (application) {
+          // Concurrent app startups can race on application revisions.
           // Retry activation a few times in dev to make one-command startup stable.
-          await activateWithRetry(registry, environment, id, token, isDevelopment ? 4 : 1);
+          await activateWithRetry(registry, application, id, token, isDevelopment ? 4 : 1);
         }
 
         compilation
           .getLogger(PLUGIN_NAME)
           .info(
             `${created ? 'Published' : 'Already published'} ${id}${
-              environment ? ` and activated in ${environment}` : ''
+              application ? ` and activated in ${application}` : ''
             }`,
           );
       } catch (error) {

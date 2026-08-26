@@ -1,13 +1,7 @@
 /* eslint-disable no-underscore-dangle */
-import type { AppshellComposition, AppshellGlobalConfig } from '@appshell/config';
+import type { AppshellComposition } from '@appshell/config';
 import loadAppshellComponent from './loadAppshellComponent';
-import {
-  chainResolvers,
-  inlineResolver,
-  legacyManifestResolver,
-  registryResolver,
-  type RemoteResolver,
-} from './resolvers';
+import { chainResolvers, inlineResolver, registryResolver, type RemoteResolver } from './resolvers';
 
 declare global {
   interface Window {
@@ -22,17 +16,13 @@ export type RemoteLoaderOptions = {
   resolver?: RemoteResolver;
 };
 
-export default (config: AppshellGlobalConfig, options: RemoteLoaderOptions = {}) => {
+export default (options: RemoteLoaderOptions = {}) => {
   const composition =
     options.composition ?? (typeof window === 'undefined' ? undefined : window.__appshell_config__);
 
   const resolve =
     options.resolver ??
-    chainResolvers(
-      inlineResolver(composition),
-      registryResolver(composition),
-      legacyManifestResolver(config),
-    );
+    chainResolvers(inlineResolver(composition), registryResolver(composition));
 
   return async <TComponent>(key: string) => {
     const failed = (err: unknown) =>
@@ -49,10 +39,10 @@ export default (config: AppshellGlobalConfig, options: RemoteLoaderOptions = {})
       throw new Error(`Remote resource not found in registry. Expected: ${key}`);
     }
 
-    const { remote, environment, manifest } = resolution;
+    const { remote, vars } = resolution;
 
     try {
-      window[`__appshell_env__${remote.scope}`] = environment;
+      window[`__appshell_vars__${remote.scope}`] = vars;
 
       const Component = await loadAppshellComponent<TComponent>(
         remote.scope,
@@ -61,7 +51,7 @@ export default (config: AppshellGlobalConfig, options: RemoteLoaderOptions = {})
         remote.shareScope,
       );
 
-      return [Component, manifest] as const;
+      return [Component, remote] as const;
     } catch (err) {
       throw failed(err);
     }

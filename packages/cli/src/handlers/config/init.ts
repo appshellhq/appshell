@@ -6,14 +6,14 @@ import { readConfig, writeConfig } from '../../../../config/src/utils';
 export type InitArgs = {
   config: string;
   registry?: string;
-  environment?: string;
+  application?: string;
   scopeId?: string;
   authIssuer?: string;
   clientId?: string;
 };
 
 export default async (argv: InitArgs) => {
-  const { config, registry, environment, scopeId, authIssuer, clientId } = argv;
+  const { config, registry, application, scopeId, authIssuer, clientId } = argv;
 
   if (!fs.existsSync(config)) {
     console.log(`Creating configuration file at ${config}`);
@@ -25,7 +25,7 @@ export default async (argv: InitArgs) => {
   writeConfig(config, {
     ...existing,
     registry: registry ?? existing.registry ?? 'http://localhost:7150',
-    environment: environment ?? existing.environment ?? 'default',
+    application: application ?? existing.application ?? 'default',
     scopeId: scopeId ?? existing.scopeId ?? 'default',
     authIssuer: authIssuer ?? existing.authIssuer ?? '',
     clientId: clientId ?? existing.clientId ?? 'appshell-cli',

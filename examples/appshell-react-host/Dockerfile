@@ -28,7 +28,7 @@ RUN npm run build
 FROM build AS development
 
 # Environment
-ENV APPSHELL_REGISTRY=${APPSHELL_REGISTRY:-'/appshell/appshell_registry'}
+ENV APPSHELL_REGISTRY=${APPSHELL_REGISTRY:-'http://host.docker.internal:7150'}
 ENV CONTAINER_COMMAND=${CONTAINER_COMMAND:-'npm run serve'}
 
 ENV SAMPLE_MFE_CONTAINER_PORT=${SAMPLE_MFE_CONTAINER_PORT:-3000}

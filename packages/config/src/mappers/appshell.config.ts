@@ -63,8 +63,8 @@ createMap<AppshellTemplate, AppshellManifest>(
     mapFrom((source) => ({ [source.module.name || 'unknown']: source.module })),
   ),
   forMember(
-    (destination) => destination.environment,
-    mapFrom((source) => source.environment),
+    (destination) => destination.vars,
+    mapFrom((source) => source.vars),
   ),
   forMember(
     (destination) => destination.overrides,

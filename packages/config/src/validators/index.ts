@@ -1,3 +1,2 @@
-export { default as AppshellGlobalConfigValidator } from './AppshellGlobalConfigValidator';
-export { default as AppshellManifestValidator } from './AppshellManifestValidator';
+// eslint-disable-next-line import/prefer-default-export
 export { default as AppshellTemplateValidator } from './AppshellTemplateValidator';

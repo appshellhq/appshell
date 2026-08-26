@@ -28,7 +28,7 @@ describe('config init', () => {
     expect(mkdirSyncSpy).toHaveBeenCalledWith(expect.any(String), { recursive: true });
     expect(writeConfigSpy).toHaveBeenCalledWith(args.config, {
       registry: 'http://localhost:7150',
-      environment: 'default',
+      application: 'default',
       scopeId: 'default',
       authIssuer: '',
       clientId: 'appshell-cli',
@@ -39,13 +39,13 @@ describe('config init', () => {
     const args: InitArgs = {
       config: 'testConfig',
       registry: 'https://registry.example.com',
-      environment: 'staging',
+      application: 'staging',
     };
 
     existsSyncSpy.mockReturnValue(true);
     readConfigSpy.mockReturnValue({
       registry: 'https://old.example.com',
-      environment: 'old',
+      application: 'old',
       scopeId: 'acme',
     } as never);
 
@@ -54,7 +54,7 @@ describe('config init', () => {
     expect(mkdirSyncSpy).not.toHaveBeenCalled();
     expect(writeConfigSpy).toHaveBeenCalledWith(args.config, {
       registry: 'https://registry.example.com',
-      environment: 'staging',
+      application: 'staging',
       scopeId: 'acme',
       authIssuer: '',
       clientId: 'appshell-cli',

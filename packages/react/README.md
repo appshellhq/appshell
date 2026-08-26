@@ -35,42 +35,29 @@ or
 pnpm add -D @appshell/react
 ```
 
-## AppshellComponent
+## RemoteSlot
 
-React component that dynamically loads Appshell components.
+Where a remote is mounted. The slot resolves the remote key against the composition,
+loads it over Module Federation, renders `fallback` while that is in flight, and
+surfaces a load failure in place rather than taking the page down with it.
 
 ```tsx
-import { AppshellComponent, ManifestProvider } from '@appshell/react';
+import { RemoteSlot } from '@appshell/react';
 
 <App>
-  <ManifestProvider manifest={manifest}>
-    <AppshellComponent remote="PingModule/Ping">
-    <AppshellComponent remote="PongModule/Pong">
-  </ManifestProvider>
+  <RemoteSlot remote="PingModule/Ping" fallback={<Spinner />} />
+  <RemoteSlot remote="PongModule/Pong" fallback={<Spinner />} />
 </App>
 ```
 
-## useGlobalConfig
+Any other props are passed through to the mounted remote.
 
-For access to the global appshell config.
-
-```tsx
-import { GlobalConfigProvider, useGlobalConfig } from '@appshell/react';
-
-const MyComponent = () => {
-  const config = useGlobalConfig();
-
-  ...
-}
-
-<RegistryProvider config={config}>
-  <MyComponent />
-</RegistryProvider>
-```
+The registry inlines the composition into the document it serves, so the component
+needs no configuration of its own.
 
 ## useRemote
 
-For access to the remote backing the surrounding `AppshellComponent`. Prefer this
+For access to the remote backing the surrounding `RemoteSlot`. Prefer this
 over looking your own entry up in the manifest — the component already knows its key.
 
 ```tsx
@@ -81,38 +68,4 @@ const MyComponent = () => {
 
   ...
 }
-```
-
-## useManifest
-
-For access to the manifest.
-
-> **Deprecated:** `manifest.modules` is build-time webpack config, is never sent to
-> the browser by the registry, and will be removed. Reading it logs a warning. Use
-> `useRemote()` for what a micro-frontend actually needs at runtime.
-
-```tsx
-import { ManifestProvider, useManifest } from '@appshell/react';
-
-const MyComponent = () => {
-  const manifest = useManifest();
-
-  ...
-}
-
-<ManifestProvider manifest={manifest}>
-  <MyComponent />
-</ManifestProvider>
-```
-
-**Where does the registry come from?**
-
-Currently, the registry is a shared directory or mounted volume. It does support calling an http endpoint, but it has not yet been implemented.
-
-> See [@appshell/cli](https://www.npmjs.com/package/@appshell/cli)
-
-Each micro-frontend registers its manifest with the registry
-
-```bash
-appshell register --manifest dist/appshell.manifest.json
 ```

@@ -1,11 +1,6 @@
-export { default as AppshellComponent, FederatedComponent } from './components/AppshellComponent';
-export { default as ReactHost } from './components/ReactHost';
-export { GlobalConfigProvider } from './contexts/GlobalConfigContext';
-export { ManifestProvider } from './contexts/ManifestContext';
+export { default as RemoteSlot } from './components/RemoteSlot';
 export { MetadataProvider } from './contexts/MetadataContext';
 export { RemoteProvider } from './contexts/RemoteContext';
-export { default as useGlobalConfig } from './hooks/useGlobalConfig';
-export { default as useManifest } from './hooks/useManifest';
 export { default as useMetadata } from './hooks/useMetadata';
 export { default as useRemote } from './hooks/useRemote';
 export { default as jsonResource } from './resources/jsonResource';

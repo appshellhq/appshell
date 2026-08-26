@@ -12,9 +12,9 @@
   "scripts": {
     "bootstrap": "npm install",
     "build": "dotenv -- npm run -w react-appshell-host-components build && dotenv -- npm run -w sample-mfe-container build && dotenv -- npm run -w sample-mfe-ping build && dotenv -- npm run -w sample-mfe-pong build",
-    "clean": "lerna run --parallel clean && rm -rf coverage appshell_registry ../global-runtime-manifest",
+    "clean": "lerna run --parallel clean && rm -rf coverage",
     "lint": "eslint 'apps/**/*.{ts,tsx}'",
-    "register": "dotenv -- lerna run --parallel register",
+    "publish": "dotenv -- lerna run --parallel publish",
     "serve": "dotenv -- lerna run --parallel serve",
     "prestart": "dotenv -- npm run -w react-appshell-host-components build",
     "start": "dotenv -- run-p start:container start:ping start:pong",

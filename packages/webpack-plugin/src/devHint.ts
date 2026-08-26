@@ -7,7 +7,7 @@ export const DEV_HINT_VERSION = 1;
 
 export type DevHint = {
   version: number;
-  /** Where this app's dev server is reachable, as a browser on this machine would ask. */
+  /** Where this package's dev server is reachable, as a browser on this machine would ask. */
   origin: string;
   /** From the federation `filename`, so a reader can probe without asking the registry. */
   remoteEntryPath: string;
@@ -60,7 +60,7 @@ export const devServerOrigin = (devServer: DevServerOptions): string | undefined
 };
 
 /**
- * Records where this app is being served from while a dev server is running, so tooling
+ * Records where this package is being served from while a dev server is running, so tooling
  * can offer it instead of asking a developer to repeat a port they have already
  * configured. Written on every serve build and left to be cleaned with the output
  * directory; nothing removes it when the server stops, which is exactly why a reader

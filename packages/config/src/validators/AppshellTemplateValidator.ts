@@ -20,11 +20,11 @@ const hasRemoteCollisions = (...documents: AppshellTemplate[]) => {
   return uniqueRemotes.length !== allRemoteKeys.length;
 };
 
-const hasEnvironmentCollisions = (...documents: AppshellTemplate[]) => {
-  const allEnvironmentKeys = documents.flatMap((document) => keys(document.environment));
-  const uniqueEnvironments = uniq(allEnvironmentKeys);
+const hasVarsCollisions = (...documents: AppshellTemplate[]) => {
+  const allVarKeys = documents.flatMap((document) => keys(document.vars));
+  const uniqueVars = uniq(allVarKeys);
 
-  return uniqueEnvironments.length !== allEnvironmentKeys.length;
+  return uniqueVars.length !== allVarKeys.length;
 };
 
 export default {
@@ -41,8 +41,8 @@ export default {
       console.log(chalk.yellow('Multiple remotes with the same key'));
     }
 
-    if (hasEnvironmentCollisions(...documents)) {
-      console.log(chalk.yellow('Multiple environments with the same key'));
+    if (hasVarsCollisions(...documents)) {
+      console.log(chalk.yellow('Multiple vars with the same key'));
     }
   },
 } as ConfigValidator;

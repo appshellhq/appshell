@@ -6,8 +6,8 @@ import path from 'path';
  * neither, so identity comes from the package being worked on. The npm scope is
  * stripped because the registry takes scope from the caller's token instead.
  *
- * Shared so that `publish` and `dev` always agree on which app the current directory
- * is — an overlay that redirected a different app than the one you published would be
+ * Shared so that `publish` and `dev` always agree on which package the current directory
+ * is — an overlay that redirected a different package than the one you published would be
  * a confusing way to find out they had drifted.
  */
 export const identify = (cwd: string, nameOverride?: string, versionOverride?: string) => {
@@ -17,7 +17,7 @@ export const identify = (cwd: string, nameOverride?: string, versionOverride?: s
 
   const packageFile = path.resolve(cwd, 'package.json');
   if (!fs.existsSync(packageFile)) {
-    throw new Error(`Cannot determine which app this is: no package.json at ${cwd}.`);
+    throw new Error(`Cannot determine which package this is: no package.json at ${cwd}.`);
   }
 
   const { name, version } = JSON.parse(fs.readFileSync(packageFile, 'utf-8'));
@@ -27,7 +27,7 @@ export const identify = (cwd: string, nameOverride?: string, versionOverride?: s
   };
 
   if (!resolved.name || !resolved.version) {
-    throw new Error(`Cannot determine which app this is: ${packageFile} needs a name and version.`);
+    throw new Error(`Cannot determine which package this is: ${packageFile} needs a name and version.`);
   }
 
   return resolved as { name: string; version: string };

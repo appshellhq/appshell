@@ -35,7 +35,7 @@ or
 pnpm add -D @appshell/react-refresh-singleton-plugin
 ```
 
-Then add the plugin to the `webpack` config of each remote app module. For example:
+Then add the plugin to the `webpack` config of each remote package. For example:
 
 **webpack.config.js**
 

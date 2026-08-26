@@ -10,7 +10,7 @@ export type SetConfigArgs = {
 
 const settable = [
   'registry',
-  'environment',
+  'application',
   'scopeId',
   'authIssuer',
   'clientId',

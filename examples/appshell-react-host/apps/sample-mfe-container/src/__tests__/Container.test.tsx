@@ -1,8 +1,6 @@
-import { ManifestProvider } from '@appshell/react';
 import { act, render, screen } from '@testing-library/react';
 import React from 'react';
 import Container from '../Container';
-import manifest from './test.manifest.json';
 
 jest.mock('../env', () => ({
   BACKGROUND_COLOR: 'red',
@@ -10,11 +8,7 @@ jest.mock('../env', () => ({
 
 const renderContainer = () =>
   act(() =>
-    render(
-      <ManifestProvider manifest={manifest}>
-        <Container />
-      </ManifestProvider>,
-    ),
+    render(<Container />),
   );
 
 test('should match snapshot', async () => {

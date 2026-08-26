@@ -21,7 +21,7 @@ At build time, each `AppshellPlugin` emits an appshell manifest template to the 
 
 At runtime the config template `dist/appshell.template.json` is processed to generate an `appshell manifest`, which is the final runtime configuration for a given micro-frontend.
 
-The manifest is then **published to the appshell registry** as a named, versioned app package and **activated** into an environment. The registry composes every activated app into a single `global appshell configuration` and serves it — along with the shell document itself — to the browser.
+The manifest is then **published to the appshell registry** as a named, versioned package and **activated** into an application. The registry composes every activated package into a single `global appshell configuration` and serves it — along with the shell document itself — to the browser.
 
 ```
 webpack build  ->  appshell.template.json
@@ -32,7 +32,7 @@ webpack build  ->  appshell.template.json
                  appshell registry  --(composition)-->  shell
 ```
 
-A published version is immutable. Changing what an environment runs means activating a different version, which produces a new environment revision that can be inspected and rolled back.
+A published version is immutable. Changing what an application runs means activating a different version, which produces a new application revision that can be inspected and rolled back.
 
 ## CSP and the dev server `devtool`
 
@@ -46,14 +46,15 @@ override to any new MFE added to this example.
 
 You can associate any kind of metadata with each remote module (via `appshell.config.yaml`) and use the metadata to configure your appshell by supplying routing information, rendering details, etc.
 
-## Consuming Appshell components
+## Mounting remotes
 
-Use `AppshellComponent` from `@appshell/react` to dynamically load remote frontends. It uses the remote key to lookup the runtime info for that particular Appshell component.
+Use `RemoteSlot` from `@appshell/react` to mount a remote. The slot looks the remote key
+up in the composition the registry inlined, then loads it over Module Federation.
 
 ```typescript
 <Grid>
-  <AppshellComponent remote="PingModule/App" />
-  <AppshellComponent remote="PongModule/App" />
+  <RemoteSlot remote="PingModule/App" />
+  <RemoteSlot remote="PongModule/App" />
 </Grid>
 ```
 
@@ -76,33 +77,36 @@ docker run -d -p 7150:7150 --name appshell-registry \
 
 ### 2. Set your CLI context
 
-The registry, environment, and token are your working context — set them once with the CLI, like a
+The registry, application, and token are your working context — set them once with the CLI, like a
 kubectl context, rather than per project:
 
 ```bash
 appshell config set registry http://localhost:7150
-appshell config set environment dev
+appshell config set application dev
 ```
 
 Under `AUTH_MODE=none` there is no token to set. Against a registry that enforces auth, run
 `appshell login` once; it stores a per-registry token in `~/.appshell/credentials`.
 
-`@appshell/webpack-plugin` reads this same context, so the example apps need no registry or token in
-their `.env`. To point a single build somewhere else, set `APPSHELL_REGISTRY` / `APPSHELL_ENVIRONMENT`
-(or pass `registry` / `environment` to the plugin) — it will warn that it is overriding your context.
+`@appshell/webpack-plugin` reads this same context, so the example packages need no registry or token in
+their `.env`. To point a single build somewhere else, set `APPSHELL_REGISTRY` / `APPSHELL_APPLICATION`
+(or pass `registry` / `application` to the plugin) — it will warn that it is overriding your context.
 In CI, where there is no `~/.appshell`, those env vars (and `APPSHELL_TOKEN`) are the whole story.
 
-The apps still read `.env` for their dev-server ports, so create one:
+The packages still read `.env` for their dev-server ports, so create one:
 
 ```bash
 cp sample.env .env
 ```
 
-### 3. Create the environment
+### 3. Declare the application
 
 ```bash
-appshell env create dev
+appshell app apply -f appshell.app.yaml
 ```
+
+That creates `default/appshell-example` and sets its shell config — the root remote
+above all, without which the shell has nothing to mount. Re-running it is safe.
 
 ### 4. Run it — publish happens on build
 
@@ -112,7 +116,7 @@ npm run start
 ```
 
 Each app runs its webpack dev server, and `@appshell/webpack-plugin` publishes that app's manifest
-to the registry and activates it in your environment on every build — no separate publish step, and
+to the registry and activates it in your application on every build — no separate publish step, and
 nothing to toggle: **development builds publish by default**. Because the dev server builds in
 development mode, the plugin asks the registry to **overwrite** the version in place, so editing
 `appshell.config.yaml` (routes, metadata) re-publishes without a version bump. A local
@@ -122,50 +126,37 @@ configured, the dev server still runs — publishing is skipped with a warning.
 Open the shell:
 
 ```bash
-appshell env open dev  # prints http://localhost:7150/e/default/dev
+appshell app open appshell-example  # prints http://localhost:7070/a/default/appshell-example
 ```
 
-The registry serves the shell document itself, so there is no separate host to run. To serve the
-host yourself instead, point it at the composition endpoint:
-
-```
-http://localhost:7150/dev/appshell.config.json
-```
+The registry serves the shell document itself, so there is no separate host to run.
 
 ### Publishing in CI
 
 Publish-on-build is a development convenience — production builds never publish on their own. In CI,
-bump the app's version and publish explicitly so each release is an immutable version:
+bump the package's version and publish explicitly so each release is an immutable version:
 
 ```bash
-appshell publish --template dist/appshell.template.json --environment dev
+appshell publish --template dist/appshell.template.json --application dev
 ```
 
-`--environment` also activates the published version; add `--watch` to republish whenever the
+`--application` also activates the published version; add `--watch` to republish whenever the
 template changes. A production build never forces, so re-publishing changed content under an
 existing version is rejected — the immutability guarantee CI depends on.
 
-## Inspecting an environment
+## Inspecting an application
 
 ```bash
-appshell env list                  # every environment in the scope
-appshell env get dev               # apps, revision, visibility
-appshell env composition dev       # the resolved config the shell receives
-appshell env revisions dev         # revision history
-appshell env rollback dev --to 3   # roll back to a previous revision
+appshell app list                          # every application in the scope
+appshell app get appshell-example          # packages, revision, visibility
+appshell app composition appshell-example  # the resolved config the shell receives
+appshell app revisions appshell-example    # revision history
+appshell app rollback appshell-example --to 3  # roll back to a previous revision
 ```
 
-## Promoting between environments
+## Promoting between applications
 
 ```bash
-appshell env clone --from dev --to staging
-appshell env sync --from dev --to staging --include apps
+appshell app clone --from dev --to staging
+appshell app sync --from dev --to staging --include packages
 ```
-
-## Legacy file registry
-
-Earlier versions of this example wrote `appshell.config.json` and `appshell.snapshot.json` into the local `appshell_registry/` directory via `appshell register --registry <path>`. That path-based flow still works for compatibility, but it is deprecated in favour of centralized `appshell publish`.
-
-In this workspace, the `register` npm scripts now call `appshell publish --template ...` so they publish to the configured registry/environment context (or to `APPSHELL_REGISTRY` / `APPSHELL_ENVIRONMENT` when those are set).
-
-`appshell register` also accepts a registry URL, which posts the manifest to `<registry>/<environment>` and lets a host read `<registry>/<environment>/appshell.config.json`. That is the smallest possible migration step, but it skips versioning, activation, and revisions.

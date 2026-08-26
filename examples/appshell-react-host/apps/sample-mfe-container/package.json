@@ -4,7 +4,7 @@
   "main": "dist/main.js",
   "scripts": {
     "generate:manifest": "dotenv -- appshell generate manifest --template dist/appshell.template.json",
-    "register": "dotenv -- appshell publish --template dist/appshell.template.json",
+    "publish": "dotenv -- appshell publish --template dist/appshell.template.json",
     "start": "dotenv -- webpack-cli serve --mode development",
     "start:run": "webpack-cli serve --mode development",
     "build": "webpack --mode production && tsc --emitDeclarationOnly",

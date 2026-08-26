@@ -16,7 +16,7 @@ export default async (argv: GenerateEnvArgs): Promise<void> => {
     `generating appshell.env.js --prefix=${prefix} --out-dir=${outDir} --out-file=${outFile} --global-name=${globalName}`,
   );
 
-  const environment = await generateEnv(prefix);
+  const vars = await generateEnv(prefix);
 
   if (!fs.existsSync(outDir)) {
     fs.mkdirSync(outDir, { recursive: true });
@@ -27,7 +27,7 @@ export default async (argv: GenerateEnvArgs): Promise<void> => {
 
     outputFile.write(`window.${globalName} = {\n`);
 
-    environment.forEach((value, key) => {
+    vars.forEach((value, key) => {
       if (value) {
         let formattedValue: string | number = parseFloat(value);
         if (Number.isNaN(formattedValue)) {

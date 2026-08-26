@@ -68,12 +68,12 @@
     },
     "shareScope": "@sharedscope"
   },
-  "environment": {
+  "vars": {
     "RUNTIME_ENV": "${RUNTIME_ENV}",
     "RUNTIME_ENV_VERSION": "${RUNTIME_ENV_VERSION}"
   },
   "overrides": {
-    "environment": {
+    "vars": {
       "RUNTIME_ENV": "New value for RUNTIME_ENV"
     }
   }

@@ -95,5 +95,5 @@
       }
     }
   },
-  "environment": { "ContainerModule": { "BACKGROUND_COLOR": "#031230" } }
+  "vars": { "ContainerModule": { "BACKGROUND_COLOR": "#031230" } }
 }

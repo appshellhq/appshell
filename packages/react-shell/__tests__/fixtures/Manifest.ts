@@ -12,5 +12,5 @@ export default {
     },
   },
   modules: {},
-  environment: {},
+  vars: {},
 } as AppshellManifest;

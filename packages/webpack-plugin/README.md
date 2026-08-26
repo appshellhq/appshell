@@ -35,7 +35,7 @@ or
 pnpm add -D @appshell/webpack-plugin
 ```
 
-Then add the plugin to the `webpack` config of each remote app module. For example:
+Then add the plugin to the `webpack` config of each remote package. For example:
 
 **webpack.config.js**
 
@@ -54,19 +54,19 @@ module.exports = {
 ## Publishing on build
 
 The plugin can publish the generated manifest to an Appshell registry after every successful build,
-so a running `--watch` keeps an environment current as you work. **Development builds publish by
+so a running `--watch` keeps an application current as you work. **Development builds publish by
 default** — you never toggle it per project — while production builds never publish on their own.
 
 ```js
 new AppshellPlugin({
   config: './path/to/appshell.config.yaml',
-  // registry / environment are usually omitted — see below.
+  // registry / application are usually omitted — see below.
   registry: 'https://registry.example.com', // optional override
-  environment: 'acme/my-dev', // optional: activate the published version here
+  application: 'acme/my-dev', // optional: activate the published version here
 });
 ```
 
-By default the plugin defers to your **CLI context** — the registry, environment, and token you set
+By default the plugin defers to your **CLI context** — the registry, application, and token you set
 with `appshell config set` and `appshell login` (stored in `~/.appshell`). That's the same context
 the CLI uses, so one machine-level setting drives both; a project needs no per-repo configuration.
 
@@ -78,15 +78,15 @@ plugin warns that it is overriding it.
 | ----------- | ------------- | --------------------------- | ------------------------------------------------------------------------------------- |
 | publish     | `publish`     | `APPSHELL_PUBLISH_ON_BUILD` | Defaults to `true` in development mode; set `0`/`false` to opt out                    |
 | registry    | `registry`    | `APPSHELL_REGISTRY`         | From CLI context by default                                                           |
-| environment | `environment` | `APPSHELL_ENVIRONMENT`      | `scope/name` (or joined with `APPSHELL_SCOPE_ID`); omit to publish without activating |
+| application | `application` | `APPSHELL_APPLICATION`      | `scope/name` (or joined with `APPSHELL_SCOPE_ID`); omit to publish without activating |
 | force       | `force`       | —                           | Overwrite a changed version; defaults to `true` in dev mode                           |
 | token       | —             | `APPSHELL_TOKEN`            | Otherwise from `~/.appshell/credentials`; never a plugin option                       |
 
-In CI there is no `~/.appshell`, so `APPSHELL_REGISTRY`, `APPSHELL_ENVIRONMENT`, and `APPSHELL_TOKEN`
+In CI there is no `~/.appshell`, so `APPSHELL_REGISTRY`, `APPSHELL_APPLICATION`, and `APPSHELL_TOKEN`
 are the whole story. If publishing defaults on in development but no registry is resolvable, the build
 still succeeds — publishing is skipped with a warning.
 
-The app is published under its **npm** name and version, unscoped — the registry takes the scope
+The package is published under its **npm** name and version, unscoped — the registry takes the scope
 from your token. Publishing the same content twice is a no-op, so a watch loop that rebuilds without
 a version bump is harmless. Publishing _different_ content under an existing version is normally
 rejected; in development mode the plugin asks the registry to overwrite it, which a local (unauthenticated)
@@ -104,7 +104,7 @@ Sample appshell.config.yaml
 ```yaml
 remotes:
   TestModule/Foo: # Must match the scope/module defined in ModuleFederationPlugin
-    url: ${APPS_TEST_URL}/remoteEntry.js # Environment variables will be expanded when the global runtime manifest is generated.
+    url: ${APPS_TEST_URL}/remoteEntry.js # Application variables will be expanded when the global runtime manifest is generated.
     metadata: # Use metadata to provide additional information
       route: ${FOO_ROUTE}
       displayName: Foo App
@@ -130,7 +130,7 @@ remotes:
       order: 30
       icon: ViewList
 
-environment:
+vars:
   RUNTIME_ARG_1: ${RUNTIME_ARG_1}
   RUNTIME_ARG_2: ${RUNTIME_ARG_2}
   RUNTIME_ARG_3: ${RUNTIME_ARG_3}
@@ -138,7 +138,7 @@ environment:
 
 > **Note** the variable expansion syntax `${CRA_MFE_URL}`. When the `appshell manifest` is generated the actual runtime environment values are injected.
 
-> **Note** the `environment` section defines runtime environment variables that are injected into the global namesapce `window.__appshell_env__[module_name]` when an Appshell component is loaded. See the examples for a use case.
+> **Note** the `vars` section defines runtime configuration values that are injected into the global namespace `window.__appshell_vars__[module_name]` when an Appshell component is loaded. See the examples for a use case.
 
 **What happens at build time?**
 
@@ -270,7 +270,7 @@ Sample `appshell manifest`:
       }
     }
   },
-  "environment": {
+  "vars": {
     "CraModule": {
       "RUNTIME_ARG_1": "Foo",
       "RUNTIME_ARG_2": "Biz"

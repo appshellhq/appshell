@@ -7,7 +7,7 @@ jest.mock('fs');
 
 const generateSpy = jest
   .spyOn(configModule, 'generateManifest')
-  .mockResolvedValue({ remotes: {}, modules: {}, environment: {} });
+  .mockResolvedValue({ remotes: {}, modules: {}, vars: {} });
 const writeFileSyncSpy = jest.spyOn(fs, 'writeFileSync');
 
 describe('generate.manifest', () => {

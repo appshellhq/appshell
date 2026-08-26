@@ -19,7 +19,7 @@ describe('devServerOrigin', () => {
     expect(devServerOrigin({ port: 3002 })).toBe('http://localhost:3002');
   });
 
-  it('should accept a port that arrived as a string from the environment', () => {
+  it('should accept a port that arrived as a string from the application', () => {
     expect(devServerOrigin({ port: '3002' })).toBe('http://localhost:3002');
   });
 
@@ -54,7 +54,7 @@ describe('writeDevHint', () => {
 
   const written = () => JSON.parse(fs.readFileSync(path.join(dir, DEV_HINT_FILE), 'utf-8'));
 
-  it('should record where the app is being served and how to reach its entry', () => {
+  it('should record where the package is being served and how to reach its entry', () => {
     writeDevHint(dir, { port: 3002 }, 'remoteEntry.js', new Date(0));
 
     expect(written()).toEqual({

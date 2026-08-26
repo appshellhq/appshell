@@ -102,7 +102,7 @@ describe('AppshellPlugin', () => {
     jest.clearAllMocks();
     delete process.env.APPSHELL_PUBLISH_ON_BUILD;
     delete process.env.APPSHELL_REGISTRY;
-    delete process.env.APPSHELL_ENVIRONMENT;
+    delete process.env.APPSHELL_APPLICATION;
     delete process.env.APPSHELL_SCOPE_ID;
     rimrafSync(configsDir);
   });
@@ -291,13 +291,13 @@ describe('AppshellPlugin', () => {
       expect(AppshellPlugin.identify('packages/webpack-plugin').name).toEqual('webpack-plugin');
     });
 
-    it('should activate the published version when an environment is given', async () => {
+    it('should activate the published version when an application is given', async () => {
       jest.spyOn(fs, 'writeFileSync').mockImplementation();
       const plugin = new AppshellPlugin({
         config,
         registry,
         publish: true,
-        environment: 'acme/dev',
+        application: 'acme/dev',
       });
 
       plugin.apply(compiler as any);

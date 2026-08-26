@@ -13,19 +13,14 @@ import { readConfig } from '../../config/src/utils/config';
 import initConfigHandler, { InitArgs } from './handlers/config/init';
 import listConfigHandler, { ListConfigArgs } from './handlers/config/list';
 import setConfigHandler, { SetConfigArgs } from './handlers/config/set';
-import deregisterManifestHandler, { DeregisterManifestArgs } from './handlers/deregister';
 import * as dev from './handlers/dev';
 import { DevArgs } from './handlers/dev';
-import * as env from './handlers/env';
+import * as app from './handlers/app';
 import generateEnvHandler, { GenerateEnvArgs } from './handlers/generate.env';
-import generateGlobalConfigHandler, {
-  GenerateGlobalConfigArgs,
-} from './handlers/generate.global-config';
 import generateManifestHandler, { GenerateManifestArgs } from './handlers/generate.manifest';
 import loginHandler, { LoginArgs, logout } from './handlers/login';
 import outdatedHandler, { OutdatedArgs } from './handlers/outdated';
 import publishHandler, { PublishArgs } from './handlers/publish';
-import registerManifestHandler, { RegisterManifestArgs } from './handlers/register';
 
 const loadConfig = (cPath: string) => {
   const originalDebug = console.debug;
@@ -39,12 +34,9 @@ const loadConfig = (cPath: string) => {
 const configPath = process.env.APPSHELL_CONFIG || path.join(os.homedir(), '.appshell', 'config');
 const config = loadConfig(configPath);
 
-/** Deprecated file-registry commands predate the registry service. */
-const legacyRegistry = './appshell_registry';
-
 const devCommand: yargs.CommandModule<unknown, DevArgs> = {
   command: 'dev',
-  describe: 'Point an environment at this app running locally, for this browser only',
+  describe: 'Point an application at this package running locally, for this browser only',
   // eslint-disable-next-line @typescript-eslint/no-shadow
   builder: (yargs) =>
     yargs
@@ -57,23 +49,23 @@ const devCommand: yargs.CommandModule<unknown, DevArgs> = {
           yargs
             .option('port', {
               type: 'number',
-              description: 'Port this app is running on locally, as http://localhost:<port>',
+              description: 'Port this package is running on locally, as http://localhost:<port>',
             })
             .option('url', {
               type: 'string',
-              description: 'Full origin this app is served from, when it is not localhost',
+              description: 'Full origin this package is served from, when it is not localhost',
             })
             .conflicts('port', 'url')
-            .option('app', {
+            .option('package', {
               type: 'string',
               description:
-                'App whose remotes to redirect. Defaults to the package.json in this directory',
+                'Package whose remotes to redirect. Defaults to the package.json in this directory',
             })
             .option('remote', {
               type: 'array',
               string: true,
               description:
-                'Redirect only these remote keys. Defaults to every remote the app publishes',
+                'Redirect only these remote keys. Defaults to every remote the package publishes',
             })
             .option('shell', {
               choices: ['prod', 'dev'] as const,
@@ -90,120 +82,29 @@ const devCommand: yargs.CommandModule<unknown, DevArgs> = {
       })
       .command({
         command: 'status',
-        describe: 'List the overlays currently open on the environment',
+        describe: 'List the overlays currently open on the application',
         handler: dev.status,
       })
       .command({
         command: 'stop [id]',
-        describe: 'Close an overlay, reverting the environment for anyone holding it',
+        describe: 'Close an overlay, reverting the application for anyone holding it',
         // eslint-disable-next-line @typescript-eslint/no-shadow
         builder: (yargs) =>
           yargs
             .positional('id', { type: 'string', description: 'Overlay to close' })
-            .option('app', {
+            .option('package', {
               type: 'string',
               description:
-                'Stop redirecting just this app, leaving the rest of the overlay in place. Defaults to the package.json in this directory',
+                'Stop redirecting just this package, leaving the rest of the overlay in place. Defaults to the package.json in this directory',
             })
             .option('all', {
               boolean: true,
               default: false,
-              description: 'Close every overlay open on this environment',
+              description: 'Close every overlay open on this application',
             }) as yargs.Argv<DevArgs>,
         handler: dev.stop,
       }) as unknown as yargs.Argv<DevArgs>,
   handler: () => undefined,
-};
-
-const registerManifestCommand: yargs.CommandModule<unknown, RegisterManifestArgs> = {
-  command: 'register',
-  describe: false,
-  deprecated: 'Use `appshell publish` against an appshell registry instead.',
-  // eslint-disable-next-line @typescript-eslint/no-shadow
-  builder: (yargs) =>
-    yargs
-      .option('registry', {
-        default: legacyRegistry,
-        description: 'Registry with which the app is registered',
-      })
-      .option('manifest', {
-        alias: 'm',
-        string: true,
-        type: 'array',
-        requiresArg: true,
-        description: 'One or more manifests to register',
-      })
-      .option('allowOverrides', {
-        default: false,
-        boolean: false,
-        type: 'boolean',
-        description: 'Allow overrides to be propagated',
-      }) as yargs.Argv<RegisterManifestArgs>,
-  handler: registerManifestHandler,
-};
-
-const deregisterManifestCommand: yargs.CommandModule<unknown, DeregisterManifestArgs> = {
-  command: 'deregister',
-  describe: false,
-  deprecated: 'Use `appshell unpublish` against an appshell registry instead.',
-  // eslint-disable-next-line @typescript-eslint/no-shadow
-  builder: (yargs) =>
-    yargs
-      .option('key', {
-        string: true,
-        type: 'array',
-        requiresArg: true,
-        description: 'One or more keys for manifests to deregister',
-      })
-      .option('registry', {
-        default: legacyRegistry,
-        description: 'Registry with which the app is deregistered',
-      }) as yargs.Argv<DeregisterManifestArgs>,
-  handler: deregisterManifestHandler,
-};
-
-const generateGlobalConfigCommand: yargs.CommandModule<unknown, GenerateGlobalConfigArgs> = {
-  command: 'global-config',
-  describe: false,
-  deprecated: 'Use `appshell env composition` against an appshell registry instead.',
-  // eslint-disable-next-line @typescript-eslint/no-shadow
-  builder: (yargs) =>
-    yargs
-      .option('outDir', {
-        alias: 'o',
-        default: 'dist',
-        type: 'string',
-        description: 'Output location for the global appshell configuration',
-      })
-      .option('outFile', {
-        alias: 'f',
-        default: 'appshell.config.json',
-        type: 'string',
-        description: 'Output filename for the global appshell configuration',
-      })
-      .option('validateRegistrySslCert', {
-        alias: 'v',
-        default: true,
-        type: 'boolean',
-        description:
-          "If false, registry files are fetched without validating the registry's SSL cert",
-      })
-      .option('proxyUrl', {
-        alias: 'p',
-        default: process.env.APPSHELL_PROXY_URL || '',
-        type: 'string',
-        description: 'Proxy url for calls to get external resources',
-        global: true,
-      })
-      .option('registry', {
-        string: true,
-        type: 'array',
-        requiresArg: true,
-        default: [legacyRegistry],
-        description:
-          'One or more registries to query for other global configurations to merge into a single global appshell configuration',
-      }) as yargs.Argv<GenerateGlobalConfigArgs>,
-  handler: generateGlobalConfigHandler,
 };
 
 const generateManifestCommand: yargs.CommandModule<unknown, GenerateManifestArgs> = {
@@ -276,7 +177,7 @@ const outdatedCommand: yargs.CommandModule<unknown, OutdatedArgs> = {
   builder: (yargs) =>
     yargs
       .option('registry', {
-        description: 'Registry against which the app is compared',
+        description: 'Registry against which the package is compared',
       })
       .option('workingDir', {
         alias: 'd',
@@ -357,7 +258,7 @@ const loginCommand: yargs.CommandModule<unknown, LoginArgs> = {
         description: 'OIDC client id',
       })
       .option('clientSecret', {
-        // Only read from the environment so the secret never lands in shell history.
+        // Only read from the application so the secret never lands in shell history.
         default: process.env.APPSHELL_CLIENT_SECRET,
         type: 'string',
         description:
@@ -379,7 +280,7 @@ const logoutCommand: yargs.CommandModule<unknown, { registry: string }> = {
 
 const publishCommand: yargs.CommandModule<unknown, PublishArgs> = {
   command: 'publish',
-  describe: 'Publish an app to the appshell registry',
+  describe: 'Publish a package to the appshell registry',
   // eslint-disable-next-line @typescript-eslint/no-shadow
   builder: (yargs) =>
     yargs
@@ -391,13 +292,13 @@ const publishCommand: yargs.CommandModule<unknown, PublishArgs> = {
       })
       .option('name', {
         type: 'string',
-        description: 'App name. Defaults to the unscoped package.json name',
+        description: 'Package name. Defaults to the unscoped package.json name',
       })
       // Not `version`: yargs reserves that word for its own flag, so the value never
-      // reaches the handler and the app silently publishes at its package.json version.
-      .option('app-version', {
+      // reaches the handler and the package silently publishes at its package.json version.
+      .option('package-version', {
         type: 'string',
-        description: 'App version to publish as. Defaults to the package.json version',
+        description: 'Package version to publish as. Defaults to the package.json version',
       })
       .option('visibility', {
         type: 'string',
@@ -419,7 +320,7 @@ const unpublishCommand: yargs.CommandModule<
   { registry: string; scopeId: string; name: string; version: string }
 > = {
   command: 'unpublish <name> <version>',
-  describe: 'Remove a published app version from the appshell registry',
+  describe: 'Remove a published package version from the appshell registry',
   // eslint-disable-next-line @typescript-eslint/no-shadow
   builder: (yargs) =>
     yargs
@@ -446,7 +347,6 @@ yargs(hideBin(process.argv))
     global: true,
   })
   .option('apiKeyHeader', {
-    alias: 'a',
     default: process.env.APPSHELL_API_KEY_HEADER || config.apiKeyHeader || 'x-api-key',
     type: 'string',
     description: 'Header to send the registry api key in',
@@ -459,15 +359,15 @@ yargs(hideBin(process.argv))
     type: 'string',
     global: true,
   })
-  .option('environment', {
-    alias: 'e',
-    describe: "Environment to operate against, as 'name' or 'scope/name'",
-    default: process.env.APPSHELL_ENVIRONMENT || config.environment,
+  .option('application', {
+    alias: 'a',
+    describe: "Application to operate against, as 'name' or 'scope/name'",
+    default: process.env.APPSHELL_APPLICATION || config.application,
     type: 'string',
     global: true,
   })
   .option('scopeId', {
-    describe: 'Scope that owns unqualified apps and environments',
+    describe: 'Scope that owns unqualified packages and applications',
     default: process.env.APPSHELL_SCOPE_ID || config.scopeId || 'default',
     type: 'string',
     global: true,
@@ -495,7 +395,6 @@ yargs(hideBin(process.argv))
       yargs
         .command(generateManifestCommand)
         .command(generateEnvCommand)
-        .command(generateGlobalConfigCommand)
         .demandCommand(),
   })
   .command({
@@ -511,29 +410,43 @@ yargs(hideBin(process.argv))
         .demandCommand(),
   })
   .command({
-    command: 'env <target>',
-    describe: 'Manage appshell environments',
+    command: 'app <target>',
+    describe: 'Manage appshell applications',
     handler: () => {},
     // eslint-disable-next-line @typescript-eslint/no-shadow
     builder: (yargs) =>
       yargs
         .command({
+          command: 'apply',
+          describe: 'Reconcile an application against a declared resource file',
+          // eslint-disable-next-line @typescript-eslint/no-shadow
+          builder: (yargs) =>
+            yargs.option('file', {
+              alias: 'f',
+              type: 'string',
+              demandOption: true,
+              requiresArg: true,
+              describe: 'Path to an application resource, as yaml or json',
+            }),
+          handler: app.apply as never,
+        })
+        .command({
           command: 'list',
           aliases: ['ls'],
-          describe: 'List environments',
+          describe: 'List applications',
           // eslint-disable-next-line @typescript-eslint/no-shadow
           builder: (yargs) =>
             yargs.option('owner', { type: 'string', description: 'Filter by owner' }),
-          handler: env.list as never,
+          handler: app.list as never,
         })
         .command({
           command: 'get [name]',
-          describe: 'Show a single environment',
-          handler: env.get as never,
+          describe: 'Show a single application',
+          handler: app.get as never,
         })
         .command({
           command: 'create <name>',
-          describe: 'Create an environment',
+          describe: 'Create an application',
           // eslint-disable-next-line @typescript-eslint/no-shadow
           builder: (yargs) =>
             yargs
@@ -542,63 +455,63 @@ yargs(hideBin(process.argv))
               .option('visibility', { type: 'string', choices: ['public', 'private'] as const })
               .option('shell-bundle-url', {
                 type: 'string',
-                describe: 'Shell bundle this environment loads, instead of the registry default',
+                describe: 'Shell bundle this application loads, instead of the registry default',
               }),
-          handler: env.create as never,
+          handler: app.create as never,
         })
         .command({
           command: 'delete [name]',
           aliases: ['rm'],
-          describe: 'Delete an environment',
-          handler: env.remove as never,
+          describe: 'Delete an application',
+          handler: app.remove as never,
         })
         .command({
-          command: 'deactivate <app>',
-          describe: "Remove an app from an environment, as 'name' or 'scope/name'",
+          command: 'deactivate <package>',
+          describe: "Remove a package from an application, as 'name' or 'scope/name'",
           // eslint-disable-next-line @typescript-eslint/no-shadow
-          builder: (yargs) => yargs.positional('app', { type: 'string', demandOption: true }),
-          handler: env.deactivate as never,
+          builder: (yargs) => yargs.positional('package', { type: 'string', demandOption: true }),
+          handler: app.deactivate as never,
         })
         .command({
           command: 'revisions [name]',
-          describe: 'List an environment revision history',
+          describe: 'List an application revision history',
           // eslint-disable-next-line @typescript-eslint/no-shadow
           builder: (yargs) => yargs.option('limit', { type: 'number' }),
-          handler: env.revisions as never,
+          handler: app.revisions as never,
         })
         .command({
           command: 'rollback [name]',
-          describe: 'Roll an environment back to a previous revision',
+          describe: 'Roll an application back to a previous revision',
           // eslint-disable-next-line @typescript-eslint/no-shadow
           builder: (yargs) =>
             yargs.option('to', { type: 'number', demandOption: true, description: 'Revision' }),
-          handler: env.rollback as never,
+          handler: app.rollback as never,
         })
         .command({
           command: 'composition [name]',
-          describe: 'Print the resolved composition for an environment',
-          handler: env.composition as never,
+          describe: 'Print the resolved composition for an application',
+          handler: app.composition as never,
         })
         .command({
           command: 'open [name]',
-          describe: 'Print the shell url for an environment',
-          handler: env.open as never,
+          describe: 'Print the shell url for an application',
+          handler: app.open as never,
         })
         .command({
           command: 'sync',
-          describe: 'Sync a target environment from a source environment',
+          describe: 'Sync a target application from a source application',
           // eslint-disable-next-line @typescript-eslint/no-shadow
           builder: (yargs) =>
             yargs
               .option('from', {
                 type: 'string',
                 demandOption: true,
-                description: "Source environment as 'name' or 'scope/name'",
+                description: "Source application as 'name' or 'scope/name'",
               })
               .option('to', {
                 type: 'string',
                 description:
-                  "Target environment as 'name' or 'scope/name'. Defaults to --environment.",
+                  "Target application as 'name' or 'scope/name'. Defaults to --application.",
               })
               .option('mode', {
                 type: 'string',
@@ -610,7 +523,7 @@ yargs(hideBin(process.argv))
                 type: 'array',
                 string: true,
                 choices: [
-                  'apps',
+                  'packages',
                   'shell',
                   'overrides',
                   'allowOverrides',
@@ -618,37 +531,37 @@ yargs(hideBin(process.argv))
                   'sharedDepsEnforcement',
                   'visibility',
                 ] as const,
-                description: 'Optional list of environment sections to sync',
+                description: 'Optional list of application sections to sync',
               }),
-          handler: env.sync as never,
+          handler: app.sync as never,
         })
         .command({
           command: 'clone',
-          describe: 'Create a new environment by cloning a source environment',
+          describe: 'Create a new application by cloning a source application',
           // eslint-disable-next-line @typescript-eslint/no-shadow
           builder: (yargs) =>
             yargs
               .option('from', {
                 type: 'string',
                 demandOption: true,
-                description: "Source environment as 'name' or 'scope/name'",
+                description: "Source application as 'name' or 'scope/name'",
               })
               .option('to', {
                 type: 'string',
                 description:
-                  "Target environment as 'name' or 'scope/name'. Defaults to --environment.",
+                  "Target application as 'name' or 'scope/name'. Defaults to --application.",
               })
               .option('visibility', {
                 type: 'string',
                 choices: ['public', 'private'] as const,
-                description: 'Optional visibility override on the target environment',
+                description: 'Optional visibility override on the target application',
               })
               .option('ephemeral', {
                 boolean: true,
                 type: 'boolean',
-                description: 'Optional ephemeral override on the target environment',
+                description: 'Optional ephemeral override on the target application',
               }),
-          handler: env.clone as never,
+          handler: app.clone as never,
         })
         .demandCommand(),
   })
@@ -658,8 +571,6 @@ yargs(hideBin(process.argv))
   .command(publishCommand)
   .command(unpublishCommand)
   .command(outdatedCommand)
-  .command(registerManifestCommand)
-  .command(deregisterManifestCommand)
   .help()
   .alias('h', 'help')
   .fail((msg, err) => {

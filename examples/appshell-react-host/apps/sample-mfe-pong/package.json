@@ -5,8 +5,8 @@
   "main": "dist/main.js",
   "scripts": {
     "generate:manifest": "dotenv -- appshell generate manifest --template dist/appshell.template.json",
-    "register": "dotenv -- appshell publish --template dist/appshell.template.json",
-    "watch:config": "nodemon --watch dist/appshell.template.json --exec run-s generate:manifest register",
+    "publish": "dotenv -- appshell publish --template dist/appshell.template.json",
+    "watch:config": "nodemon --watch dist/appshell.template.json --exec run-s generate:manifest publish",
     "start": "dotenv -- webpack-cli serve --mode development",
     "start:run": "webpack-cli serve --mode development",
     "build": "webpack --mode production && tsc --emitDeclarationOnly",

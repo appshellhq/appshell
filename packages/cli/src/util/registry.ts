@@ -3,7 +3,7 @@ import { AxiosRequestConfig } from 'axios';
 import axios from './axios';
 import { resolveToken } from './credentials';
 
-export type EnvironmentSummary = {
+export type ApplicationSummary = {
   id: string;
   scopeId: string;
   name: string;
@@ -11,12 +11,12 @@ export type EnvironmentSummary = {
   visibility: 'public' | 'private';
   ephemeral: boolean;
   revision: number;
-  apps: Record<string, { appId: string; activatedAt: string }>;
+  packages: Record<string, { packageId: string; activatedAt: string }>;
   createdAt: string;
   lastModifiedAt: string;
 };
 
-export type EnvironmentRevision = {
+export type ApplicationRevision = {
   revision: number;
   actor: string;
   reason: string;
@@ -24,7 +24,7 @@ export type EnvironmentRevision = {
 };
 
 export type SharedDependencyRequest = {
-  appId: string;
+  packageId: string;
   requiredVersion?: string;
   singleton: boolean;
 };
@@ -73,7 +73,7 @@ export type OpenOverlay = {
   confirmUrl: string;
 };
 
-export type CreateEnvironmentBody = {
+export type CreateApplicationBody = {
   name: string;
   visibility?: 'public' | 'private';
   ephemeral?: boolean;
@@ -81,12 +81,12 @@ export type CreateEnvironmentBody = {
   overrides?: Record<string, unknown>;
 };
 
-export type SyncEnvironmentBody = {
+export type SyncApplicationBody = {
   fromScopeId: string;
   fromName: string;
   mode?: 'replace' | 'merge';
   include?: Array<
-    | 'apps'
+    | 'packages'
     | 'shell'
     | 'overrides'
     | 'allowOverrides'
@@ -96,11 +96,37 @@ export type SyncEnvironmentBody = {
   >;
 };
 
-export type CloneEnvironmentBody = {
+export type CloneApplicationBody = {
   fromScopeId: string;
   fromName: string;
   visibility?: 'public' | 'private';
   ephemeral?: boolean;
+};
+
+/** The declarative resource `appshell app apply` sends to `/v1/apply`. */
+export type ApplicationResource = {
+  apiVersion: string;
+  kind: 'Application';
+  name: string;
+  spec?: {
+    shell?: Record<string, unknown>;
+    /** The full desired set. Anything activated but absent here is deactivated. */
+    packages?: string[];
+    overrides?: Record<string, unknown>;
+    allowOverrides?: boolean;
+    allowOverlays?: boolean;
+    sharedBaselines?: Record<string, unknown>;
+    sharedDepsEnforcement?: 'off' | 'warn' | 'block';
+    visibility?: 'public' | 'private';
+    ephemeral?: boolean;
+  };
+};
+
+export type ApplyResult = {
+  id: string;
+  created: boolean;
+  changes: string[];
+  message: string;
 };
 
 const describe = (error: unknown) => {
@@ -110,7 +136,10 @@ const describe = (error: unknown) => {
   }
 
   const { message } = response.data ?? {};
-  return `${response.status} ${Array.isArray(message) ? message.join(', ') : message ?? ''}`.trim();
+  const detail =
+    `${response.status} ${Array.isArray(message) ? message.join(', ') : message ?? ''}`.trim();
+
+  return response.status === 401 ? `${detail} Run \`appshell login\` or set APPSHELL_TOKEN.` : detail;
 };
 
 export class RegistryClient {
@@ -145,44 +174,49 @@ export class RegistryClient {
     }
   }
 
-  listEnvironments(scopeId?: string, owner?: string) {
+  listApplications(scopeId?: string, owner?: string) {
     const query = new URLSearchParams();
     if (scopeId) query.set('scopeId', scopeId);
     if (owner) query.set('owner', owner);
     const suffix = query.toString() ? `?${query}` : '';
 
-    return this.send<EnvironmentSummary[]>('get', `/v1/environments${suffix}`, 'list environments');
+    return this.send<ApplicationSummary[]>('get', `/v1/applications${suffix}`, 'list applications');
   }
 
-  getEnvironment(scopeId: string, name: string) {
-    return this.send<EnvironmentSummary>(
+  getApplication(scopeId: string, name: string) {
+    return this.send<ApplicationSummary>(
       'get',
-      `/v1/environments/${scopeId}/${name}`,
-      `fetch environment ${scopeId}/${name}`,
+      `/v1/applications/${scopeId}/${name}`,
+      `fetch application ${scopeId}/${name}`,
     );
   }
 
-  createEnvironment(body: CreateEnvironmentBody) {
+  createApplication(body: CreateApplicationBody) {
     return this.send<{ id: string }>(
       'post',
-      '/v1/environments',
-      `create environment ${body.name}`,
+      '/v1/applications',
+      `create application ${body.name}`,
       body,
     );
   }
 
-  deleteEnvironment(scopeId: string, name: string) {
+  deleteApplication(scopeId: string, name: string) {
     return this.send<{ id: string }>(
       'delete',
-      `/v1/environments/${scopeId}/${name}`,
-      `delete environment ${scopeId}/${name}`,
+      `/v1/applications/${scopeId}/${name}`,
+      `delete application ${scopeId}/${name}`,
     );
+  }
+
+  /** Reconciles an application against a declared resource; creates it when absent. */
+  apply(resource: ApplicationResource) {
+    return this.send<ApplyResult>('post', '/v1/apply', `apply ${resource.name}`, resource);
   }
 
   composition(scopeId: string, name: string) {
     return this.send<Record<string, unknown>>(
       'get',
-      `/v1/environments/${scopeId}/${name}/composition`,
+      `/v1/applications/${scopeId}/${name}/composition`,
       `fetch composition for ${scopeId}/${name}`,
     );
   }
@@ -190,9 +224,9 @@ export class RegistryClient {
   revisions(scopeId: string, name: string, limit?: number) {
     const suffix = limit ? `?limit=${limit}` : '';
 
-    return this.send<EnvironmentRevision[]>(
+    return this.send<ApplicationRevision[]>(
       'get',
-      `/v1/environments/${scopeId}/${name}/revisions${suffix}`,
+      `/v1/applications/${scopeId}/${name}/revisions${suffix}`,
       `list revisions for ${scopeId}/${name}`,
     );
   }
@@ -200,26 +234,26 @@ export class RegistryClient {
   rollback(scopeId: string, name: string, revision: number) {
     return this.send<{ id: string }>(
       'post',
-      `/v1/environments/${scopeId}/${name}/rollback`,
+      `/v1/applications/${scopeId}/${name}/rollback`,
       `roll ${scopeId}/${name} back to revision ${revision}`,
       { revision },
     );
   }
 
-  syncEnvironment(scopeId: string, name: string, body: SyncEnvironmentBody) {
+  syncApplication(scopeId: string, name: string, body: SyncApplicationBody) {
     return this.send<{ id: string }>(
       'post',
-      `/v1/environments/${scopeId}/${name}/sync`,
-      `sync environment ${scopeId}/${name}`,
+      `/v1/applications/${scopeId}/${name}/sync`,
+      `sync application ${scopeId}/${name}`,
       body,
     );
   }
 
-  cloneEnvironment(scopeId: string, name: string, body: CloneEnvironmentBody) {
+  cloneApplication(scopeId: string, name: string, body: CloneApplicationBody) {
     return this.send<{ id: string }>(
       'post',
-      `/v1/environments/${scopeId}/${name}/clone`,
-      `clone environment ${scopeId}/${name}`,
+      `/v1/applications/${scopeId}/${name}/clone`,
+      `clone application ${scopeId}/${name}`,
       body,
     );
   }
@@ -227,16 +261,16 @@ export class RegistryClient {
   sharedDeps(scopeId: string, name: string) {
     return this.send<SharedDependencyReport>(
       'get',
-      `/v1/environments/${scopeId}/${name}/shared-deps`,
+      `/v1/applications/${scopeId}/${name}/shared-deps`,
       `fetch shared dependencies for ${scopeId}/${name}`,
     );
   }
 
-  /** What the registry actually has published for an app, not what a local build says. */
-  appManifest(scopeId: string, name: string) {
+  /** What the registry actually has published for a package, not what a local build says. */
+  packageManifest(scopeId: string, name: string) {
     return this.send<{ remotes: Record<string, { remoteEntryUrl: string; manifestUrl: string }> }>(
       'get',
-      `/v1/apps/${scopeId}/${name}/manifest`,
+      `/v1/packages/${scopeId}/${name}/manifest`,
       `fetch the published manifest for ${scopeId}/${name}`,
     );
   }
@@ -244,7 +278,7 @@ export class RegistryClient {
   listOverlays(scopeId: string, name: string) {
     return this.send<OpenOverlay[]>(
       'get',
-      `/v1/environments/${scopeId}/${name}/overlays`,
+      `/v1/applications/${scopeId}/${name}/overlays`,
       `list overlays on ${scopeId}/${name}`,
     );
   }
@@ -252,7 +286,7 @@ export class RegistryClient {
   createOverlay(scopeId: string, name: string, body: CreateOverlayBody) {
     return this.send<CreatedOverlay>(
       'post',
-      `/v1/environments/${scopeId}/${name}/overlays`,
+      `/v1/applications/${scopeId}/${name}/overlays`,
       `open an overlay on ${scopeId}/${name}`,
       body,
     );
@@ -261,7 +295,7 @@ export class RegistryClient {
   stopRedirecting(scopeId: string, name: string, id: string, removeRemotes: string[]) {
     return this.send<{ id: string; remotes: string[] }>(
       'patch',
-      `/v1/environments/${scopeId}/${name}/overlays/${id}`,
+      `/v1/applications/${scopeId}/${name}/overlays/${id}`,
       `stop redirecting ${removeRemotes.join(', ')}`,
       { removeRemotes },
     );
@@ -270,7 +304,7 @@ export class RegistryClient {
   closeOverlay(scopeId: string, name: string, id: string) {
     return this.send<{ id: string; revoked: boolean }>(
       'delete',
-      `/v1/environments/${scopeId}/${name}/overlays/${id}`,
+      `/v1/applications/${scopeId}/${name}/overlays/${id}`,
       `close overlay ${id}`,
     );
   }
@@ -278,7 +312,7 @@ export class RegistryClient {
   deactivate(scopeId: string, name: string, appScopeId: string, appName: string) {
     return this.send<{ id: string }>(
       'delete',
-      `/v1/environments/${scopeId}/${name}/apps/${appScopeId}/${appName}`,
+      `/v1/applications/${scopeId}/${name}/packages/${appScopeId}/${appName}`,
       `deactivate ${appScopeId}/${appName} in ${scopeId}/${name}`,
     );
   }
@@ -286,22 +320,22 @@ export class RegistryClient {
   unpublish(scopeId: string, name: string, version: string) {
     return this.send<{ id: string }>(
       'delete',
-      `/v1/apps/${scopeId}/${name}/${version}`,
+      `/v1/packages/${scopeId}/${name}/${version}`,
       `unpublish ${scopeId}/${name}@${version}`,
     );
   }
 }
 
-/** `scope/name`, defaulting the scope from config so `--environment dev` works. */
-export const parseEnvironment = (environment: string, defaultScopeId: string) => {
-  const parts = environment.split('/');
+/** `scope/name`, defaulting the scope from config so `--application dev` works. */
+export const parseApplication = (application: string, defaultScopeId: string) => {
+  const parts = application.split('/');
   if (parts.length === 1) {
     return { scopeId: defaultScopeId, name: parts[0] };
   }
 
   const [scopeId, name] = parts;
   if (parts.length !== 2 || !scopeId || !name) {
-    throw new Error(`Invalid environment '${environment}'. Expected 'name' or 'scope/name'.`);
+    throw new Error(`Invalid application '${application}'. Expected 'name' or 'scope/name'.`);
   }
 
   return { scopeId, name };

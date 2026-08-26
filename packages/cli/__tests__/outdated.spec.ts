@@ -16,7 +16,7 @@ const sharedModules = Object.entries(snapshot.modules).reduce((acc, [name, optio
 describe('cli outdated', () => {
   const apiKey = 'test-api-key';
   const apiKeyHeader = 'test-api-key-header';
-  const environment = 'test-env';
+  const application = 'test-env';
   const scopeId = 'test-scope';
   const testResults = outdatedResults as ComparisonResults;
   let fetchPackageSpecSpy: jest.SpyInstance;
@@ -44,7 +44,7 @@ describe('cli outdated', () => {
       apiKeyHeader,
       workingDir,
       registry,
-      environment,
+      application,
       scopeId,
       manager: 'npm',
     });
@@ -67,48 +67,14 @@ describe('cli outdated', () => {
       apiKeyHeader,
       workingDir,
       registry,
-      environment,
+      application,
       scopeId,
       manager: 'npm',
     });
 
     expect(outdatedSpy).toHaveBeenCalledTimes(modulesToCheck);
     expect(fetchPackageSpecSpy).toHaveBeenCalledWith(workingDir, apiKey, apiKeyHeader);
-    expect(fetchSharedModulesSpy).toHaveBeenCalledWith(
-      registry,
-      environment,
-      scopeId,
-      apiKey,
-      apiKeyHeader,
-    );
-    expect(consoleErrorSpy).not.toHaveBeenCalled();
-  });
-
-  it('should fetch shared modules from a local directory', async () => {
-    const workingDir = '/path/to/workingDir';
-    const registry = '/path/to/registry';
-    const modulesToCheck = Object.keys(sharedModules).length;
-    const outdatedSpy = jest.spyOn(config, 'outdated').mockResolvedValue(testResults);
-
-    await handler({
-      apiKey,
-      apiKeyHeader,
-      workingDir,
-      registry,
-      environment,
-      scopeId,
-      manager: 'npm',
-    });
-
-    expect(outdatedSpy).toHaveBeenCalledTimes(modulesToCheck);
-    expect(fetchPackageSpecSpy).toHaveBeenCalledWith(workingDir, apiKey, apiKeyHeader);
-    expect(fetchSharedModulesSpy).toHaveBeenCalledWith(
-      registry,
-      environment,
-      scopeId,
-      apiKey,
-      apiKeyHeader,
-    );
+    expect(fetchSharedModulesSpy).toHaveBeenCalledWith(registry, application, scopeId);
     expect(consoleErrorSpy).not.toHaveBeenCalled();
   });
 
@@ -122,7 +88,7 @@ describe('cli outdated', () => {
       apiKeyHeader,
       workingDir,
       registry,
-      environment,
+      application,
       scopeId,
       manager: 'npm',
     });
@@ -143,7 +109,7 @@ describe('cli outdated', () => {
       apiKeyHeader,
       workingDir,
       registry,
-      environment,
+      application,
       scopeId,
       manager: 'npm',
     });

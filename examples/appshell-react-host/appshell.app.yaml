@@ -1,0 +1,26 @@
+# The application this workspace composes. Apply it with:
+#
+#   appshell app apply -f appshell.app.yaml
+#
+# `${VAR}` placeholders expand from the environment, the same way
+# appshell.config.yaml expands them, so one file can describe the application
+# in more than one registry.
+#
+# `spec.packages` is deliberately absent: `npm start` publishes and activates
+# each package as you edit, so pinning versions here would fight the dev loop.
+# A GitOps copy of this file would add it, and anything absent from that list
+# gets deactivated.
+apiVersion: registry.appshell.org/v1
+kind: Application
+name: appshell-example
+spec:
+  shell:
+    root: ContainerModule/Container
+    title: Appshell Example
+    description: Three micro-frontends composed by the appshell registry
+    themeColor: '#031230'
+    primaryColor: '#8ed6fb'
+  # This is a local development application, and `appshell dev` is the reason it
+  # exists. Public applications default this off, since that is where an overlay
+  # would sit closest to real traffic.
+  allowOverlays: true

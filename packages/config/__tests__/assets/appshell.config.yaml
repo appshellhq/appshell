@@ -30,6 +30,6 @@ remotes:
       icon: ViewList
 
 overrides:
-  environment:
+  vars:
     BizModule:
       ENV_VAR_A: New value for ENV_VAR_A

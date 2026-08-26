@@ -4,13 +4,13 @@ import mountOverlayBadge, { overlayBadgeMarkup } from '../src/overlayBadge';
 
 const compositionWith = (overlay?: AppshellComposition['overlay']): AppshellComposition =>
   ({
-    environmentId: 'default/dev',
+    applicationId: 'default/dev',
     revision: 1,
     root: 'ContainerModule/Container',
     rootProps: {},
     index: {},
     remotes: {},
-    environment: {},
+    vars: {},
     overlay,
   }) as AppshellComposition;
 
@@ -73,7 +73,7 @@ describe('mountOverlayBadge', () => {
     expect(items).toEqual(['PingModule/Ping', 'PongModule/Pong']);
   });
 
-  it('should mount outside the react root so a crash in the app cannot take it down', () => {
+  it('should mount outside the react root so a crash in the package cannot take it down', () => {
     document.body.innerHTML = '<div id="root"></div>';
     mountOverlayBadge(compositionWith({ id: 'o1', remotes: ['PongModule/Pong'], shellFlavor: 'dev' }));
 

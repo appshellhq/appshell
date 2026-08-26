@@ -11,7 +11,7 @@ export type OutdatedArgs = {
   apiKey: string | undefined;
   apiKeyHeader: string | undefined;
   registry: string;
-  environment: string | undefined;
+  application: string | undefined;
   scopeId: string;
   workingDir: string;
   manager: string;
@@ -163,13 +163,13 @@ const printSummary = (results: ComparisonResults[]) => {
 };
 
 export default async (argv: OutdatedArgs) => {
-  const { apiKey, apiKeyHeader, workingDir, registry, environment, scopeId, manager } = argv;
+  const { apiKey, apiKeyHeader, workingDir, registry, application, scopeId, manager } = argv;
 
   try {
     console.log(`outdated --working-dir=${workingDir} --registry=${registry} --manager=${manager}`);
 
     const packageSpec = await fetchPackageSpec(workingDir, apiKey, apiKeyHeader);
-    const modules = await fetchSharedModules(registry, environment, scopeId, apiKey, apiKeyHeader);
+    const modules = await fetchSharedModules(registry, application, scopeId);
 
     console.debug('Shared modules:', JSON.stringify(modules, null, 2));
     const jobs = Object.entries(modules).map(async ([name, shared]) => {

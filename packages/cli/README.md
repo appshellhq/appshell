@@ -42,7 +42,6 @@ appshell [command]
 
 Commands:
   appshell generate [target]  Generates a resource
-  appshell register           Register one or more appshell manifests
   appshell start              Start the appshell runtime environment
 ```
 
@@ -56,8 +55,6 @@ Generates a resource
 Commands:
   appshell generate manifest  Generate the appshell manifest by processing the template specified by --template
   appshell generate env       Generate the runtime environment js file that reflects the current process.env
-  appshell generate global-config     Generate the global appshell configuration file by merging sources specifed by --registry options
-  appshell generate metadata  Generate the appshell metadata file by merging sources specifed by --registry options
 ```
 
 ## Generate manifest
@@ -121,7 +118,7 @@ Sample config template `appshell.template.json`:
       }
     }
   },
-  "environment": {
+  "vars": {
     "RUNTIME_ARG_1": "${RUNTIME_ARG_1}",
     "RUNTIME_ARG_2": "${RUNTIME_ARG_2}"
   }
@@ -132,7 +129,7 @@ Sample config template `appshell.template.json`:
 
 > Note the variable expansion syntax `${CRA_MFE_URL}`. When `appshell generate manifest` is called the actual runtime environment values are injected in order to produce the remote module's appshell manifest.
 
-> **Note** the `environment` section defines runtime environment variables that are injected into the global namesapce `window.__appshell_env__[module_name]` when an Appshell component is loaded. See the examples for a use case.
+> **Note** the `vars` section defines runtime configuration values that are injected into the global namespace `window.__appshell_vars__[module_name]` when an Appshell component is loaded. See the examples for a use case.
 
 Sample appshell manifest produced by the `appshell generate manifest` function:
 
@@ -215,7 +212,7 @@ Sample appshell manifest produced by the `appshell generate manifest` function:
       }
     }
   },
-  "environment": {
+  "vars": {
     "CraModule": {
       "RUNTIME_ARG_1": "Foo",
       "RUNTIME_ARG_2": "Biz"
@@ -233,18 +230,44 @@ This appshell manifest is registered with `APPSHELL_REGISTRY` and subsequently c
 
 Register one or more appshell manifests with the global registry.
 
-```bash
-appshell register
+## Declaring an application
 
-Register one or more appshell manifests
+`appshell app apply` reconciles an application against a declared resource, creating
+it when absent. It is the declarative counterpart to `app create` plus `publish
+--application`, and the same file works against any registry via `--registry`.
 
-Options:
-      --help      Show help                                            [boolean]
-      --version   Show version number                                  [boolean]
-  -m, --manifest  One or more manifests to register                      [array]
-  -r, --registry  Registry path for the appshell manifests
-                                         [string] [default: "appshell_registry"]
+**appshell.app.yaml**
+
+```yaml
+apiVersion: registry.appshell.org/v1
+kind: Application
+name: storefront
+spec:
+  shell:
+    root: ContainerModule/Container
+    title: Storefront
+  packages:
+    - acme/checkout@1.5.0
+    - acme/cart@2.0.1
 ```
+
+```bash
+appshell app apply -f appshell.app.yaml
+```
+
+`spec.packages` is the **full desired set** — anything activated but absent from it is
+deactivated, and the command prints what moved:
+
+```
+Updated acme/storefront
+  activated acme/cart@2.0.1
+  deactivated acme/search
+```
+
+Omit `spec.packages` entirely and package state is left alone, which is what you want
+locally where the webpack plugin already publishes and activates on every build.
+`${VAR}` placeholders expand from the environment exactly as they do in
+`appshell.config.yaml`.
 
 ## Generate runtime env
 
@@ -258,8 +281,8 @@ Generate the runtime environment js file that reflects the current process.env
 Options:
       --help     Show help                                                  [boolean]
       --version  Show version number                                        [boolean]
-  -o, --outDir   Output location for the appshell environment js             [string] [default: "."]
-  -f, --outFile  Output filename for the appshell environment js             [string] [default: "appshell.env.js"]
+  -o, --outDir   Output location for the appshell application js             [string] [default: "."]
+  -f, --outFile  Output filename for the appshell application js             [string] [default: "appshell.env.js"]
   -p, --prefix   Only capture environment variables that start with prefix or regex [string] [default: ""]
   -g, --globalName     Global variable name window[globalName] used in the output js    [string] [default: "__appshell_env__"]
 ```

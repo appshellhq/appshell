@@ -17,4 +17,3 @@ services:
     volumes:
       - ./apps:/appshell/apps
       - ./${ENV_TARGET}.env/:/appshell/${ENV_TARGET}.env
-      - ./appshell_registry:/appshell/appshell_registry

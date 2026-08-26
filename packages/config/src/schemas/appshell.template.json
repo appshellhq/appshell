@@ -21,7 +21,7 @@
       "description": "Module federation configuration",
       "type": "object"
     },
-    "environment": {
+    "vars": {
       "description": "Runtime environment configuration",
       "type": "object"
     },
@@ -29,7 +29,7 @@
       "description": "Overrides to apply",
       "type": "object",
       "properties": {
-        "environment": {
+        "vars": {
           "type": "object"
         }
       }

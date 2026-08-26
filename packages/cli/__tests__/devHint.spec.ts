@@ -32,7 +32,7 @@ describe('readDevHint', () => {
     expect(readDevHint(cwd)).toEqual(HINT);
   });
 
-  it('should return nothing when the app was never served', () => {
+  it('should return nothing when the package was never served', () => {
     expect(readDevHint(cwd)).toBeUndefined();
   });
 
@@ -67,9 +67,9 @@ describe('verifyDevHint', () => {
     await expect(verifyDevHint(HINT, ['PongModule/Pong'])).resolves.toBe(true);
   });
 
-  it('should refuse an origin now serving a different app', async () => {
+  it('should refuse an origin now serving a different package', async () => {
     // The port was reused. A probe that only asked "did anything answer" would pass
-    // here and redirect this app at somebody else's bundle.
+    // here and redirect this package at somebody else's bundle.
     withFetch(respond({ remotes: { 'PingModule/Ping': {} } }));
 
     await expect(verifyDevHint(HINT, ['PongModule/Pong'])).resolves.toBe(false);

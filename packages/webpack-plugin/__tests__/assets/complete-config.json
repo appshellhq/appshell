@@ -38,7 +38,7 @@
       "id": "373793ed"
     }
   },
-  "environment": {
+  "vars": {
     "TestModule": {
       "RUNTIME_ENV": "${RUNTIME_ENV}",
       "RUNTIME_ENV_VERSION": "${RUNTIME_ENV_VERSION}"

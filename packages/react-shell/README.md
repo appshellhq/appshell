@@ -17,19 +17,19 @@ Working examples can be found [here](https://github.com/appshell-org/appshell/tr
 
 `@appshell/react-shell` is the browser bundle that mounts your micro-frontends. It is not a server —
 the Appshell registry renders the shell document, inlines the resolved composition, and serves this
-bundle at the URL an environment's `shellBundleUrl` points at.
+bundle at the URL an application's `shellBundleUrl` points at.
 
 **Building a micro-frontend? You do not need this package.** Run your own dev server and publish to
-an environment; the registry loads the shell bundle for you. This README is for pinning which bundle
-an environment uses, and for working on the bundle itself.
+an application; the registry loads the shell bundle for you. This README is for pinning which bundle
+an application uses, and for working on the bundle itself.
 
 ## Choosing a bundle
 
-Every environment resolves a shell bundle. By default that is the one the registry image ships, so
+Every application resolves a shell bundle. By default that is the one the registry image ships, so
 there is nothing to configure. Point `shellBundleUrl` elsewhere to pin a version or serve from a CDN:
 
 ```bash
-appshell env create my-env --shell-bundle-url https://cdn.example.com/appshell/1.2.3/main.js
+appshell app create my-env --shell-bundle-url https://cdn.example.com/appshell/1.2.3/main.js
 ```
 
 The package publishes `dist/` and nothing else, so a registry image can serve it under a versioned
@@ -48,34 +48,26 @@ resolved by the browser, so a shared registry can point at your machine.
 
 ```bash
 npm start
-appshell env create shell-dev --ephemeral --shell-bundle-url http://localhost:3030/main.js
+appshell app create shell-dev --ephemeral --shell-bundle-url http://localhost:3030/main.js
 ```
 
 > **Note**
 > Chrome and Firefox treat `localhost` as a trustworthy origin, so an `https` registry may load an
 > `http` bundle from it. Safari is stricter — run the registry locally, or serve `main.js` over TLS.
 
-## Environment configuration
+## Application configuration
 
-A registry-served shell needs none of this — the environment supplies the root remote, its props,
-and the page's title, colours and stylesheet, and the registry inlines them. These are the
-standalone fallbacks, read from the `appshell.env.js` that `appshell generate env` writes:
+The registry supplies the root remote, its props, and the page's title, colours and stylesheet,
+inlining them into the document it serves. What remains here is build- and dev-server
+configuration, read from the `appshell.env.js` that `appshell generate env` writes:
 
 ```sh
 # Public url. Defaults to localhost
 APPSHELL_PUBLIC_URL=
 # Port the bundle's development server listens on
 APPSHELL_PORT=3030
-# Remote module to mount at the root, when no composition is inlined
-APPSHELL_ROOT=ContainerModule/App
-# Props for that remote, as a serialized JSON string
-APPSHELL_ROOT_PROPS='{"foo":"bar"}'
-# File to setup the environment. Defaults to .env
-APPSHELL_ENV=.env
 # Prefix used to specify which env vars to include when generating appshell.env.js. Leaving this empty will include ALL variables in the .env
 APPSHELL_ENV_PREFIX=APPSHELL_
-# Name of global variable used in the generated appshell.env.js. Defaults to window.__appshell_env__
-APPSHELL_ENV_GLOBAL_VAR=__appshell_env__
 # Background color of splash screen
 APPSHELL_THEME_COLOR=
 # Color of splash screen loading

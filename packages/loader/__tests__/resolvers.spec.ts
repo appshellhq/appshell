@@ -1,12 +1,7 @@
 /** @jest-environment jsdom */
-import { AppshellComposition, AppshellGlobalConfig, AppshellManifest } from '@appshell/config';
+import { AppshellComposition, AppshellManifest } from '@appshell/config';
 import fetch, { enableFetchMocks } from 'jest-fetch-mock';
-import {
-  chainResolvers,
-  inlineResolver,
-  legacyManifestResolver,
-  registryResolver,
-} from '../src/resolvers';
+import { chainResolvers, inlineResolver, registryResolver } from '../src/resolvers';
 
 enableFetchMocks();
 
@@ -25,17 +20,17 @@ const manifest: AppshellManifest = {
     },
   },
   modules: { TestModule: { name: 'TestModule' } },
-  environment: { TestModule: { ENV_VAR_A: 'Original value for A' } },
+  vars: { TestModule: { ENV_VAR_A: 'Original value for A' } },
 };
 
-const config: AppshellGlobalConfig = { index: { [KEY]: MANIFEST_URL } };
-
 const composition: AppshellComposition = {
-  environmentId: 'acme/dev',
+  applicationId: 'acme/dev',
   revision: 7,
-  index: config.index,
+  root: KEY,
+  rootProps: {},
+  index: { [KEY]: MANIFEST_URL },
   remotes: manifest.remotes,
-  environment: manifest.environment,
+  vars: manifest.vars,
 };
 
 beforeEach(() => {
@@ -48,46 +43,12 @@ describe('inlineResolver', () => {
 
     expect(fetch).not.toHaveBeenCalled();
     expect(resolution?.remote).toEqual(manifest.remotes[KEY]);
-    expect(resolution?.environment).toEqual({ ENV_VAR_A: 'Original value for A' });
+    expect(resolution?.vars).toEqual({ ENV_VAR_A: 'Original value for A' });
   });
 
   it('yields to the next resolver when the key is absent', async () => {
     await expect(inlineResolver(composition)('Other/Key')).resolves.toBeUndefined();
     await expect(inlineResolver(undefined)(KEY)).resolves.toBeUndefined();
-  });
-
-  // Locks the claim that the synthesized manifest is a drop-in for `ManifestProvider`.
-  it('synthesizes a manifest matching the legacy one apart from modules', async () => {
-    fetch.mockResponseOnce(JSON.stringify(manifest));
-
-    const legacy = await legacyManifestResolver(config)(KEY);
-    const inline = await inlineResolver(composition)(KEY);
-
-    expect(inline?.manifest).toEqual({ ...legacy?.manifest, modules: {} });
-    expect(inline?.environment).toEqual(legacy?.environment);
-  });
-});
-
-describe('legacyManifestResolver', () => {
-  it('merges environment overrides client side, because no server did', async () => {
-    fetch.mockResponseOnce(JSON.stringify(manifest));
-
-    const resolution = await legacyManifestResolver({
-      ...config,
-      overrides: { environment: { TestModule: { ENV_VAR_A: 'New value for A' } } },
-    })(KEY);
-
-    expect(resolution?.environment).toEqual({ ENV_VAR_A: 'New value for A' });
-  });
-
-  it('fetches each manifest only once', async () => {
-    fetch.mockResponse(JSON.stringify(manifest));
-    const resolve = legacyManifestResolver(config);
-
-    await resolve(KEY);
-    await resolve(KEY);
-
-    expect(fetch).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -99,7 +60,7 @@ describe('registryResolver', () => {
     const resolution = await registryResolver(composition, 'http://registry')('LateModule/Late');
 
     expect(fetch).toHaveBeenCalledWith(
-      'http://registry/v1/environments/acme/dev/remotes/LateModule/Late',
+      'http://registry/v1/applications/acme/dev/remotes/LateModule/Late',
       expect.anything(),
     );
     expect(resolution?.remote).toEqual(added);

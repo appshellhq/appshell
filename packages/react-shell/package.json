@@ -13,8 +13,7 @@
   ],
   "scripts": {
     "generate": "run-p generate:*",
-    "generate:env": "appshell generate env -e .env --prefix $APPSHELL_ENV_PREFIX",
-    "generate:global-config": "appshell generate global-config --validate-registry-ssl-cert $APPSHELL_VALIDATE_REGISTRY_SSL_CERT --registry $APPSHELL_BASE_REGISTRY $APPSHELL_REGISTRY --api-key $APPSHELL_API_KEY --api-key-header $APPSHELL_API_KEY_HEADER --proxy-url $APPSHELL_PROXY_URL",
+    "generate:env": "appshell generate env --prefix $APPSHELL_ENV_PREFIX",
     "start": "dotenv -- run-s generate:env start:bundle",
     "start:bundle": "webpack serve --mode development",
     "prebuild": "npm run clean",

@@ -65,12 +65,3 @@ export const resolveToken = (registry: string): string | undefined => {
 
   return credential.accessToken;
 };
-
-export const requireToken = (registry: string): string => {
-  const token = resolveToken(registry);
-  if (!token) {
-    throw new Error(`Not logged in to ${registry}. Run 'appshell login' or set APPSHELL_TOKEN.`);
-  }
-
-  return token;
-};

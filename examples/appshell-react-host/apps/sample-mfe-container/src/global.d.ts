@@ -4,5 +4,5 @@ declare module '*.svg' {
 }
 
 interface Window {
-  __appshell_env__ContainerModule?: Record<string, string, string | number | undefined>;
+  __appshell_vars__ContainerModule?: Record<string, string | number | undefined>;
 }

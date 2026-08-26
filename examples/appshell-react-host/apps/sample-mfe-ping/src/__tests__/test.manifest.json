@@ -147,5 +147,5 @@
       }
     }
   },
-  "environment": {}
+  "vars": {}
 }

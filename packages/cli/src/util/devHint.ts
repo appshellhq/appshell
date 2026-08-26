@@ -15,7 +15,7 @@ export type DevHint = {
 
 /**
  * Written by `@appshell/webpack-plugin` into the output directory while a dev server is
- * running. Absent whenever the app was not served, or was served on a port the plugin
+ * running. Absent whenever the package was not served, or was served on a port the plugin
  * could not resolve — in which case the caller asks for one, which is the behaviour
  * this exists to save, not replace.
  */
@@ -36,11 +36,11 @@ export const readDevHint = (cwd: string, outputDir = 'dist'): DevHint | undefine
 };
 
 /**
- * Confirms the origin is serving *this* app, not merely serving something.
+ * Confirms the origin is serving *this* package, not merely serving something.
  *
  * Nothing deletes the hint when a dev server stops, so it can name a port that another
  * process has since taken. Checking only that the port answers would then redirect an
- * app at whatever now lives there — a wrong answer arrived at silently, which is the
+ * package at whatever now lives there — a wrong answer arrived at silently, which is the
  * one failure mode this whole path is designed to avoid. Matching the remote keys the
  * overlay is about to redirect makes the check answer the question that matters.
  */

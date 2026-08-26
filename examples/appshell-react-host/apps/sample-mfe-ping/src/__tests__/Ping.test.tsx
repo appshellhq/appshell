@@ -1,4 +1,4 @@
-import { ManifestProvider } from '@appshell/react';
+import { RemoteProvider } from '@appshell/react';
 import { render, screen } from '@testing-library/react';
 import React from 'react';
 import Ping from '../Ping';
@@ -6,9 +6,9 @@ import manifest from './test.manifest.json';
 
 const renderPing = () =>
   render(
-    <ManifestProvider manifest={manifest}>
+    <RemoteProvider remote={manifest.remotes['PingModule/Ping']}>
       <Ping />
-    </ManifestProvider>,
+    </RemoteProvider>,
   );
 
 test('should match snapshot', async () => {
