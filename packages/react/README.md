@@ -86,34 +86,6 @@ render(
 );
 ```
 
-## useMetadata / MetadataProvider
-
-Reads the metadata a remote was published with — `route`, `displayName`,
-`displayGroup`, `order`, `icon`, or whatever shape you declare in
-`appshell.config.yaml`.
-
-```tsx
-import { MetadataProvider, useMetadata } from '@appshell/react';
-
-const Nav = () => {
-  const metadata = useMetadata();
-
-  ...
-};
-```
-
-```tsx
-<MetadataProvider metadata={remote.metadata}>
-  <Nav />
-</MetadataProvider>
-```
-
-> **Note**
-> Nothing supplies this context today — `RemoteSlot` provides the remote but not its
-> metadata — so `useMetadata()` returns `{}` unless you render a `MetadataProvider`
-> yourself. Prefer `useRemote()`, whose `remote.metadata` carries the same values and
-> is populated.
-
 ## jsonResource
 
 Wraps a fetch in a Suspense-compatible resource, so a component can read JSON during

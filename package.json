@@ -7,7 +7,7 @@
   "repository": "https://github.com/appshell-org/appshell.git",
   "scripts": {
     "bootstrap": "npm install",
-    "build": "lerna run --scope=@appshell/webpack-plugin --scope=@appshell/react-refresh-singleton-plugin build && lerna run --ignore=@appshell/webpack-plugin --ignore=@appshell/react-refresh-singleton-plugin build",
+    "build": "lerna run --scope=@appshell/webpack-plugin build && lerna run --ignore=@appshell/webpack-plugin build",
     "clean": "lerna run --parallel clean && rm -rf coverage",
     "lint": "eslint 'packages/**/*.{ts,tsx}'",
     "start:example:react-host": "npm --prefix examples/appshell-react-host run start",

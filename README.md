@@ -94,7 +94,6 @@ bottom tier.
 - [@appshell/loader](./packages/loader/)
 - [@appshell/react](./packages/react/)
 - [@appshell/webpack-plugin](./packages/webpack-plugin/)
-- [@appshell/react-refresh-singleton-plugin](./packages/react-refresh-singleton-plugin/)
 
 # @appshell hosts
 
