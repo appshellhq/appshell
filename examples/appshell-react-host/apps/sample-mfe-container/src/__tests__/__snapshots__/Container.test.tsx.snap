@@ -22,10 +22,10 @@ exports[`should match snapshot 1`] = `
           rel="noopener noreferrer"
           target="_blank"
         >
-          <img
-            alt="React"
-            class="h-[12vmin] pointer-events-none"
-            src=""
+          <svg
+            aria-label="React"
+            class="h-[12vmin] pointer-events-none text-on-surface"
+            role="img"
           />
         </a>
         <div
@@ -37,10 +37,10 @@ exports[`should match snapshot 1`] = `
           rel="noopener noreferrer"
           target="_blank"
         >
-          <img
-            alt="Appshell"
-            class="h-[12vmin] pointer-events-none"
-            src=""
+          <svg
+            aria-label="Appshell"
+            class="h-[12vmin] pointer-events-none text-on-surface"
+            role="img"
           />
         </a>
         <div
@@ -52,10 +52,10 @@ exports[`should match snapshot 1`] = `
           rel="noopener noreferrer"
           target="_blank"
         >
-          <img
-            alt="Webpack"
-            class="h-[12vmin] pointer-events-none"
-            src=""
+          <svg
+            aria-label="Webpack"
+            class="h-[12vmin] pointer-events-none text-on-surface"
+            role="img"
           />
         </a>
       </div>

@@ -10,7 +10,10 @@ import env from './env';
 import './index.css';
 
 const LINK = 'text-primary hover:text-primary-hover';
-const LOGO = 'h-[12vmin] pointer-events-none';
+// The wordmarks inherit `currentColor`, and these sit inside links — so the text colour
+// is set here explicitly rather than picking up the link's accent, which would put a
+// 2.66:1 wordmark on a light surface.
+const LOGO = 'h-[12vmin] pointer-events-none text-on-surface';
 
 const Container = () => (
   <div className="text-center">
@@ -25,15 +28,15 @@ const Container = () => (
 
       <div className="grid grid-flow-col gap-lg">
         <a className={LINK} href="https://reactjs.org" target="_blank" rel="noopener noreferrer">
-          <img className={LOGO} src={ReactLogo} alt="React" />
+          <ReactLogo className={LOGO} role="img" aria-label="React" />
         </a>
         <div className="flex select-none self-center text-h1 after:content-['+']" />
         <a className={LINK} href={env.SUPPORT_URL} target="_blank" rel="noopener noreferrer">
-          <img className={LOGO} src={AppshellLogo} alt="Appshell" />
+          <AppshellLogo className={LOGO} role="img" aria-label="Appshell" />
         </a>
         <div className="flex select-none self-center text-h1 after:content-['+']" />
         <a className={LINK} href="https://webpack.js.org/" target="_blank" rel="noopener noreferrer">
-          <img className={LOGO} src={WebpackLogo} alt="Webpack" />
+          <WebpackLogo className={LOGO} role="img" aria-label="Webpack" />
         </a>
       </div>
 

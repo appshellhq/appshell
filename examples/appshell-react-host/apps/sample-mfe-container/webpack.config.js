@@ -70,13 +70,14 @@ module.exports = (env, { mode }) => {
           use: ['style-loader', 'css-loader', 'postcss-loader'],
         },
         {
+          // Inlined as components rather than referenced as images. An <img src> is a
+          // separate document: neither the design tokens nor an explicit
+          // data-appshell-theme can reach inside it, so a logo drawn for one background
+          // stays drawn for that background. In the DOM it inherits currentColor.
           test: /\.svg$/,
-          loader: 'url-loader',
+          issuer: /\.[jt]sx?$/,
           exclude: /node_modules/,
-          options: {
-            limit: 10000,
-            name: 'static/media/[name].[hash:8].[ext]',
-          },
+          use: ['@svgr/webpack'],
         },
       ],
     },
