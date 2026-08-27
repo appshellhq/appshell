@@ -21,6 +21,9 @@
     "start": "webpack --watch --mode development && npm run build:types",
     "stats": "webpack --json > stats.json"
   },
+  "files": [
+    "dist"
+  ],
   "keywords": [
     "module federation",
     "micro-frontends",

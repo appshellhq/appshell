@@ -3,6 +3,9 @@
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src",
+    // The only package that emits JS through tsc, so the only one that would ship
+    // `.js.map` files pointing at a `src/` that `files: ["dist"]` excludes.
+    "sourceMap": false,
     // Resolve `@appshell/runtime` to its published types rather than the root config's
     // source mapping. This package must emit a real `require('@appshell/runtime')` for
     // module federation to intercept, so it compiles against the package boundary the

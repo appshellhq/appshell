@@ -20,6 +20,9 @@
     "start": "webpack --watch --mode development --stats-error-details",
     "stats": "webpack --json > stats.json"
   },
+  "files": [
+    "dist"
+  ],
   "keywords": [
     "module federation",
     "micro-frontends",

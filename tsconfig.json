@@ -7,7 +7,7 @@
     "allowJs": true,
     "alwaysStrict": true,
     "declaration": true,
-    "declarationMap": true,
+    "declarationMap": false,
     "emitDeclarationOnly": false,
     "esModuleInterop": true,
     "jsx": "react",
