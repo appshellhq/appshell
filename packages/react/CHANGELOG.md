@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.16](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.14...v1.0.0-alpha.16) (2026-08-27)
+
+### Bug Fixes
+
+- **react:** rename MetadataProvider prop metata -> metadata ([63ef090](https://github.com/appshellhq/appshell/commit/63ef090b29789df45d591a9a0b33bacc55477350))
+
+### Features
+
+- deliver package vars through a shared runtime, not a global ([9473f62](https://github.com/appshellhq/appshell/commit/9473f6204b75885cd55b12a9ec71a44a74d6aa41))
+- rename core vocabulary to Package / Application / Remote ([418b7e0](https://github.com/appshellhq/appshell/commit/418b7e010b6caa1af661f7fd9c05e751e69315a9))
+
 # [1.0.0-alpha.14](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.13...v1.0.0-alpha.14) (2026-08-23)
 
 **Note:** Version bump only for package @appshell/react

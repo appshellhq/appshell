@@ -3,6 +3,26 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.16](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.14...v1.0.0-alpha.16) (2026-08-27)
+
+### Bug Fixes
+
+- add @appshell/tokens to the lock file ([bc88994](https://github.com/appshellhq/appshell/commit/bc889942cb6a5ed5394b21af8a1eaa5fbf75392b))
+- **cli:** stop publish silently ignoring the version flag ([3073127](https://github.com/appshellhq/appshell/commit/3073127862355f2e29959005e2eeedd50452ae63))
+- **react:** rename MetadataProvider prop metata -> metadata ([63ef090](https://github.com/appshellhq/appshell/commit/63ef090b29789df45d591a9a0b33bacc55477350))
+
+### Features
+
+- **cli:** add dev stop --app ([72b1c62](https://github.com/appshellhq/appshell/commit/72b1c62b75ea28e73c637ac30d3ab1da29db4f1d))
+- **cli:** make dev status print the command to stop each app ([9233c86](https://github.com/appshellhq/appshell/commit/9233c8641ce7b8ba60daafbfdcd4d3d126bd75be))
+- **cli:** report the overlay that is actually in effect ([5822cb2](https://github.com/appshellhq/appshell/commit/5822cb2b74436017b54c92e5dd3413c7f574497c))
+- **cli:** take a port for the local app instead of inferring one ([6c40728](https://github.com/appshellhq/appshell/commit/6c40728e06adb2e382c0580452b33024d6df5d7a))
+- **cli:** use the dev server hint when no port is given ([0939867](https://github.com/appshellhq/appshell/commit/0939867063de1a35be912b98edb54f8db675b53c))
+- deliver package vars through a shared runtime, not a global ([9473f62](https://github.com/appshellhq/appshell/commit/9473f6204b75885cd55b12a9ec71a44a74d6aa41))
+- rename core vocabulary to Package / Application / Remote ([418b7e0](https://github.com/appshellhq/appshell/commit/418b7e010b6caa1af661f7fd9c05e751e69315a9))
+- **tokens:** add the design token contract and its presets ([302ae55](https://github.com/appshellhq/appshell/commit/302ae55352f68b02986dec9d22997207cc3d638e))
+- **webpack-plugin:** record where the dev server is serving from ([fd10939](https://github.com/appshellhq/appshell/commit/fd10939e3c7b7414c4d799396be07b8329074d44))
+
 # [1.0.0-alpha.14](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.13...v1.0.0-alpha.14) (2026-08-23)
 
 ### Features
