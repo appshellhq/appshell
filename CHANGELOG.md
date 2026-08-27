@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.18](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.17...v1.0.0-alpha.18) (2026-08-27)
+
+### Bug Fixes
+
+- **examples:** scan the shared components package for Tailwind classes ([6c1928e](https://github.com/appshellhq/appshell/commit/6c1928e0db9394a337a9a5ba7c362036da06e05d))
+
 # [1.0.0-alpha.17](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.16...v1.0.0-alpha.17) (2026-08-27)
 
 ### Features
