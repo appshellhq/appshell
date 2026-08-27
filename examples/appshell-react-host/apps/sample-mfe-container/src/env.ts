@@ -3,9 +3,13 @@
  * in appshell.config.yaml, with the application's overrides layered over them.
  *
  * `getVars()` needs no scope: AppshellPlugin compiles this package's federation name in,
- * so it can only ever return this package's own vars. It throws if nothing was delivered,
- * which is the check this file used to have to write by hand.
+ * so it can only ever return this package's own vars.
+ *
+ * Note what is *not* here. Colour used to arrive this way, as a `BACKGROUND_COLOR` var,
+ * and it was the wrong channel for it: appearance belongs to the Application's theme,
+ * which reaches every package at once through the design tokens. Vars are for
+ * configuration a package has to branch on — a url, an endpoint, a feature flag.
  */
 import { getVars } from '@appshell/vars';
 
-export default getVars<{ BACKGROUND_COLOR: string }>();
+export default getVars<{ SUPPORT_URL: string }>();

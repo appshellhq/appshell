@@ -9,5 +9,7 @@ remotes:
       order: 0
       icon: ViewList
 
+# Configuration, not appearance. Colour reaches this package through the Application's
+# design tokens instead — see src/index.css.
 vars:
-  BACKGROUND_COLOR: ${BACKGROUND_COLOR}
+  SUPPORT_URL: ${SUPPORT_URL}

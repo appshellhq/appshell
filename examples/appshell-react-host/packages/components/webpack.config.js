@@ -36,7 +36,6 @@ module.exports = (env, { mode }) => {
     externals: {
       react: 'react',
       'react-dom': 'reactDOM',
-      'styled-components': 'styled-components',
     },
   };
 };

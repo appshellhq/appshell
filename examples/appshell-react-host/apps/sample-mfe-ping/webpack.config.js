@@ -47,9 +47,9 @@ module.exports = (env, { mode }) => {
       extensions: ['.js', '.ts', '.tsx'],
       plugins: [new TsconfigPathsPlugin()],
     },
-    // @appshell/react's dist bundles module-federation's own environment-detection require(),
-    // which webpack can't statically analyze; it's a known false positive, not a real issue.
-    ignoreWarnings: [{ module: /packages\/react\/dist\/main\.js/ }],
+    // @appshell/react's dist bundles module-federation's own environment-detection
+    // require(), which webpack cannot analyse statically. A known false positive.
+    ignoreWarnings: [{ module: /@appshell[\/]react[\/]dist[\/]main\.js/ }],
     module: {
       rules: [
         {
@@ -92,10 +92,6 @@ module.exports = (env, { mode }) => {
           'react-refresh': {
             singleton: true,
             requiredVersion: dependencies['react-refresh'],
-          },
-          'styled-components': {
-            singleton: true,
-            requiredVersion: dependencies['styled-components'],
           },
           '@appshell/react': {
             singleton: true,

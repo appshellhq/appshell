@@ -3,10 +3,10 @@
 exports[`should match snapshot 1`] = `
 <div>
   <div
-    class="sc-kPNBzt exowiH"
+    class="text-center"
   >
     <header
-      class="sc-bXxmBy cKaMBg"
+      class="flex min-h-screen flex-col items-center justify-center bg-surface font-sans text-[calc(10px+2vmin)] text-on-surface"
     >
       <pre>
         sample-mfe-container
@@ -14,74 +14,83 @@ exports[`should match snapshot 1`] = `
         0.0.2
       </pre>
       <div
-        class="sc-jlOLRj fKRsZZ"
+        class="grid grid-flow-col gap-lg"
       >
         <a
-          class="sc-laEPQd iJpuIt"
+          class="text-primary hover:text-primary-hover"
           href="https://reactjs.org"
           rel="noopener noreferrer"
           target="_blank"
         >
           <img
-            class="sc-dMnqAs dsXfas"
+            alt="React"
+            class="h-[12vmin] pointer-events-none"
             src=""
           />
         </a>
         <div
-          class="sc-eErDDp jnOBHW"
+          class="flex select-none self-center text-h1 after:content-['+']"
         />
         <a
-          class="sc-laEPQd iJpuIt"
-          href="https://github.com/navaris/appshell"
+          class="text-primary hover:text-primary-hover"
+          href="https://support.example.com"
           rel="noopener noreferrer"
           target="_blank"
         >
           <img
-            class="sc-dMnqAs dsXfas"
+            alt="Appshell"
+            class="h-[12vmin] pointer-events-none"
             src=""
           />
         </a>
         <div
-          class="sc-eErDDp jnOBHW"
+          class="flex select-none self-center text-h1 after:content-['+']"
         />
         <a
-          class="sc-laEPQd iJpuIt"
+          class="text-primary hover:text-primary-hover"
           href="https://webpack.js.org/"
           rel="noopener noreferrer"
           target="_blank"
         >
           <img
-            class="sc-dMnqAs dsXfas"
+            alt="Webpack"
+            class="h-[12vmin] pointer-events-none"
             src=""
           />
         </a>
       </div>
-      <pre>
+      <pre
+        class="font-mono"
+      >
         This application is composed from 3 micro-frontends.
       </pre>
       <div
-        class="sc-jlOLRj fKRsZZ"
+        class="grid grid-flow-col gap-lg"
       >
-        <span
-          style="display: inherit; position: relative; width: 77.14285714285714px; height: 77.14285714285714px; animation: react-spinners-MoonLoader-moon 0.6s 0s infinite linear; animation-fill-mode: forwards;"
+        <div
+          style="border: 3px solid red;"
         >
+          <h5>
+            Error loading Appshell component 'PingModule/Ping.'
+          </h5>
           <span
-            style="width: 8.571428571428571px; height: 8.571428571428571px; border-radius: 100%; background-color: orangered; opacity: 0.8; position: absolute; top: 25.714285714285715px; animation: react-spinners-MoonLoader-moon 0.6s 0s infinite linear; animation-fill-mode: forwards;"
-          />
-          <span
-            style="width: 60px; height: 60px; border-radius: 100%; border: 8.571428571428571px solid orangered; opacity: 0.1; box-sizing: content-box; position: absolute;"
-          />
-        </span>
-        <span
-          style="display: inherit; position: relative; width: 77.14285714285714px; height: 77.14285714285714px; animation: react-spinners-MoonLoader-moon 0.6s 0s infinite linear; animation-fill-mode: forwards;"
+            style="font-size: 1rem;"
+          >
+            Error: Remote resource not found in registry. Expected: PingModule/Ping
+          </span>
+        </div>
+        <div
+          style="border: 3px solid red;"
         >
+          <h5>
+            Error loading Appshell component 'PongModule/Pong.'
+          </h5>
           <span
-            style="width: 8.571428571428571px; height: 8.571428571428571px; border-radius: 100%; background-color: orangered; opacity: 0.8; position: absolute; top: 25.714285714285715px; animation: react-spinners-MoonLoader-moon 0.6s 0s infinite linear; animation-fill-mode: forwards;"
-          />
-          <span
-            style="width: 60px; height: 60px; border-radius: 100%; border: 8.571428571428571px solid orangered; opacity: 0.1; box-sizing: content-box; position: absolute;"
-          />
-        </span>
+            style="font-size: 1rem;"
+          >
+            Error: Remote resource not found in registry. Expected: PongModule/Pong
+          </span>
+        </div>
       </div>
     </header>
   </div>

@@ -3,15 +3,15 @@
 exports[`AppShowcase should match snapshot 1`] = `
 <div>
   <div
-    class="sc-fBEEOr jxkmG"
+    class="flex w-[400px] min-w-0 max-w-full flex-col overflow-hidden rounded-lg bg-surface-raised px-lg pb-lg text-on-surface-raised shadow-md"
   >
     <header
-      class="sc-hfDuwB gXOGqX"
+      class="text-h3"
     >
       Header Text
     </header>
     <div
-      class="sc-jCIOXC eelIQs"
+      class="flex min-h-0 grow"
     >
       <p>
         Body
@@ -34,7 +34,8 @@ exports[`PackageBlock should match snapshot 1`] = `
 exports[`Remote should match snapshot 1`] = `
 <div>
   <textarea
-    class="sc-dBwcjI dFAvjM"
+    aria-label="Remote definition"
+    class="min-h-[30rem] w-full resize-none rounded-sm border border-border bg-transparent p-sm font-mono text-small leading-tight text-on-surface-raised"
     readonly=""
   >
     {

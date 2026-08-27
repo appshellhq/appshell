@@ -2,8 +2,10 @@ import { act, render, screen } from '@testing-library/react';
 import React from 'react';
 import Container from '../Container';
 
+// Vars carry configuration, not appearance — colour reaches this package through the
+// Application's design tokens instead.
 jest.mock('../env', () => ({
-  BACKGROUND_COLOR: 'red',
+  SUPPORT_URL: 'https://support.example.com',
 }));
 
 const renderContainer = () =>
@@ -23,10 +25,10 @@ test('should render micro-frontend composition message', async () => {
 
 test('should render links to React, Appshell and Webpack', async () => {
   await renderContainer();
-  // Three external links exist: React, Appshell, Webpack
+  // Three external links exist: React, Appshell (from vars), Webpack
   const links = screen.getAllByRole('link');
   expect(links).toHaveLength(3);
   expect(links[0].getAttribute('href')).toBe('https://reactjs.org');
-  expect(links[1].getAttribute('href')).toBe('https://github.com/navaris/appshell');
+  expect(links[1].getAttribute('href')).toBe('https://support.example.com');
   expect(links[2].getAttribute('href')).toBe('https://webpack.js.org/');
 });

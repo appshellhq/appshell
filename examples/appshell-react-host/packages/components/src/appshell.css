@@ -1,0 +1,59 @@
+/*
+ * Maps the Appshell token contract onto Tailwind's theme, so every utility in these
+ * examples resolves to whatever the Application's registry record supplies. Change the
+ * Application's theme and the whole page reskins with no rebuild and no republish.
+ *
+ * This is the integration a consuming package writes. It is the only place a colour is
+ * named, and none of the names are literal values.
+ */
+
+/*
+ * Tailwind without Preflight. Preflight is a global reset, and several packages each
+ * shipping one means several resets fighting each other and the shell. The shell owns
+ * the single structural reset on the page; packages defer to it.
+ */
+@layer theme, base, components, utilities;
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+@theme {
+  --color-surface: var(--appshell-surface);
+  --color-on-surface: var(--appshell-on-surface);
+  --color-surface-raised: var(--appshell-surface-raised);
+  --color-on-surface-raised: var(--appshell-on-surface-raised);
+  --color-muted: var(--appshell-text-muted);
+  --color-border: var(--appshell-border);
+
+  --color-primary: var(--appshell-primary);
+  --color-on-primary: var(--appshell-on-primary);
+  --color-primary-hover: var(--appshell-primary-hover);
+  --color-secondary: var(--appshell-secondary);
+  --color-on-secondary: var(--appshell-on-secondary);
+
+  --color-danger: var(--appshell-danger);
+  --color-on-danger: var(--appshell-on-danger);
+  --color-warning: var(--appshell-warning);
+  --color-on-warning: var(--appshell-on-warning);
+  --color-success: var(--appshell-success);
+  --color-on-success: var(--appshell-on-success);
+
+  --font-sans: var(--appshell-font-body);
+  --font-mono: var(--appshell-font-mono);
+
+  --text-h1: var(--appshell-font-size-h1);
+  --text-h2: var(--appshell-font-size-h2);
+  --text-h3: var(--appshell-font-size-h3);
+  --text-h4: var(--appshell-font-size-h4);
+  --text-body: var(--appshell-font-size-body);
+  --text-small: var(--appshell-font-size-small);
+
+  --spacing-xs: var(--appshell-space-xs);
+  --spacing-sm: var(--appshell-space-sm);
+  --spacing-md: var(--appshell-space-md);
+  --spacing-lg: var(--appshell-space-lg);
+  --spacing-xl: var(--appshell-space-xl);
+
+  --radius-sm: var(--appshell-radius-sm);
+  --radius-md: var(--appshell-radius-md);
+  --radius-lg: var(--appshell-radius-lg);
+}
