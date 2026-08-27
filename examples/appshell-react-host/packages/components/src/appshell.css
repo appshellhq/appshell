@@ -16,6 +16,17 @@
 @import 'tailwindcss/theme.css' layer(theme);
 @import 'tailwindcss/utilities.css' layer(utilities);
 
+/*
+ * Tailwind generates a utility only if it finds the class written down somewhere, and it
+ * looks relative to the stylesheet that asks for it. An app importing this file gets its
+ * own sources scanned automatically; this package's do not come along for the ride, so
+ * every class used by AppShowcase and Remote would silently produce no CSS.
+ *
+ * Any package contributing markup needs a line like this. A published one would point at
+ * its `dist` instead — class names survive compilation as string literals.
+ */
+@source "./**/*.{ts,tsx}";
+
 @theme {
   --color-surface: var(--appshell-surface);
   --color-on-surface: var(--appshell-on-surface);
