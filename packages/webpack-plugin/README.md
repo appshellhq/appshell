@@ -138,7 +138,7 @@ vars:
 
 > **Note** the variable expansion syntax `${CRA_MFE_URL}`. When the `appshell manifest` is generated the actual runtime environment values are injected.
 
-> **Note** the `vars` section defines runtime configuration values that are injected into the global namespace `window.__appshell_vars__[module_name]` when an Appshell component is loaded. See the examples for a use case.
+> **Note** the `vars` section defines runtime configuration values a package reads with `getVars()` from [`@appshell/vars`](../vars/README.md) once it is loaded. The package must share `@appshell/runtime` as a singleton to receive them. See the examples for a use case.
 
 **What happens at build time?**
 

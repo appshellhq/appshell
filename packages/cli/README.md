@@ -273,7 +273,7 @@ Sample config template `appshell.template.json`:
 
 > Note the variable expansion syntax `${CRA_MFE_URL}`. When `appshell generate manifest` is called the actual runtime environment values are injected in order to produce the remote module's appshell manifest.
 
-> **Note** the `vars` section defines runtime configuration values that are injected into the global namespace `window.__appshell_vars__[module_name]` when an Appshell component is loaded. See the examples for a use case.
+> **Note** the `vars` section defines runtime configuration values a package reads with `getVars()` from [`@appshell/vars`](../vars/README.md) once it is loaded. The package must share `@appshell/runtime` as a singleton to receive them. See the examples for a use case.
 
 Sample appshell manifest produced by the `appshell generate manifest` function:
 

@@ -25,6 +25,7 @@
   ],
   "license": "MIT",
   "dependencies": {
+    "@appshell/runtime": "1.0.0-alpha.14",
     "@module-federation/enhanced": "^2.8.2"
   },
   "gitHead": "e8105f3c5eeb4aec8e3f0e06b151d0a0ef394d12"

@@ -26,6 +26,10 @@ export const MODULE_FEDERATION_PLUGIN_OPTIONS: ModuleFederationPluginOptions = {
   // The name of the runtime chunk. If set a runtime chunk with this name is created or an existing entrypoint is used as runtime.
   runtime: 'runtimeChunk',
   shared: {
+    // Required of any package that declares vars: the store they are delivered into.
+    '@appshell/runtime': {
+      singleton: true,
+    },
     package1: {
       singleton: true,
       requiredVersion: '0.1.0',

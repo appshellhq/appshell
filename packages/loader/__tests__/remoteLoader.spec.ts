@@ -1,5 +1,6 @@
 /** @jest-environment jsdom */
 import { AppshellComposition, AppshellRemote } from '@appshell/config';
+import { hasVars, readVars, resetVars } from '@appshell/runtime';
 import fetch, { enableFetchMocks } from 'jest-fetch-mock';
 import * as loadAppshellComponent from '../src/loadAppshellComponent';
 import remoteLoader from '../src/remoteLoader';
@@ -32,6 +33,8 @@ describe('remoteLoader', () => {
 
   beforeEach(() => {
     fetch.resetMocks();
+    // The store is a singleton for the life of the page; each test gets a fresh one.
+    resetVars();
   });
 
   it('should return the remote from the inlined composition without fetching', async () => {
@@ -51,8 +54,28 @@ describe('remoteLoader', () => {
 
     await remoteLoader({ composition })(KEY);
 
-    // eslint-disable-next-line no-underscore-dangle
-    expect(window.__appshell_vars__TestModule).toEqual({ ENV_VAR_A: 'Composed value for A' });
+    expect(readVars('TestModule')).toEqual({ ENV_VAR_A: 'Composed value for A' });
+  });
+
+  it('should deliver the vars before the remote is given a chance to evaluate', async () => {
+    const order: string[] = [];
+    jest.spyOn(loadAppshellComponent, 'default').mockImplementation(async () => {
+      order.push(hasVars('TestModule') ? 'vars delivered' : 'vars missing');
+
+      return () => 'test component';
+    });
+
+    await remoteLoader({ composition })(KEY);
+
+    expect(order).toEqual(['vars delivered']);
+  });
+
+  it('should leave nothing on the window', async () => {
+    jest.spyOn(loadAppshellComponent, 'default').mockResolvedValue(() => 'test component');
+
+    await remoteLoader({ composition })(KEY);
+
+    expect(Object.keys(window).filter((key) => key.startsWith('__appshell_vars__'))).toEqual([]);
   });
 
   it('should fall back to the registry for a remote activated after the page was served', async () => {

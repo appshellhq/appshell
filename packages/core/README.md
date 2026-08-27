@@ -56,7 +56,8 @@ APPSHELL_ENV.APPSHELL_PRIMARY_COLOR;
 ```
 
 This is distinct from a package's **vars**, which the registry delivers through the
-composition as `window.__appshell_vars__<scope>`.
+composition into the `@appshell/runtime` store, where a package reads them with
+`getVars()` from [`@appshell/vars`](../vars/README.md).
 
 ### Types
 

@@ -1,11 +1,11 @@
 /* eslint-disable no-underscore-dangle */
 import type { AppshellComposition } from '@appshell/config';
+import { setVars } from '@appshell/runtime';
 import loadAppshellComponent from './loadAppshellComponent';
 import { chainResolvers, inlineResolver, registryResolver, type RemoteResolver } from './resolvers';
 
 declare global {
   interface Window {
-    [key: string]: unknown;
     __appshell_config__?: AppshellComposition;
   }
 }
@@ -42,7 +42,10 @@ export default (options: RemoteLoaderOptions = {}) => {
     const { remote, vars } = resolution;
 
     try {
-      window[`__appshell_vars__${remote.scope}`] = vars;
+      // Before the remote loads, so a package that validates its vars while its modules
+      // evaluate still finds them. `@appshell/runtime` is a shared singleton, so this is
+      // the same store the package reads through `getVars()`.
+      setVars(remote.scope, vars);
 
       const Component = await loadAppshellComponent<TComponent>(
         remote.scope,

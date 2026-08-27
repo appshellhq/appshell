@@ -17,6 +17,11 @@ module.exports = (env, { mode }) => {
       extensions: ['.js', '.ts'],
       plugins: [new TsconfigPathsPlugin()],
     },
+    // Externalised, not bundled: `@appshell/runtime` is a shared singleton, and a copy
+    // inlined here would be a second store that no package ever reads from.
+    externals: {
+      '@appshell/runtime': '@appshell/runtime',
+    },
     module: {
       rules: [
         {

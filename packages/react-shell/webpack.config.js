@@ -92,6 +92,11 @@ module.exports = (env, { mode }) => {
       new ModuleFederationPlugin({
         name: 'Appshell',
         shared: {
+          // The shell delivers every package's vars into this store, so it must be the
+          // same instance the packages read from — not a second copy of its own.
+          '@appshell/runtime': {
+            singleton: true,
+          },
           react: {
             singleton: true,
             requiredVersion: dependencies['react'],

@@ -1,16 +1,11 @@
 /**
- * This file is used to provide runtime environment values to the application.
- * The variable __appshell_vars__ContainerModule is injected into the window object
- * when the remote module is consumed via RemoteSlot.
+ * This package's runtime configuration, as the registry composed it — the vars declared
+ * in appshell.config.yaml, with the application's overrides layered over them.
+ *
+ * `getVars()` needs no scope: AppshellPlugin compiles this package's federation name in,
+ * so it can only ever return this package's own vars. It throws if nothing was delivered,
+ * which is the check this file used to have to write by hand.
  */
+import { getVars } from '@appshell/vars';
 
-// eslint-disable-next-line no-underscore-dangle
-const env = window.__appshell_vars__ContainerModule || {};
-
-if (!env.BACKGROUND_COLOR) {
-  throw new Error(`Missing runtime environment value. 'BACKGROUND_COLOR' is required.`);
-}
-
-export default {
-  BACKGROUND_COLOR: env.BACKGROUND_COLOR,
-};
+export default getVars<{ BACKGROUND_COLOR: string }>();

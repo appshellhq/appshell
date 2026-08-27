@@ -1,5 +1,5 @@
+const path = require('path');
 const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
-const Visualizer = require('webpack-visualizer-plugin2');
 
 module.exports = (env, { mode }) => {
   const isDevelopment = mode === 'development';
@@ -14,32 +14,24 @@ module.exports = (env, { mode }) => {
       libraryTarget: 'umd',
     },
     resolve: {
-      extensions: ['.js', '.ts', '.tsx'],
+      extensions: ['.js', '.ts'],
       plugins: [new TsconfigPathsPlugin()],
     },
     module: {
       rules: [
         {
-          test: /\.tsx?$/,
+          test: /\.ts$/,
           exclude: /node_modules/,
           use: [
             {
               loader: 'babel-loader',
               options: {
-                presets: ['@babel/preset-react', '@babel/preset-typescript'],
+                presets: ['@babel/preset-typescript'],
               },
             },
           ],
         },
       ],
-    },
-    // plugins: [isDevelopment && new Visualizer()].filter(Boolean),
-    // Externalised, not bundled: `@appshell/runtime` is a shared singleton, and a copy
-    // inlined here would be a second store that no package ever reads from.
-    externals: {
-      '@appshell/runtime': '@appshell/runtime',
-      react: 'react',
-      'react-dom': 'reactDOM',
     },
   };
 };

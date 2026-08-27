@@ -90,6 +90,12 @@ module.exports = (env, { mode }) => {
         },
         filename: process.env.REMOTE_ENTRY_PATH,
         shared: {
+          // Required because this package declares vars: the store they arrive in.
+          // AppshellPlugin fails the build without it.
+          '@appshell/runtime': {
+            singleton: true,
+            requiredVersion: dependencies['@appshell/runtime'],
+          },
           react: {
             singleton: true,
             requiredVersion: dependencies['react'],

@@ -10,6 +10,7 @@ import {
   publish,
   resolveContext,
   Schema,
+  SharedConfig,
   utils,
   validators,
 } from '@appshell/config';
@@ -18,7 +19,13 @@ import hash_sum from 'hash-sum';
 import { entries, keys } from 'lodash';
 import path from 'path';
 import { validate } from 'schema-utils';
-import { Compiler, container, WebpackOptionsNormalized, WebpackPluginInstance } from 'webpack';
+import {
+  Compiler,
+  container,
+  DefinePlugin,
+  WebpackOptionsNormalized,
+  WebpackPluginInstance,
+} from 'webpack';
 import { isServing, writeDevHint } from './devHint';
 
 type AppshellPluginOptions = {
@@ -41,6 +48,20 @@ type ModuleFederationPluginInstance = WebpackPluginInstance & {
 };
 
 const PLUGIN_NAME = 'AppshellPlugin';
+
+/**
+ * The store a package's vars are delivered into. It has to be one instance for the whole
+ * page, so both the host and every package that reads vars must share it as a singleton.
+ */
+const VARS_RUNTIME = '@appshell/runtime';
+
+/**
+ * The federation container name, substituted into the package's own compilation so
+ * `getVars()` in `@appshell/vars` can only ever return this package's vars. A shared
+ * module cannot work this out for itself — it is one instance serving every package on
+ * the page — so the scope has to be fixed at the call site, at build time.
+ */
+const SCOPE_DEFINE = '__APPSHELL_SCOPE__';
 
 const delay = (ms: number) =>
   new Promise<void>((resolve) => {
@@ -145,13 +166,24 @@ export default class AppshellPlugin {
   ): AppshellTemplate {
     const pluginOptions = plugin._options || plugin.options;
     const name = config.name || pluginOptions?.name;
+
+    // Vars are keyed by the federation container name and nothing else. That is the
+    // scope the loader delivers them under, the scope that prefixes this package's
+    // remote keys, and the scope compiled into the package by SCOPE_DEFINE. A `name:`
+    // in appshell.config.yaml that diverges from it would key them where nothing reads,
+    // and the old `|| 'unknown'` fallback made that failure silent.
+    if (config.vars && !pluginOptions?.name) {
+      throw new Error('Cannot scope vars: ModuleFederationPlugin has no name to key them by.');
+    }
+
     const template: AppshellTemplate = {
       name,
       ...config,
       module: pluginOptions || {},
       vars: config.vars
         ? {
-            [name || 'unknown']: config.vars,
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            [pluginOptions!.name!]: config.vars,
           }
         : {},
     };
@@ -192,7 +224,59 @@ export default class AppshellPlugin {
       );
     }
 
+    // Only when the package actually declares vars. A package with nothing to read has
+    // no reason to carry the store, and requiring it of everyone would be noise.
+    if (keys(template.vars).length) {
+      const { declared, singleton } = AppshellPlugin.sharedSingleton(
+        template.module.shared,
+        VARS_RUNTIME,
+      );
+
+      if (!declared || !singleton) {
+        throw new Error(
+          `Validation error: this package declares vars, so it must share '${VARS_RUNTIME}' ` +
+            `as a singleton. Add \`shared: { '${VARS_RUNTIME}': { singleton: true } }\` to ` +
+            `ModuleFederationPlugin. ${
+              declared
+                ? 'It is shared, but not as a singleton, so this package would get its own ' +
+                  'empty store rather than the one the host delivers into.'
+                : 'Without it there is nothing to deliver the vars into.'
+            }`,
+        );
+      }
+    }
+
     return true;
+  }
+
+  /**
+   * Whether a request is shared, and shared as a singleton. `shared` has four shapes —
+   * an object, an array of names, an array of objects, or a mix — and a bare name shares
+   * without making it a singleton, which for the vars store is the same as not sharing it.
+   */
+  static sharedSingleton(shared: ModuleFederationPluginOptions['shared'], request: string) {
+    const groups = Array.isArray(shared) ? shared : [shared];
+
+    return groups.filter(Boolean).reduce(
+      (acc, group) => {
+        if (typeof group === 'string') {
+          return group === request ? { ...acc, declared: true } : acc;
+        }
+
+        const config = (group as Record<string, unknown>)[request];
+
+        if (config === undefined) {
+          return acc;
+        }
+
+        return {
+          declared: true,
+          singleton:
+            acc.singleton || (typeof config === 'object' && !!(config as SharedConfig).singleton),
+        };
+      },
+      { declared: false, singleton: false },
+    );
   }
 
   /**
@@ -263,6 +347,16 @@ export default class AppshellPlugin {
 
     const template = AppshellPlugin.createTemplate(config, plugin);
     AppshellPlugin.validate(template);
+
+    // Applied from here rather than asked of the package author, because it taps
+    // `compilation` and so still lands however this plugin is ordered. The `shared`
+    // entry the store needs cannot be added the same way: ModuleFederationPlugin reads
+    // its own options during its `apply`, which webpack has already run by the time it
+    // gets to ours — hence the validation above rather than an injection here.
+    new DefinePlugin({
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      [SCOPE_DEFINE]: JSON.stringify(template.module.name!),
+    }).apply(compiler);
 
     const isDevelopment = compiler.options.mode === 'development';
     const context = resolveContext();

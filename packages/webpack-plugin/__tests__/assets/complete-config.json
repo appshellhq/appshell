@@ -64,6 +64,9 @@
     "remoteType": "amd",
     "runtime": "runtimeChunk",
     "shared": {
+      "@appshell/runtime": {
+        "singleton": true
+      },
       "package1": {
         "singleton": true,
         "requiredVersion": "0.1.0"

@@ -1,0 +1,32 @@
+{
+  "name": "@appshell/vars",
+  "version": "1.0.0-alpha.14",
+  "description": "Reads the runtime configuration the registry composed for this package",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "repository": "https://github.com/appshell-org/appshell.git",
+  "author": "Robert Hamilton <rh@navaris.com>",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prebuild": "npm run clean",
+    "start": "tsc --watch",
+    "stats": "echo 'no bundle to analyze'"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "module federation",
+    "micro-frontends",
+    "appshell"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@appshell/runtime": "1.0.0-alpha.14"
+  }
+}

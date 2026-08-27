@@ -62,9 +62,11 @@ The loader walks a chain of resolvers and uses the first one that answers:
 | `inlineResolver`   | `window.__appshell_config__`              | The registry served the page and inlined the composition. No network call. |
 | `registryResolver` | `GET /v1/applications/:id/remotes/:key`   | The remote was activated after this page was served.                       |
 
-A package's vars reach `window.__appshell_vars__<scope>` already merged with the
-application's overrides, because the registry does that merge server side. The browser
-applies nothing.
+A package's vars are delivered into the `@appshell/runtime` store immediately before
+its remote is loaded, so they are in place before the package's modules evaluate. They
+arrive already merged with the application's overrides, because the registry does that
+merge server side — the browser applies nothing. The package reads them with `getVars()`
+from [`@appshell/vars`](../vars/README.md).
 
 You can bypass the chain entirely, which is mainly useful for tests and embedders:
 

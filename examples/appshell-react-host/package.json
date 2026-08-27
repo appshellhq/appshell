@@ -28,6 +28,8 @@
   "dependencies": {
     "@appshell/core": "^1.0.0-alpha.10",
     "@appshell/react": "^1.0.0-alpha.10",
+    "@appshell/runtime": "^1.0.0-alpha.14",
+    "@appshell/vars": "^1.0.0-alpha.14",
     "@testing-library/jest-dom": "^6.6.0",
     "@testing-library/react": "^16.1.0",
     "@testing-library/user-event": "^14.5.0",

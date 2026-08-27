@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    // Resolve `@appshell/runtime` to its published types rather than the root config's
+    // source mapping. This package must emit a real `require('@appshell/runtime')` for
+    // module federation to intercept, so it compiles against the package boundary the
+    // same way a consumer does — and never pulls the store's sources into its own emit.
+    "paths": {}
+  },
+  "include": ["./src"]
+}

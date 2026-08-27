@@ -9,7 +9,7 @@ import {
 import fs from 'fs';
 import { values } from 'lodash';
 import { rimrafSync } from 'rimraf';
-import { Compilation, container, WebpackOptionsNormalized } from 'webpack';
+import { Compilation, container, DefinePlugin, WebpackOptionsNormalized } from 'webpack';
 import AppshellPlugin from '../src/AppshellPlugin';
 import sampleConfig from './assets/complete-config.json';
 import missingConfiguredEntrypoint from './assets/missing-configured-entrypoint.json';
@@ -52,6 +52,9 @@ class MockCompiler {
         this.handlers[name] = callback;
       },
     },
+    // Only so the DefinePlugin the plugin applies has something to register against.
+    // Nothing invokes it — the substitution itself is webpack's business, not ours.
+    compilation: { tap: jest.fn() },
   };
 
   constructor(options: Partial<WebpackOptionsNormalized>, compilation: Partial<Compilation>) {
@@ -119,6 +122,80 @@ describe('AppshellPlugin', () => {
         /Validation error: Missing exposed entrypoint in ModuleFederationPlugin/i,
       );
     });
+
+    const declaringVars = (shared: unknown) => ({
+      ...(sampleConfig as any),
+      vars: { TestModule: { RUNTIME_ENV: 'test' } },
+      module: { ...MODULE_FEDERATION_PLUGIN_OPTIONS, shared },
+    });
+
+    it('should throw if a package declaring vars does not share the store', () => {
+      expect(() => AppshellPlugin.validate(declaringVars({ package1: '1.0.0' }))).toThrowError(
+        /must share '@appshell\/runtime' as a singleton/i,
+      );
+    });
+
+    it('should say so when the store is shared but not as a singleton', () => {
+      expect(() =>
+        AppshellPlugin.validate(declaringVars({ '@appshell/runtime': { eager: true } })),
+      ).toThrowError(/shared, but not as a singleton/i);
+    });
+
+    it('should treat a bare name as shared without being a singleton', () => {
+      expect(() => AppshellPlugin.validate(declaringVars(['@appshell/runtime']))).toThrowError(
+        /shared, but not as a singleton/i,
+      );
+    });
+
+    it('should accept the store declared in the array form', () => {
+      expect(
+        AppshellPlugin.validate(declaringVars([{ '@appshell/runtime': { singleton: true } }])),
+      ).toBe(true);
+    });
+
+    // A package with nothing to read has no reason to carry the store.
+    it('should not require the store of a package that declares no vars', () => {
+      expect(
+        AppshellPlugin.validate({
+          ...(sampleConfig as any),
+          vars: {},
+          module: { ...MODULE_FEDERATION_PLUGIN_OPTIONS, shared: { package1: '1.0.0' } },
+        }),
+      ).toBe(true);
+    });
+  });
+
+  describe('createTemplate', () => {
+    const pluginWith = (options: any) => ({ _options: options }) as any;
+
+    it('should key vars by the federation container name', () => {
+      const template = AppshellPlugin.createTemplate(
+        { vars: { RUNTIME_ENV: 'test' } } as any,
+        pluginWith(MODULE_FEDERATION_PLUGIN_OPTIONS),
+      );
+
+      expect(template.vars).toEqual({ TestModule: { RUNTIME_ENV: 'test' } });
+    });
+
+    // The scope the loader delivers under comes from the remote key, which is prefixed by
+    // the federation name. Keying vars by a divergent `name:` would deliver them nowhere.
+    it('should ignore a config name that diverges from the federation name', () => {
+      const template = AppshellPlugin.createTemplate(
+        { name: 'SomethingElse', vars: { RUNTIME_ENV: 'test' } } as any,
+        pluginWith(MODULE_FEDERATION_PLUGIN_OPTIONS),
+      );
+
+      expect(template.vars).toEqual({ TestModule: { RUNTIME_ENV: 'test' } });
+    });
+
+    it('should refuse to guess a scope for vars when the MF plugin has no name', () => {
+      expect(() =>
+        AppshellPlugin.createTemplate(
+          { vars: { RUNTIME_ENV: 'test' } } as any,
+          pluginWith({ ...MODULE_FEDERATION_PLUGIN_OPTIONS, name: undefined }),
+        ),
+      ).toThrowError(/Cannot scope vars/i);
+    });
   });
 
   describe('findModuleFederationPlugin', () => {
@@ -153,6 +230,20 @@ describe('AppshellPlugin', () => {
       expect(() => plugin.apply(compiler as any)).toThrowError(
         /Webpack ModuleFederationPlugin is required/i,
       );
+    });
+
+    it('should compile the federation name into the package as its scope', () => {
+      const applied: Record<string, unknown>[] = [];
+      jest
+        .spyOn(DefinePlugin.prototype, 'apply')
+        .mockImplementation(function capture(this: DefinePlugin) {
+          applied.push(this.definitions);
+        });
+      jest.spyOn(fs, 'writeFileSync').mockImplementation();
+
+      new AppshellPlugin({ config }).apply(compiler as any);
+
+      expect(applied).toEqual([{ __APPSHELL_SCOPE__: '"TestModule"' }]);
     });
 
     it('should write configuration to configsDir', async () => {
