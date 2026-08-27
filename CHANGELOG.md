@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.21](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.20...v1.0.0-alpha.21) (2026-08-27)
+
+### Features
+
+- **react-shell:** remove the registry's splash once the root package mounts ([3957f5d](https://github.com/appshellhq/appshell/commit/3957f5d1fbf306f0ca8cea7baa2b122ff7c34cf5))
+
 # [1.0.0-alpha.20](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.19...v1.0.0-alpha.20) (2026-08-27)
 
 ### Bug Fixes
