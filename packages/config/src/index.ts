@@ -11,7 +11,6 @@ export {
   saveCredential,
 } from './credentials';
 export type { Credential } from './credentials';
-export { default as generateEnv } from './generate.env';
 export { default as generateManifest } from './generate.manifest';
 export { default as outdated } from './outdated';
 export { activate, publish } from './publish';

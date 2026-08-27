@@ -39,25 +39,10 @@ pnpm add @appshell/core
 
 `@appshell/core` is the small shared surface between a micro-frontend and the shell.
 
-### `APPSHELL_ENV`
-
-The host's build-time configuration, read from the `appshell.env.js` that
-`appshell generate env` writes. Absent when the registry served the page — it inlines
-the composition instead — so every field falls back to a default.
-
-```ts
-import { APPSHELL_ENV } from '@appshell/core';
-
-APPSHELL_ENV.APPSHELL_PUBLIC_URL;
-APPSHELL_ENV.APPSHELL_ROOT;
-APPSHELL_ENV.APPSHELL_ROOT_PROPS;
-APPSHELL_ENV.APPSHELL_THEME_COLOR;
-APPSHELL_ENV.APPSHELL_PRIMARY_COLOR;
-```
-
-This is distinct from a package's **vars**, which the registry delivers through the
-composition into the `@appshell/runtime` store, where a package reads them with
-`getVars()` from [`@appshell/vars`](../vars/README.md).
+It used to also carry `APPSHELL_ENV`, the host's build-time `process.env` capture. That
+went when the registry became the runtime entry point: the registry renders the page and
+inlines the composition, so nothing loaded the generated script any more, and everything
+it carried — root remote, root props, colours — moved onto the Application record.
 
 ### Types
 

@@ -57,19 +57,34 @@ appshell app create shell-dev --ephemeral --shell-bundle-url http://localhost:30
 
 ## Application configuration
 
-The registry supplies the root remote, its props, and the page's title, colours and stylesheet,
-inlining them into the document it serves. What remains here is build- and dev-server
-configuration, read from the `appshell.env.js` that `appshell generate env` writes:
+The registry supplies the root remote, its props, and the page's title, colours,
+favicon and stylesheet, inlining them into the document it serves. None of it comes
+from this package's environment any more.
+
+What remains here is dev-server and CLI configuration:
 
 ```sh
-# Public url. Defaults to localhost
-APPSHELL_PUBLIC_URL=
 # Port the bundle's development server listens on
 APPSHELL_PORT=3030
-# Prefix used to specify which env vars to include when generating appshell.env.js. Leaving this empty will include ALL variables in the .env
-APPSHELL_ENV_PREFIX=APPSHELL_
-# Background color of splash screen
-APPSHELL_THEME_COLOR=
-# Color of splash screen loading
-APPSHELL_PRIMARY_COLOR=
+# Registry to publish and activate against
+APPSHELL_REGISTRY=
+# Credential for that registry
+APPSHELL_API_KEY=
 ```
+
+## What fills the page before the root remote mounts
+
+Nothing, currently. The shell renders no fallback: what covers the gap while the root
+remote is fetched is the application's business, and it cannot come from the root
+package itself — that package is the thing being waited for. It has to come from the
+document the registry renders.
+
+The shell used to ship a `Splash` component for this, configured through two env vars
+that stopped reaching the browser when the registry took over page rendering, so it had
+been rendering its hardcoded fallback colours for some time. It was removed rather than
+rewired: a document-level splash paints on the document's first paint rather than after
+the shell bundle downloads, parses and mounts React, and it can be styled by the
+application instead of by this package.
+
+Inner remotes are unaffected — `RemoteSlot` takes a `fallback` prop, and that has always
+been the consumer's to supply.

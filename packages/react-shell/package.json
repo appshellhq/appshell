@@ -13,8 +13,7 @@
   ],
   "scripts": {
     "generate": "run-p generate:*",
-    "generate:env": "appshell generate env --prefix $APPSHELL_ENV_PREFIX",
-    "start": "dotenv -- run-s generate:env start:bundle",
+    "start": "dotenv -- npm run start:bundle",
     "start:bundle": "webpack serve --mode development",
     "prebuild": "npm run clean",
     "build": "run-s build:prod build:dev",

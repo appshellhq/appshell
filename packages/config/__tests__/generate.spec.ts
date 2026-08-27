@@ -1,6 +1,5 @@
 import { keys, values } from 'lodash';
 import path from 'path';
-import generateEnv from '../src/generate.env';
 import generate from '../src/generate.manifest';
 import manifest from './assets/appshell.manifest.json';
 
@@ -29,30 +28,6 @@ describe('generate', () => {
     delete process.env.TEST_ENV_FOO;
     delete process.env.TEST_ENV_BAR;
     delete process.env.TEST_NUM;
-  });
-
-  describe('runtime env file', () => {
-    it('should generate the runtime environment js file', async () => {
-      const application = await generateEnv('^(TEST_|REGISTRY|ROOT).*');
-
-      expect(Object.fromEntries(application)).toStrictEqual({
-        REGISTRY: 'packages/cli/__tests__/assets/appshell_registry',
-        ROOT: 'TestModule/Workspace',
-        TEST_ENV_FOO: 'foo',
-        TEST_ENV_BAR: 'bar',
-        TEST_NUM: '100',
-      });
-    });
-
-    it('should capture only prefixed environment vars when prefix is supplied', async () => {
-      const application = await generateEnv('TEST_');
-
-      expect(Object.fromEntries(application)).toStrictEqual({
-        TEST_ENV_FOO: 'foo',
-        TEST_ENV_BAR: 'bar',
-        TEST_NUM: '100',
-      });
-    });
   });
 
   describe('manifest', () => {

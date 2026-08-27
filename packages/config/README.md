@@ -45,7 +45,6 @@ pnpm add -D @appshell/config
 | Export | Purpose | CLI equivalent |
 | ------ | ------- | -------------- |
 | `generateManifest` | Template → manifest, expanding `${VAR}` | `appshell generate manifest` |
-| `generateEnv` | Capture `process.env` by prefix | `appshell generate env` |
 | `publish` | Publish a manifest as a package version | `appshell publish` |
 | `activate` | Activate a version into an application | `appshell publish --application` |
 | `outdated` | Compare shared dependencies against baselines | `appshell outdated` |

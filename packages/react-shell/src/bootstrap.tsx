@@ -2,9 +2,7 @@
 import { RemoteSlot } from '@appshell/react';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import Splash from './components/Splash';
 import mountOverlayBadge from './overlayBadge';
-import reportWebVitals from './reportWebVitals';
 import './reset.css';
 
 const root = createRoot(document.getElementById('root') as HTMLElement);
@@ -22,10 +20,12 @@ if (!composition?.root) {
 const remote = composition.root;
 const props = composition.rootProps;
 
+// No fallback. What fills the gap before the root remote mounts is the application's
+// business, not the shell's — and it has to come from the document, since the thing
+// being waited for is the consumer's own code. Until that lands the gap renders as
+// whatever the page background is.
 root.render(
   <React.StrictMode>
-    <RemoteSlot remote={remote} fallback={<Splash />} {...props} />
+    <RemoteSlot remote={remote} {...props} />
   </React.StrictMode>,
 );
-
-reportWebVitals();

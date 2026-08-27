@@ -16,7 +16,6 @@ import setConfigHandler, { SetConfigArgs } from './handlers/config/set';
 import * as dev from './handlers/dev';
 import { DevArgs } from './handlers/dev';
 import * as app from './handlers/app';
-import generateEnvHandler, { GenerateEnvArgs } from './handlers/generate.env';
 import generateManifestHandler, { GenerateManifestArgs } from './handlers/generate.manifest';
 import loginHandler, { LoginArgs, logout } from './handlers/login';
 import outdatedHandler, { OutdatedArgs } from './handlers/outdated';
@@ -133,40 +132,6 @@ const generateManifestCommand: yargs.CommandModule<unknown, GenerateManifestArgs
         description: 'Output filename for the appshell manifest',
       }),
   handler: generateManifestHandler,
-};
-
-const generateEnvCommand: yargs.CommandModule<unknown, GenerateEnvArgs> = {
-  command: 'env',
-  describe: 'Generate the runtime environment js file that reflects the current process.env',
-  // eslint-disable-next-line @typescript-eslint/no-shadow
-  builder: (yargs) =>
-    yargs
-      .option('outDir', {
-        alias: 'o',
-        default: 'dist',
-        requiresArg: true,
-        type: 'string',
-        description: 'Output location for the runtime environment js',
-      })
-      .option('outFile', {
-        alias: 'f',
-        default: 'appshell.env.js',
-        type: 'string',
-        description: 'Output filename for the runtime environment js',
-      })
-      .option('prefix', {
-        alias: 'p',
-        default: '',
-        type: 'string',
-        description: 'Only capture environment variables that start with prefix',
-      })
-      .option('globalName', {
-        alias: 'g',
-        default: '__appshell_env__',
-        type: 'string',
-        description: 'Global variable name window[globalName] used in the output js',
-      }),
-  handler: generateEnvHandler,
 };
 
 const outdatedCommand: yargs.CommandModule<unknown, OutdatedArgs> = {
@@ -394,7 +359,6 @@ yargs(hideBin(process.argv))
     builder: (yargs) =>
       yargs
         .command(generateManifestCommand)
-        .command(generateEnvCommand)
         .demandCommand(),
   })
   .command({

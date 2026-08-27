@@ -1,8 +1,29 @@
+/*
+ * The one reset on the page.
+ *
+ * Packages must not ship their own — several global resets (Tailwind's Preflight, for
+ * one) fight each other and the shell. This is structural only: it holds no view on how
+ * an application looks, which is the packages' and the theme's business, but it does own
+ * the handful of browser defaults that must be settled exactly once.
+ */
+html,
 body {
   margin: 0;
-  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+#root {
+  min-height: 100vh;
 }
