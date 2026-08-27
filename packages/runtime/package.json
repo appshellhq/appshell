@@ -4,7 +4,7 @@
   "description": "The shared singleton that delivers a package's runtime configuration to it",
   "main": "dist/main.js",
   "types": "dist/types/index.d.ts",
-  "repository": "https://github.com/appshell-org/appshell.git",
+  "repository": "https://github.com/appshellhq/appshell.git",
   "author": "Robert Hamilton <rh@navaris.com>",
   "publishConfig": {
     "access": "public",

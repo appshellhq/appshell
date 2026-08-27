@@ -4,7 +4,7 @@
   "workspaces": [
     "packages/*"
   ],
-  "repository": "https://github.com/appshell-org/appshell.git",
+  "repository": "https://github.com/appshellhq/appshell.git",
   "scripts": {
     "bootstrap": "npm install",
     "build": "lerna run --scope=@appshell/webpack-plugin build && lerna run --ignore=@appshell/webpack-plugin build",

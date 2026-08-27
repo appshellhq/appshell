@@ -4,7 +4,7 @@
   "description": "Reads the runtime configuration the registry composed for this package",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "repository": "https://github.com/appshell-org/appshell.git",
+  "repository": "https://github.com/appshellhq/appshell.git",
   "author": "Robert Hamilton <rh@navaris.com>",
   "publishConfig": {
     "access": "public",

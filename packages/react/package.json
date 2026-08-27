@@ -4,7 +4,7 @@
   "description": "React utilities for building micro-frontends with Appshell and Module Federation",
   "main": "dist/main.js",
   "types": "dist/types/react/src/index.d.ts",
-  "repository": "https://github.com/appshell-org/appshell.git",
+  "repository": "https://github.com/appshellhq/appshell.git",
   "author": "Robert Hamilton <rh@navaris.com>",
   "publishConfig": {
     "access": "public",
