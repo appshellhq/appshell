@@ -6,7 +6,9 @@ import {
   contrastRatio,
   describeFinding,
   parseColor,
+  pinnedMode,
   toCss,
+  toHex,
   validateTheme,
   type Mode,
 } from '@appshell/tokens';
@@ -135,5 +137,53 @@ describe('toCss size', () => {
 
     expect(dark).toContain('--appshell-surface:');
     expect(dark).toContain('--appshell-on-surface:');
+  });
+});
+
+describe('colorScheme', () => {
+  // Without it a dark theme still gets light scrollbars and form controls — the parts of
+  // the page CSS does not reach.
+  it('should tell the browser both schemes are supported by default', () => {
+    expect(toCss({ base: 'neutral', accent: 'ice' })).toContain('color-scheme: light dark;');
+  });
+
+  it('should emit one palette and one scheme when a scheme is pinned', () => {
+    const css = toCss({ base: 'midnight', accent: 'ice', colorScheme: 'dark' });
+
+    expect(css).toContain('color-scheme: dark;');
+    expect(css).not.toContain('prefers-color-scheme');
+    expect(css).not.toContain('data-appshell-theme');
+  });
+
+  it('should pin the palette to the chosen scheme rather than the default one', () => {
+    const pinned = toCss({ base: 'midnight', accent: 'ice', colorScheme: 'dark' });
+    const dark = composeTheme({ base: 'midnight', accent: 'ice' }, 'dark');
+
+    expect(pinned).toContain(`--appshell-surface: ${dark.surface};`);
+  });
+
+  it('should report which mode a selection is pinned to', () => {
+    expect(pinnedMode({ base: 'neutral', accent: 'ice' })).toBeUndefined();
+    expect(pinnedMode({ base: 'neutral', accent: 'ice', colorScheme: 'system' })).toBeUndefined();
+    expect(pinnedMode({ base: 'neutral', accent: 'ice', colorScheme: 'light' })).toBe('light');
+  });
+
+  it('should keep color-scheme out of the token namespace', () => {
+    expect(toCss({ base: 'neutral', accent: 'ice' })).not.toContain('--appshell-color-scheme');
+  });
+});
+
+describe('toHex', () => {
+  it('should convert oklch to something a meta tag can use', () => {
+    expect(toHex('oklch(100% 0 0)')).toBe('#ffffff');
+    expect(toHex('oklch(0% 0 0)')).toBe('#000000');
+  });
+
+  it('should pass hex through unchanged', () => {
+    expect(toHex('#0ea5e9')).toBe('#0ea5e9');
+  });
+
+  it('should return nothing for a value it cannot read', () => {
+    expect(toHex('bananas')).toBeUndefined();
   });
 });

@@ -18,13 +18,17 @@ spec:
     root: ContainerModule/Container
     title: Appshell Example
     description: Three micro-frontends composed by the appshell registry
-    # Only the <meta name="theme-color"> browser-chrome hint; not a page colour.
-    themeColor: '#031230'
     # Everything the composed page paints with. A base carries surfaces, text, border
     # and status as a light/dark pair; an accent carries the two action colours.
+    #
+    # There is no themeColor any more: the browser-chrome hint is derived from the surface
+    # this theme actually paints, per scheme, so it cannot drift from the page.
     theme:
       base: neutral
       accent: ice
+      # `system` follows the viewer. Set light or dark to ship one look on purpose —
+      # it pins the palette, the browser's own controls, and the chrome colour together.
+      colorScheme: system
   # This is a local development application, and `appshell dev` is the reason it
   # exists. Public applications default this off, since that is where an overlay
   # would sit closest to real traffic.

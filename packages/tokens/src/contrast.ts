@@ -73,6 +73,21 @@ export const contrastRatio = (a: Rgb, b: Rgb): number => {
   return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
 };
 
+/**
+ * A colour as `#rrggbb`.
+ *
+ * `<meta name="theme-color">` takes a CSS colour, but browser support for `oklch` there
+ * is not something to rely on for a hint the page cannot detect the failure of — a
+ * value the browser does not understand is simply ignored, silently.
+ */
+export const toHex = (value: string): string | undefined => {
+  const rgb = parseColor(value);
+
+  if (!rgb) return undefined;
+
+  return `#${rgb.map((c) => Math.round(c * 255).toString(16).padStart(2, '0')).join('')}`;
+};
+
 export type ContrastFinding = {
   roles: [TokenRole, TokenRole];
   ratio?: number;

@@ -1,7 +1,6 @@
 import { RemoteSlot } from '@appshell/react';
 import React from 'react';
 import { PackageBlock } from 'react-appshell-host-components';
-import Loading from 'react-spinners/MoonLoader';
 import pkg from '../package.json';
 import AppshellLogo from './assets/appshell-logo.svg';
 import ReactLogo from './assets/react-logo.svg';
@@ -14,6 +13,17 @@ const LINK = 'text-primary hover:text-primary-hover';
 // is set here explicitly rather than picking up the link's accent, which would put a
 // 2.66:1 wordmark on a light surface.
 const LOGO = 'h-[12vmin] pointer-events-none text-on-surface';
+
+/** Matches the AppShowcase card the remote renders, so nothing shifts when it arrives. */
+const CardSkeleton = () => (
+  <div
+    aria-hidden="true"
+    className="h-[520px] w-[400px] animate-pulse rounded-lg bg-surface-raised px-lg pb-lg"
+  >
+    <div className="mt-lg h-6 w-1/2 rounded-sm bg-border" />
+    <div className="mt-lg h-[400px] w-full rounded-sm bg-border" />
+  </div>
+);
 
 const Container = () => (
   <div className="text-center">
@@ -42,10 +52,17 @@ const Container = () => (
 
       <pre className="font-mono">This application is composed from 3 micro-frontends.</pre>
 
-      {/* Inner slots supply their own fallback; the shell only ever covered the root. */}
+      {/*
+        Inner slots supply their own fallback; the shell only ever covered the root.
+
+        A skeleton the size of the card that replaces it, rather than a spinner. The
+        package cannot know its own dimensions — they depend on where it is placed — but
+        whoever writes the slot does, which is what the `fallback` prop is for. Sizing it
+        correctly also stops the page jumping when the remote arrives.
+      */}
       <div className="grid grid-flow-col gap-lg">
-        <RemoteSlot remote="PingModule/Ping" fallback={<Loading color="orangered" />} />
-        <RemoteSlot remote="PongModule/Pong" fallback={<Loading color="orangered" />} />
+        <RemoteSlot remote="PingModule/Ping" fallback={<CardSkeleton />} />
+        <RemoteSlot remote="PongModule/Pong" fallback={<CardSkeleton />} />
       </div>
     </header>
   </div>

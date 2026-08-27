@@ -8,14 +8,28 @@ import {
 } from './contract';
 import { ACCENTS, BASES, FOCUS_RINGS } from './presets';
 
+/**
+ * `system` follows the viewer's preference. Pinning a scheme is for an application that
+ * ships one look on purpose, and it is honoured all the way down: the palette stops
+ * varying, the root is stamped so the tokens cannot be swapped underneath it, and the
+ * browser is told which scheme to render its own scrollbars and form controls in.
+ */
+export type ColorScheme = 'system' | 'light' | 'dark';
+
 export type ThemeSelection = {
   /** A base preset name, or the base's own token values. */
   base: string | Record<Mode, BaseTokens>;
   /** An accent preset name, or the accent's own token values. */
   accent: string | AccentTokens;
+  /** Defaults to `system`. */
+  colorScheme?: ColorScheme;
   /** Overrides applied last, so an Application can adjust a preset without forking it. */
   overrides?: Partial<Theme>;
 };
+
+/** The mode a pinned scheme resolves to, or undefined when it follows the viewer. */
+export const pinnedMode = (selection: ThemeSelection): Mode | undefined =>
+  selection.colorScheme && selection.colorScheme !== 'system' ? selection.colorScheme : undefined;
 
 /**
  * Hover and active are a `color-mix` away from their accent, so a theme never has to
@@ -116,9 +130,19 @@ export const composeTheme = (selection: ThemeSelection, mode: Mode): Theme => {
   } as Theme;
 };
 
-const block = (selector: string, tokens: Partial<Theme>, indent: string) =>
+/**
+ * `declarations` are real CSS properties rather than custom ones, so they are emitted
+ * verbatim — `color-scheme` is a property the browser acts on, not a token.
+ */
+const block = (
+  selector: string,
+  tokens: Partial<Theme>,
+  indent: string,
+  declarations: Record<string, string> = {},
+) =>
   [
     `${indent}${selector} {`,
+    ...Object.entries(declarations).map(([property, value]) => `${indent}  ${property}: ${value};`),
     ...Object.entries(tokens).map(
       ([role, value]) => `${indent}  ${cssVar(role as TokenRole)}: ${value};`,
     ),
@@ -139,13 +163,25 @@ const changed = (from: Theme, to: Theme): Partial<Theme> =>
  * would give a viewer no way to override it.
  */
 export const toCss = (selection: ThemeSelection): string => {
+  const pinned = pinnedMode(selection);
+
+  /*
+   * `color-scheme` is what tells the browser which way to render the things CSS does not
+   * reach — scrollbars, form controls, the canvas behind the page. Without it a dark
+   * theme still gets light scrollbars.
+   */
+  if (pinned) {
+    const theme = composeTheme(selection, pinned);
+
+    return `${block(':root', theme, '', { 'color-scheme': pinned })}\n`;
+  }
+
   const light = composeTheme(selection, 'light');
   const dark = composeTheme(selection, 'dark');
-
   const delta = changed(light, dark);
 
   return [
-    block(':root', light, ''),
+    block(':root', light, '', { 'color-scheme': 'light dark' }),
     '',
     '@media (prefers-color-scheme: dark) {',
     block(':root:not([data-appshell-theme="light"])', delta, '  '),
