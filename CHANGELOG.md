@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.20](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.19...v1.0.0-alpha.20) (2026-08-27)
+
+### Bug Fixes
+
+- **examples:** colour the webpack wordmark, not its cube, and let react scale ([5996678](https://github.com/appshellhq/appshell/commit/5996678cce8034e8b9c686beded11d41e9866387)), closes [#F5](https://github.com/appshellhq/appshell/issues/F5)
+
 # [1.0.0-alpha.19](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.18...v1.0.0-alpha.19) (2026-08-27)
 
 ### Bug Fixes

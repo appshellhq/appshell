@@ -1,6 +1,6 @@
 {
   "name": "@appshell/loader",
-  "version": "1.0.0-alpha.19",
+  "version": "1.0.0-alpha.20",
   "description": "Utility for loading Appshell components",
   "main": "dist/main.js",
   "types": "dist/loader/src/index.d.ts",
@@ -31,7 +31,7 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@appshell/runtime": "^1.0.0-alpha.19",
+    "@appshell/runtime": "^1.0.0-alpha.20",
     "@module-federation/enhanced": "^2.8.2"
   },
   "gitHead": "e8105f3c5eeb4aec8e3f0e06b151d0a0ef394d12"
