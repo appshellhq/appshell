@@ -1,6 +1,6 @@
 {
   "name": "@appshell/react-shell",
-  "version": "1.0.0-alpha.22",
+  "version": "1.0.0-alpha.23",
   "description": "Appshell shell bundle for React",
   "main": "dist/main.js",
   "repository": {

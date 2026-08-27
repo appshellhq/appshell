@@ -1,6 +1,6 @@
 {
   "name": "@appshell/vars",
-  "version": "1.0.0-alpha.22",
+  "version": "1.0.0-alpha.23",
   "description": "Reads the runtime configuration the registry composed for this package",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -30,6 +30,6 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@appshell/runtime": "^1.0.0-alpha.22"
+    "@appshell/runtime": "^1.0.0-alpha.23"
   }
 }

@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.23](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.22...v1.0.0-alpha.23) (2026-08-27)
+
+### Features
+
+- **tokens:** let an application pin a colour scheme, and emit color-scheme ([a428d04](https://github.com/appshellhq/appshell/commit/a428d047a9bf57dc5eb3d15763b211bec760beff))
+
 # [1.0.0-alpha.22](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.21...v1.0.0-alpha.22) (2026-08-27)
 
 **Note:** Version bump only for package appshell
