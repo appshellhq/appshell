@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/lerna/schemas/lerna-schema.json",
-  "version": "1.0.0-alpha.14",
+  "version": "1.0.0-alpha.15",
   "npmClient": "npm",
   "command": {
     "version": {
@@ -8,7 +8,9 @@
       "message": "chore: release [skip ci] %s"
     }
   },
-  "packages": ["packages/*"],
+  "packages": [
+    "packages/*"
+  ],
   "ignoreChanges": [
     "**/__fixtures__/**",
     "**/__tests__/**",

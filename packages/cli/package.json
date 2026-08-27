@@ -1,9 +1,12 @@
 {
   "name": "@appshell/cli",
-  "version": "1.0.0-alpha.14",
+  "version": "1.0.0-alpha.15",
   "description": "cli utility to generate a global appshell artifacts for module federation micro-frontends",
   "main": "dist/main.js",
-  "repository": "https://github.com/appshellhq/appshell.git",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/appshellhq/appshell.git"
+  },
   "author": "Robert Hamilton <rh@navaris.com>",
   "publishConfig": {
     "access": "public",

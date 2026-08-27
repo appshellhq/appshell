@@ -1,10 +1,13 @@
 {
   "name": "@appshell/config",
-  "version": "1.0.0-alpha.14",
+  "version": "1.0.0-alpha.15",
   "description": "Utility for producing a global appshell manifest for module federation micro-frontends",
   "main": "dist/main.js",
   "types": "dist/types/index.d.ts",
-  "repository": "https://github.com/appshellhq/appshell.git",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/appshellhq/appshell.git"
+  },
   "author": "Robert Hamilton <rh@navaris.com>",
   "publishConfig": {
     "access": "public",
