@@ -77,7 +77,14 @@ module.exports = (env, { mode }) => {
           test: /\.svg$/,
           issuer: /\.[jt]sx?$/,
           exclude: /node_modules/,
-          use: ['@svgr/webpack'],
+          use: [
+            {
+              loader: '@svgr/webpack',
+              // Drop the intrinsic width/height so the class controls the size; otherwise
+              // an asset that happens to carry them ignores the layout it lands in.
+              options: { dimensions: false },
+            },
+          ],
         },
       ],
     },
