@@ -67,6 +67,10 @@ createMap<AppshellTemplate, AppshellManifest>(
     mapFrom((source) => source.vars),
   ),
   forMember(
+    (destination) => destination.tokens,
+    mapFrom((source) => source.tokens),
+  ),
+  forMember(
     (destination) => destination.overrides,
     mapFrom((source) => source.overrides),
   ),

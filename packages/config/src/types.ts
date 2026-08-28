@@ -76,6 +76,7 @@ export type AppshellTemplate<TMetadata = Metadata> = {
   remotes?: Record<string, AppshellConfigRemote<TMetadata>>;
   module: ModuleFederationPluginOptions;
   vars?: Record<string, unknown>;
+  tokens?: Record<string, AppshellTokenUsage>;
   overrides?: AppshellOverrides;
 };
 
@@ -94,10 +95,26 @@ export type AppshellOverrides = {
   vars: Record<string, Record<string, string | number | undefined>>;
 };
 
+/**
+ * Which design tokens a package's own output reaches for. Observed from the emitted
+ * assets rather than declared: the CSS already says it, and a hand-kept list is a copy
+ * that drifts the first time someone adds a token and forgets the yaml.
+ *
+ * `required` is a reference with no fallback — the package has no plan B. `optional` is
+ * `var(--appshell-x, something)`, which degrades on its own. That split is read off what
+ * the author wrote rather than asked of them.
+ */
+export type AppshellTokenUsage = {
+  required: string[];
+  optional: string[];
+};
+
 export type AppshellManifest<TMetadata = Metadata> = {
   remotes: Record<string, AppshellRemote<TMetadata>>;
   modules: Record<string, ModuleFederationPluginOptions>;
   vars: Record<string, Record<string, string | number | undefined>>;
+  /** Keyed by federation scope, so a merged manifest still says which package needs what. */
+  tokens?: Record<string, AppshellTokenUsage>;
   overrides?: AppshellOverrides;
 };
 

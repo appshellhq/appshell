@@ -49,7 +49,7 @@ module.exports = (env, { mode }) => {
     },
     // @appshell/react's dist bundles module-federation's own environment-detection
     // require(), which webpack cannot analyse statically. A known false positive.
-    ignoreWarnings: [{ module: /@appshell[\/]react[\/]dist[\/]main\.js/ }],
+    ignoreWarnings: [{ module: /(@appshell|packages)[\/]react[\/]dist[\/]main\.js/ }],
     module: {
       rules: [
         {

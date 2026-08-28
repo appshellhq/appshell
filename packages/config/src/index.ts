@@ -24,6 +24,7 @@ export type {
   AppshellManifest,
   AppshellRemote,
   AppshellTemplate,
+  AppshellTokenUsage,
   ComparisonResult,
   ComparisonResults,
   ComparisonTarget,

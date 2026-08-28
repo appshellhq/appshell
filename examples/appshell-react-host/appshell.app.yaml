@@ -28,7 +28,7 @@ spec:
       accent: ice
       # `system` follows the viewer. Set light or dark to ship one look on purpose —
       # it pins the palette, the browser's own controls, and the chrome colour together.
-      colorScheme: system
+      colorScheme: dark
   # This is a local development application, and `appshell dev` is the reason it
   # exists. Public applications default this off, since that is where an overlay
   # would sit closest to real traffic.

@@ -87,6 +87,9 @@ describe('AppshellPlugin', () => {
       { plugins },
       {
         outputOptions: { path: '' },
+        // Every real compilation has these; the plugin reads them to see which design
+        // tokens the emitted output reaches for.
+        assets: {},
         errors: errors as any,
         getLogger: (() => logger) as any,
       },
@@ -162,6 +165,73 @@ describe('AppshellPlugin', () => {
           module: { ...MODULE_FEDERATION_PLUGIN_OPTIONS, shared: { package1: '1.0.0' } },
         }),
       ).toBe(true);
+    });
+  });
+
+  describe('tokenUsage', () => {
+    // A reference with a fallback degrades on its own; one without has no plan B.
+    it('should split required from optional on whether a fallback is present', () => {
+      const { required, optional } = AppshellPlugin.tokenUsage(
+        ({
+          'main.css': '.a{color:var(--appshell-on-surface)}.b{background:var(--appshell-primary, #0af)}',
+        }),
+      );
+
+      expect(required).toEqual(['on-surface']);
+      expect(optional).toEqual(['primary']);
+    });
+
+    // One place in the package having nothing to fall back to settles it for the package.
+    it('should treat a role used both ways as required', () => {
+      const { required, optional } = AppshellPlugin.tokenUsage(
+        ({ 'main.css': 'var(--appshell-primary, #0af) var(--appshell-primary)' }),
+      );
+
+      expect(required).toEqual(['primary']);
+      expect(optional).toEqual([]);
+    });
+
+    it('should report a name that is not a role rather than counting it as a need', () => {
+      const { required, optional, unknown } = AppshellPlugin.tokenUsage(
+        ({ 'main.css': 'var(--appshell-primry)' }),
+      );
+
+      expect(unknown).toEqual(['primry']);
+      expect(required).toEqual([]);
+      expect(optional).toEqual([]);
+    });
+
+    it('should find tokens in javascript as well as stylesheets', () => {
+      const { required } = AppshellPlugin.tokenUsage(
+        ({ 'main.js': 'const s={color:"var(--appshell-danger)"}' }),
+      );
+
+      expect(required).toEqual(['danger']);
+    });
+
+    it('should not scan assets that cannot reference a token', () => {
+      const { required } = AppshellPlugin.tokenUsage(
+        ({ 'logo.svg': 'var(--appshell-primary)', 'font.woff2': 'var(--appshell-border)' }),
+      );
+
+      expect(required).toEqual([]);
+    });
+
+    it('should tolerate whitespace inside the reference', () => {
+      const { required, optional } = AppshellPlugin.tokenUsage(
+        ({ 'main.css': 'var( --appshell-surface ) var( --appshell-border , red)' }),
+      );
+
+      expect(required).toEqual(['surface']);
+      expect(optional).toEqual(['border']);
+    });
+
+    it('should report nothing for output that uses no tokens', () => {
+      expect(AppshellPlugin.tokenUsage(({ 'main.js': 'console.log(1)' }))).toEqual({
+        required: [],
+        optional: [],
+        unknown: [],
+      });
     });
   });
 

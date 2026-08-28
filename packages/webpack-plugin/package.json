@@ -32,5 +32,8 @@
     "plugin"
   ],
   "license": "MIT",
-  "gitHead": "e8105f3c5eeb4aec8e3f0e06b151d0a0ef394d12"
+  "gitHead": "e8105f3c5eeb4aec8e3f0e06b151d0a0ef394d12",
+  "dependencies": {
+    "@appshell/tokens": "1.0.0-alpha.23"
+  }
 }

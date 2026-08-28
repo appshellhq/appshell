@@ -26,6 +26,7 @@ import {
   WebpackOptionsNormalized,
   WebpackPluginInstance,
 } from 'webpack';
+import { TOKEN_ROLES } from '@appshell/tokens';
 import { isServing, writeDevHint } from './devHint';
 
 type AppshellPluginOptions = {
@@ -62,6 +63,15 @@ const VARS_RUNTIME = '@appshell/runtime';
  * the page — so the scope has to be fixed at the call site, at build time.
  */
 const SCOPE_DEFINE = '__APPSHELL_SCOPE__';
+
+/**
+ * A design token reference in emitted output. The optional comma is the whole point: a
+ * reference with a fallback degrades on its own, one without does not.
+ */
+const TOKEN_REFERENCE = /var\(\s*--appshell-([a-z0-9-]+)\s*(,?)/g;
+
+/** Text webpack emitted. Images and fonts cannot reference a token. */
+const SCANNABLE = /\.(js|mjs|cjs|css|html)$/;
 
 const delay = (ms: number) =>
   new Promise<void>((resolve) => {
@@ -250,6 +260,76 @@ export default class AppshellPlugin {
   }
 
   /**
+   * Emitted text, by asset name, for anything a design token could appear in.
+   *
+   * Driven by the names webpack reports rather than by walking the output directory:
+   * `outputOptions.path` can be empty, which resolves to the working directory, and a
+   * recursive read from there is the whole repository. The names are exact and bounded;
+   * only the contents have to come off disk.
+   */
+  static emittedText(outputDir: string, assetNames: string[]): Record<string, string> {
+    return assetNames
+      .filter((name) => SCANNABLE.test(name))
+      .reduce<Record<string, string>>((acc, name) => {
+        const file = path.resolve(outputDir, name);
+
+        if (!fs.existsSync(file)) return acc;
+
+        return { ...acc, [name]: fs.readFileSync(file, 'utf-8') };
+      }, {});
+  }
+
+  /**
+   * Which tokens this package's output actually reaches for.
+   *
+   * Read from the emitted assets rather than declared. The CSS already states it, and a
+   * hand-kept list is a second copy that goes stale the first time somebody adds a token
+   * and forgets to update it. This cannot drift, because it *is* the usage.
+   *
+   * A role referenced both with and without a fallback counts as required: one place in
+   * the package has nothing to fall back to.
+   *
+   * The blind spot is a reference built at runtime from a constructed string, which no
+   * static scan sees — the same limit Tailwind has with dynamic class names. It fails
+   * toward under-reporting, never toward inventing a requirement.
+   *
+   * Takes file contents rather than webpack assets: by `afterEmit` the compilation has
+   * swapped its sources for `SizeOnlySource`, which knows a length and nothing else.
+   * The files are on disk by then, which is what the hook means.
+   */
+  static tokenUsage(sources: Record<string, string> = {}) {
+    const withFallback = new Set<string>();
+    const withoutFallback = new Set<string>();
+    const unknown = new Set<string>();
+
+    Object.entries(sources ?? {})
+      .filter(([name]) => SCANNABLE.test(name))
+      .forEach(([, source]) => {
+        for (
+          let match = TOKEN_REFERENCE.exec(source);
+          match;
+          match = TOKEN_REFERENCE.exec(source)
+        ) {
+          const [, role, comma] = match;
+
+          if (!TOKEN_ROLES.includes(role as never)) {
+            unknown.add(role);
+          } else if (comma) {
+            withFallback.add(role);
+          } else {
+            withoutFallback.add(role);
+          }
+        }
+      });
+
+    return {
+      required: [...withoutFallback].sort(),
+      optional: [...withFallback].filter((role) => !withoutFallback.has(role)).sort(),
+      unknown: [...unknown].sort(),
+    };
+  }
+
+  /**
    * Whether a request is shared, and shared as a singleton. `shared` has four shapes —
    * an object, an array of names, an array of objects, or a mix — and a bare name shares
    * without making it a singleton, which for the vars store is the same as not sharing it.
@@ -390,6 +470,23 @@ export default class AppshellPlugin {
 
       if (!fs.existsSync(outputDir)) {
         fs.mkdirSync(outputDir, { recursive: true });
+      }
+
+      // Only knowable here: the files do not exist until they have been emitted.
+      const { required, optional, unknown } = AppshellPlugin.tokenUsage(
+        AppshellPlugin.emittedText(outputDir, Object.keys(compilation.assets ?? {})),
+      );
+
+      unknown.forEach((role) =>
+        logger.warn(
+          `--appshell-${role} is not a design token. Check the spelling against the ` +
+            `contract in @appshell/tokens; a name that is not a role resolves to nothing.`,
+        ),
+      );
+
+      if (required.length || optional.length) {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        template.tokens = { [template.module.name!]: { required, optional } };
       }
 
       fs.writeFileSync(outputFile, JSON.stringify(template));
