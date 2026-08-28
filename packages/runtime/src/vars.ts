@@ -1,6 +1,19 @@
 /* eslint-disable no-underscore-dangle, @typescript-eslint/naming-convention */
-import { readVars, type Vars } from '@appshell/runtime';
-import MissingScopeError from './errors';
+/**
+ * The scope-aware accessor, deliberately kept out of this package's main entry.
+ *
+ * `@appshell/runtime` is shared as a singleton, so exactly one copy of it exists on the
+ * page — whichever package wins the share negotiation. A `__APPSHELL_SCOPE__` compiled
+ * into that copy would be one package's scope, and every other package would silently
+ * read the wrong vars. So this module ships as the `@appshell/runtime/vars` subpath,
+ * which the exact-match share key does not catch: each package bundles its own copy and
+ * gets its own scope substituted, while the store they all reach through the bare
+ * `@appshell/runtime` import below stays the one shared instance.
+ *
+ * That bare specifier is load-bearing. A relative import of the store here would bind to
+ * a local copy and bypass the singleton entirely.
+ */
+import { MissingScopeError, readVars, type Vars } from '@appshell/runtime';
 
 /**
  * The module federation container name of the package this module was compiled into.
@@ -31,12 +44,11 @@ const scopeOf = (): string => {
  * that renders with no configuration at all is the failure this is here to prevent.
  *
  * ```ts
- * import { getVars } from '@appshell/vars';
+ * import { getVars } from '@appshell/runtime/vars';
  *
  * const { BACKGROUND_COLOR } = getVars<{ BACKGROUND_COLOR: string }>();
  * ```
  */
 export const getVars = <TVars extends Vars = Vars>(): TVars => readVars<TVars>(scopeOf());
 
-export { MissingVarsError, type Vars } from '@appshell/runtime';
-export { default as MissingScopeError } from './errors';
+export { MissingScopeError, MissingVarsError, type Vars } from '@appshell/runtime';

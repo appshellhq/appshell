@@ -44,7 +44,7 @@ export const setVars = (scope: string, vars: Vars): void => {
  * Reads a scope's vars, throwing rather than handing back an empty object — a package
  * that silently renders with no configuration is the failure this replaced.
  *
- * Prefer `getVars()` from `@appshell/vars`, which supplies the scope for you.
+ * Prefer `getVars()` from `@appshell/runtime/vars`, which supplies the scope for you.
  */
 export const readVars = <TVars extends Vars = Vars>(scope: string): TVars => {
   const vars = delivered.get(scope);

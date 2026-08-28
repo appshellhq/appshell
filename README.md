@@ -94,7 +94,6 @@ bottom tier.
 - [@appshell/react](./packages/react/)
 - [@appshell/runtime](./packages/runtime/)
 - [@appshell/tokens](./packages/tokens/)
-- [@appshell/vars](./packages/vars/)
 - [@appshell/webpack-plugin](./packages/webpack-plugin/)
 
 # @appshell hosts

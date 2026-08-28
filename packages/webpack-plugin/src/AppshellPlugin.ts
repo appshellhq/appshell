@@ -59,7 +59,7 @@ const VARS_RUNTIME = '@appshell/runtime';
 
 /**
  * The federation container name, substituted into the package's own compilation so
- * `getVars()` in `@appshell/vars` can only ever return this package's vars. A shared
+ * `getVars()` in `@appshell/runtime/vars` can only ever return this package's vars. A shared
  * module cannot work this out for itself — it is one instance serving every package on
  * the page — so the scope has to be fixed at the call site, at build time.
  */

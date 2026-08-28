@@ -66,7 +66,7 @@ A package's vars are delivered into the `@appshell/runtime` store immediately be
 its remote is loaded, so they are in place before the package's modules evaluate. They
 arrive already merged with the application's overrides, because the registry does that
 merge server side — the browser applies nothing. The package reads them with `getVars()`
-from [`@appshell/vars`](../vars/README.md).
+from [`@appshell/runtime/vars`](../runtime/README.md).
 
 You can bypass the chain entirely, which is mainly useful for tests and embedders:
 

@@ -1,6 +1,6 @@
 /* eslint-disable no-underscore-dangle */
 import { resetVars, setVars } from '@appshell/runtime';
-import { MissingScopeError, MissingVarsError, getVars } from '@appshell/vars';
+import { MissingScopeError, MissingVarsError, getVars } from '@appshell/runtime/vars';
 
 // Standing in for the DefinePlugin substitution, which no test runner performs.
 const compiledAs = (scope?: string) => {

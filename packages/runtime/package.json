@@ -4,6 +4,24 @@
   "description": "The shared singleton that delivers a package's runtime configuration to it",
   "main": "dist/main.js",
   "types": "dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "default": "./dist/main.js"
+    },
+    "./vars": {
+      "types": "./dist/types/vars.d.ts",
+      "default": "./dist/vars.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "typesVersions": {
+    "*": {
+      "vars": [
+        "./dist/types/vars.d.ts"
+      ]
+    }
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/appshellhq/appshell.git"

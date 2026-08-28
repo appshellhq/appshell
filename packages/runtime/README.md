@@ -6,8 +6,31 @@ This is a **shared singleton**. There is exactly one instance per page, held in 
 module federation share scope, and both the host and every package must declare it as
 such. It replaced `window.__appshell_vars__<scope>`.
 
-Most packages should not import this directly — use
-[`@appshell/vars`](../vars/README.md), which supplies the scope for you.
+Most packages should not import this directly — use `@appshell/runtime/vars` below,
+which supplies the scope for you.
+
+## `@appshell/runtime/vars`
+
+The accessor most packages actually want. It reads *this* package's vars, with no scope
+to pass and no way to name someone else's:
+
+```ts
+import { getVars } from '@appshell/runtime/vars';
+
+const { BACKGROUND_COLOR } = getVars<{ BACKGROUND_COLOR: string }>();
+```
+
+It is a subpath rather than a main-entry export for a reason. `AppshellPlugin` compiles
+the package's own scope into whatever imports it, and the main entry is the *shared*
+module — one instance for the whole page — so a scope baked in there would be one
+package's, and every other package would read the wrong vars.
+
+The exact-match share key `'@appshell/runtime'` does not catch `'@appshell/runtime/vars'`,
+so each package bundles its own copy of the accessor with its own scope, while the store
+they all reach stays the single shared instance.
+
+`getVars` throws `MissingScopeError` when the package was built without `AppshellPlugin`,
+since nothing substituted the scope.
 
 ## Contract
 

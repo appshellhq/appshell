@@ -2,6 +2,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
+      "@appshell/runtime/vars": ["./packages/runtime/src/vars"],
       "@appshell/*": ["./packages/*/src"]
     },
     "allowJs": true,

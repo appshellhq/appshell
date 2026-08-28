@@ -116,7 +116,7 @@ Sample template:
 
 > Note the variable expansion syntax `${CRA_MFE_URL}`. When `generateManifest` is called the actual runtime environment values are injected and an appshell manifest is emitted.
 
-> **Note** the `vars` section defines runtime configuration values a package reads with `getVars()` from [`@appshell/vars`](../vars/README.md) once it is loaded. The package must share `@appshell/runtime` as a singleton to receive them. See the examples for a use case.
+> **Note** the `vars` section defines runtime configuration values a package reads with `getVars()` from [`@appshell/runtime/vars`](../runtime/README.md) once it is loaded. The package must share `@appshell/runtime` as a singleton to receive them. See the examples for a use case.
 
 Sample appshell manifest produced by the `generateManifest` function:
 

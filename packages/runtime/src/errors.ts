@@ -48,3 +48,19 @@ export class VarsConflictError extends Error {
     this.scope = scope;
   }
 }
+
+/**
+ * The package was built without `AppshellPlugin`, so nothing substituted the scope the
+ * `@appshell/runtime/vars` accessor needs to know which vars are its own.
+ */
+export class MissingScopeError extends Error {
+  constructor() {
+    super(
+      `Cannot tell which package this is. '@appshell/runtime/vars' needs the scope that ` +
+        `AppshellPlugin injects at build time — add it to this package's webpack plugins, ` +
+        `or read the store directly with readVars(scope) from '@appshell/runtime'.`,
+    );
+
+    this.name = 'MissingScopeError';
+  }
+}

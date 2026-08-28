@@ -10,6 +10,6 @@
  * which reaches every package at once through the design tokens. Vars are for
  * configuration a package has to branch on — a url, an endpoint, a feature flag.
  */
-import { getVars } from '@appshell/vars';
+import { getVars } from '@appshell/runtime/vars';
 
 export default getVars<{ SUPPORT_URL: string }>();
