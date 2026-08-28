@@ -1,6 +1,6 @@
 {
   "name": "sample-mfe-container",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "main": "dist/main.js",
   "scripts": {
     "generate:manifest": "dotenv -- appshell generate manifest --template dist/appshell.template.json",

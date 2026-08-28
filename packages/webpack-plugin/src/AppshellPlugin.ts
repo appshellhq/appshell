@@ -20,6 +20,7 @@ import { entries, keys } from 'lodash';
 import path from 'path';
 import { validate } from 'schema-utils';
 import {
+  Compilation,
   Compiler,
   container,
   DefinePlugin,
@@ -259,25 +260,6 @@ export default class AppshellPlugin {
     return true;
   }
 
-  /**
-   * Emitted text, by asset name, for anything a design token could appear in.
-   *
-   * Driven by the names webpack reports rather than by walking the output directory:
-   * `outputOptions.path` can be empty, which resolves to the working directory, and a
-   * recursive read from there is the whole repository. The names are exact and bounded;
-   * only the contents have to come off disk.
-   */
-  static emittedText(outputDir: string, assetNames: string[]): Record<string, string> {
-    return assetNames
-      .filter((name) => SCANNABLE.test(name))
-      .reduce<Record<string, string>>((acc, name) => {
-        const file = path.resolve(outputDir, name);
-
-        if (!fs.existsSync(file)) return acc;
-
-        return { ...acc, [name]: fs.readFileSync(file, 'utf-8') };
-      }, {});
-  }
 
   /**
    * Which tokens this package's output actually reaches for.
@@ -461,6 +443,30 @@ export default class AppshellPlugin {
 
     const notices = AppshellPlugin.overrideNotices({ registry, application }, persistedContext());
 
+    /*
+     * Sources have to be read while they are still sources. By `afterEmit` the compilation
+     * has swapped them for `SizeOnlySource`, which knows a length and throws on the rest,
+     * and reading the files back off disk instead is a race — the same build produced token
+     * usage on one run and none on the next.
+     *
+     * `processAssets` at the reporting stage is where the output is final and still in
+     * memory, which is what this needs.
+     */
+    let observed = { required: [] as string[], optional: [] as string[], unknown: [] as string[] };
+
+    compiler.hooks.compilation.tap(PLUGIN_NAME, (compilation) => {
+      compilation.hooks.processAssets.tap(
+        { name: PLUGIN_NAME, stage: Compilation.PROCESS_ASSETS_STAGE_REPORT },
+        (assets) => {
+          observed = AppshellPlugin.tokenUsage(
+            Object.fromEntries(
+              Object.entries(assets).map(([name, source]) => [name, source.source().toString()]),
+            ),
+          );
+        },
+      );
+    });
+
     compiler.hooks.afterEmit.tapPromise(PLUGIN_NAME, async (compilation) => {
       const logger = compilation.getLogger(PLUGIN_NAME);
       notices.forEach((notice) => logger.warn(notice));
@@ -472,10 +478,7 @@ export default class AppshellPlugin {
         fs.mkdirSync(outputDir, { recursive: true });
       }
 
-      // Only knowable here: the files do not exist until they have been emitted.
-      const { required, optional, unknown } = AppshellPlugin.tokenUsage(
-        AppshellPlugin.emittedText(outputDir, Object.keys(compilation.assets ?? {})),
-      );
+      const { required, optional, unknown } = observed;
 
       unknown.forEach((role) =>
         logger.warn(
