@@ -11,7 +11,7 @@ exports[`should match snapshot 1`] = `
       <pre>
         sample-mfe-container
          v
-        0.0.2
+        0.1.0
       </pre>
       <div
         class="grid grid-flow-col gap-lg"

@@ -26,7 +26,6 @@
     "test:ci": "npm run test -- a --watchAll=false"
   },
   "dependencies": {
-    "@appshell/core": "^1.0.0-alpha.16",
     "@appshell/react": "^1.0.0-alpha.16",
     "@appshell/runtime": "^1.0.0-alpha.16",
     "@appshell/vars": "^1.0.0-alpha.16",

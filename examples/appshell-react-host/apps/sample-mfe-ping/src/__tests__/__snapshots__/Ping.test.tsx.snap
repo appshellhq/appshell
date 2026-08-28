@@ -11,7 +11,7 @@ exports[`should match snapshot 1`] = `
       <pre>
         sample-mfe-ping
          v
-        0.0.1
+        0.1.0
       </pre>
     </header>
     <div

@@ -1,4 +1,4 @@
-import { AppshellRemote } from '@appshell/core';
+import { AppshellRemote } from '@appshell/react';
 import React, { FC } from 'react';
 
 type RemoteProps = {

@@ -1,7 +1,12 @@
 {
   "extends": "../../tsconfig",
   "compilerOptions": {
-    "declarationDir": "./dist/types"
+    "declarationDir": "./dist/types",
+    // Resolve `@appshell/runtime` to its published types rather than the root config's
+    // source mapping. The wire types live there now, and without this tsc pulls the
+    // store's sources into this package's `rootDir` — which silently moves every
+    // declaration under `dist/types/config/src/` and strands the `types` entry point.
+    "paths": {}
   },
   "include": ["./src"]
 }

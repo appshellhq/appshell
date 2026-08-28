@@ -1,4 +1,12 @@
+import type { AppshellIndex, AppshellRemote, Metadata } from '@appshell/runtime';
 import { JSONSchema4, JSONSchema6, JSONSchema7 } from 'json-schema';
+
+/*
+ * The wire types moved to @appshell/runtime: a package that only wants to type a remote
+ * should not install build tooling to get it. Re-exported so nothing importing them from
+ * here had to change.
+ */
+export type { AppshellIndex, AppshellRemote, Metadata } from '@appshell/runtime';
 
 export type Schema = JSONSchema4 | JSONSchema6 | JSONSchema7;
 
@@ -81,16 +89,6 @@ export type AppshellTemplate<TMetadata = Metadata> = {
 };
 
 /** Appshell manifest types */
-export type AppshellRemote<TMetadata = Metadata> = {
-  id: string;
-  manifestUrl: string;
-  remoteEntryUrl: string;
-  scope: string;
-  module: string;
-  shareScope?: string;
-  metadata: TMetadata;
-};
-
 export type AppshellOverrides = {
   vars: Record<string, Record<string, string | number | undefined>>;
 };
@@ -117,10 +115,6 @@ export type AppshellManifest<TMetadata = Metadata> = {
   tokens?: Record<string, AppshellTokenUsage>;
   overrides?: AppshellOverrides;
 };
-
-export type AppshellIndex = Record<string, string>;
-
-export type Metadata = Record<string, unknown>;
 
 /** An `AppshellRemote` the registry already resolved, so the browser needs no manifest fetch. */
 export type ResolvedRemote<TMetadata = Metadata> = AppshellRemote<TMetadata>;
