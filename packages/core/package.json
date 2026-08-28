@@ -1,6 +1,6 @@
 {
   "name": "@appshell/core",
-  "version": "1.0.0-alpha.23",
+  "version": "1.0.0-alpha.24",
   "description": "Core types and components for @appshell",
   "main": "dist/main.js",
   "types": "dist/types/core/src/index.d.ts",

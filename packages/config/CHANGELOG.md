@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.24](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.23...v1.0.0-alpha.24) (2026-08-28)
+
+### Features
+
+- **webpack-plugin:** observe which design tokens a package reaches for ([014c9fa](https://github.com/appshellhq/appshell/commit/014c9fa5c33bff8c2fa9de2461179b85a24ec3b0)), closes [#0284c7](https://github.com/appshellhq/appshell/issues/0284c7)
+
 # [1.0.0-alpha.23](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.22...v1.0.0-alpha.23) (2026-08-27)
 
 **Note:** Version bump only for package @appshell/config
