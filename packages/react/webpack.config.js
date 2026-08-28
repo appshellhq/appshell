@@ -12,6 +12,9 @@ module.exports = (env, { mode }) => {
       filename: '[name].js',
       pathinfo: false,
       libraryTarget: 'umd',
+      // `self` is the UMD default and is absent under Node, which would break server
+      // rendering and any node-environment test that loads the built package.
+      globalObject: 'this',
     },
     resolve: {
       extensions: ['.js', '.ts', '.tsx'],
