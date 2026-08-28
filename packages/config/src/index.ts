@@ -34,6 +34,7 @@ export type {
   ResolvedRemote,
   Schema,
   SharedConfig,
+  SharedObject,
   SharedModuleSpec,
 } from './types';
 export * as utils from './utils';

@@ -5,6 +5,7 @@ const CopyPlugin = require('copy-webpack-plugin');
 const ReactRefreshSingleton = require('single-react-refresh-plugin');
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
 const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
+const { appshellShared } = require('@appshell/webpack-plugin');
 const { dependencies } = require('../../package.json');
 
 module.exports = (env, { mode }) => {
@@ -91,25 +92,19 @@ module.exports = (env, { mode }) => {
       }),
       new ModuleFederationPlugin({
         name: 'Appshell',
-        shared: {
-          // The shell delivers every package's vars into this store, so it must be the
-          // same instance the packages read from — not a second copy of its own.
-          '@appshell/runtime': {
-            singleton: true,
+        // The shell shares the same set every package does — it delivers vars into that
+        // store and renders the root RemoteSlot, so a second copy of either breaks the
+        // page in a way nothing reports. react-refresh is the shell's own addition.
+        shared: appshellShared({
+          react: true,
+          dependencies,
+          extra: {
+            'react-refresh': {
+              singleton: true,
+              requiredVersion: dependencies['react-refresh'],
+            },
           },
-          react: {
-            singleton: true,
-            requiredVersion: dependencies['react'],
-          },
-          'react-dom': {
-            singleton: true,
-            requiredVersion: dependencies['react-dom'],
-          },
-          'react-refresh': {
-            singleton: true,
-            requiredVersion: dependencies['react-refresh'],
-          },
-        },
+        }),
       }),
       isDevServer && new webpack.HotModuleReplacementPlugin(),
       // Its own error overlay (separate from devServer.client.overlay) catches any

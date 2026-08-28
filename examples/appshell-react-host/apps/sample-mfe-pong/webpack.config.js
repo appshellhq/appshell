@@ -1,6 +1,6 @@
 const { ModuleFederationPlugin } = require('@module-federation/enhanced/webpack');
 const path = require('path');
-const { AppshellPlugin } = require('@appshell/webpack-plugin');
+const { AppshellPlugin, appshellShared } = require('@appshell/webpack-plugin');
 const ReactRefreshSingleton = require('single-react-refresh-plugin');
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
 const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
@@ -81,24 +81,19 @@ module.exports = (env, { mode }) => {
           './CoolComponent': './src/CoolRemoteComponent',
         },
         filename: process.env.REMOTE_ENTRY_PATH,
-        shared: {
-          react: {
-            singleton: true,
-            requiredVersion: dependencies['react'],
+        // One preset rather than a hand-written list per package: the four configs here
+        // previously disagreed about @appshell/react, which is silent until a package
+        // calls useRemote() and finds no provider.
+        shared: appshellShared({
+          react: true,
+          dependencies,
+          extra: {
+            'react-refresh': {
+              singleton: true,
+              requiredVersion: dependencies['react-refresh'],
+            },
           },
-          'react-dom': {
-            singleton: true,
-            requiredVersion: dependencies['react-dom'],
-          },
-          'react-refresh': {
-            singleton: true,
-            requiredVersion: dependencies['react-refresh'],
-          },
-          '@appshell/react': {
-            singleton: true,
-            requiredVersion: dependencies['@appshell/react'],
-          },
-        },
+        }),
       }),
       new AppshellPlugin(),
       // Its own error overlay (separate from devServer.client.overlay) catches any
