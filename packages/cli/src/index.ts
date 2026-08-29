@@ -10,12 +10,15 @@ import path from 'path';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { readConfig } from '../../config/src/utils/config';
+// yargs derives --version by walking up for a package.json, which does not exist beside
+// a bundled CLI — so it reported 'unknown'. webpack inlines this at build time.
+import { version as cliVersion } from '../package.json';
+import * as app from './handlers/app';
 import initConfigHandler, { InitArgs } from './handlers/config/init';
 import listConfigHandler, { ListConfigArgs } from './handlers/config/list';
 import setConfigHandler, { SetConfigArgs } from './handlers/config/set';
 import * as dev from './handlers/dev';
 import { DevArgs } from './handlers/dev';
-import * as app from './handlers/app';
 import generateManifestHandler, { GenerateManifestArgs } from './handlers/generate.manifest';
 import loginHandler, { LoginArgs, logout } from './handlers/login';
 import outdatedHandler, { OutdatedArgs } from './handlers/outdated';
@@ -276,6 +279,16 @@ const publishCommand: yargs.CommandModule<unknown, PublishArgs> = {
         default: false,
         type: 'boolean',
         description: 'Republish whenever the template changes',
+      })
+      // Whether force is permitted is the registry's call, not this flag's: it is on by
+      // default only for a registry running without auth, and a real one refuses unless
+      // ALLOW_FORCE_PUBLISH says otherwise. Sending it has always been supported end to
+      // end — there was simply no way to ask for it from here.
+      .option('force', {
+        boolean: true,
+        default: false,
+        type: 'boolean',
+        description: 'Republish over an existing version whose content differs',
       }) as yargs.Argv<PublishArgs>,
   handler: publishHandler,
 };
@@ -289,6 +302,11 @@ const unpublishCommand: yargs.CommandModule<
   // eslint-disable-next-line @typescript-eslint/no-shadow
   builder: (yargs) =>
     yargs
+      // `version` is yargs' own reserved flag. Left alone it wins over this positional
+      // and the handler unpublishes `<name>@false` — so turn the built-in off for this
+      // command, where a bare `--version` would be meaningless anyway. `appshell
+      // --version` is unaffected; the top-level parser still has it.
+      .version(false)
       .positional('name', { type: 'string', demandOption: true })
       .positional('version', { type: 'string', demandOption: true }) as yargs.Argv<{
       registry: string;
@@ -356,10 +374,7 @@ yargs(hideBin(process.argv))
     describe: 'Generates a resource',
     handler: () => {},
     // eslint-disable-next-line @typescript-eslint/no-shadow
-    builder: (yargs) =>
-      yargs
-        .command(generateManifestCommand)
-        .demandCommand(),
+    builder: (yargs) => yargs.command(generateManifestCommand).demandCommand(),
   })
   .command({
     command: 'config [target]',
@@ -535,6 +550,7 @@ yargs(hideBin(process.argv))
   .command(publishCommand)
   .command(unpublishCommand)
   .command(outdatedCommand)
+  .version(cliVersion)
   .help()
   .alias('h', 'help')
   .fail((msg, err) => {

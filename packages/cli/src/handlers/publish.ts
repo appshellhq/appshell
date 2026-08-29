@@ -16,10 +16,11 @@ export type PublishArgs = {
   packageVersion?: string;
   visibility?: 'public' | 'private';
   watch: boolean;
+  force?: boolean;
 };
 
 const publishOnce = async (argv: PublishArgs) => {
-  const { registry, application, scopeId, template, visibility } = argv;
+  const { registry, application, scopeId, template, visibility, force } = argv;
   // Whether a credential is required is the registry's policy, not ours: a
   // registry running AUTH_MODE=none needs none. A 401 says so precisely.
   const token = resolveToken(registry);
@@ -41,6 +42,7 @@ const publishOnce = async (argv: PublishArgs) => {
     version,
     manifest,
     visibility,
+    force,
   });
 
   console.log(chalk.green(`${created ? 'Published' : 'Already published'} ${id}`));
