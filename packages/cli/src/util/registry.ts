@@ -103,6 +103,38 @@ export type CloneApplicationBody = {
   ephemeral?: boolean;
 };
 
+/** Token values for one mode, keyed by role. The role list is versioned in @appshell/tokens. */
+export type ThemeTokens = Record<string, string>;
+
+/** A published theme: complete values for both modes, frozen at publish. */
+export type Theme = {
+  id: string;
+  scopeId: string;
+  name: string;
+  version: string;
+  owner: string;
+  visibility: 'public' | 'private';
+  digest: string;
+  tokens: { light: ThemeTokens; dark: ThemeTokens };
+  derivedFrom?: string;
+  metadata?: Record<string, unknown>;
+  publishedAt: string;
+};
+
+/** The file `appshell theme publish` sends. `init` writes one of these. */
+export type ThemeResource = {
+  apiVersion: string;
+  kind: 'Theme';
+  name: string;
+  spec: {
+    version: string;
+    tokens: { light: ThemeTokens; dark: ThemeTokens };
+    visibility?: 'public' | 'private';
+    derivedFrom?: string;
+    metadata?: Record<string, unknown>;
+  };
+};
+
 /** The declarative resource `appshell app apply` sends to `/v1/apply`. */
 export type ApplicationResource = {
   apiVersion: string;
@@ -136,10 +168,13 @@ const describe = (error: unknown) => {
   }
 
   const { message } = response.data ?? {};
-  const detail =
-    `${response.status} ${Array.isArray(message) ? message.join(', ') : message ?? ''}`.trim();
+  const detail = `${response.status} ${
+    Array.isArray(message) ? message.join(', ') : message ?? ''
+  }`.trim();
 
-  return response.status === 401 ? `${detail} Run \`appshell login\` or set APPSHELL_TOKEN.` : detail;
+  return response.status === 401
+    ? `${detail} Run \`appshell login\` or set APPSHELL_TOKEN.`
+    : detail;
 };
 
 export class RegistryClient {
@@ -172,6 +207,37 @@ export class RegistryClient {
     } catch (error) {
       throw new Error(`Failed to ${action}: ${describe(error)}`);
     }
+  }
+
+  listThemes(scopeId?: string) {
+    const suffix = scopeId ? `?scopeId=${encodeURIComponent(scopeId)}` : '';
+
+    return this.send<Theme[]>('get', `/v1/themes${suffix}`, 'list themes');
+  }
+
+  /** Omit the version to resolve the highest published one. */
+  getTheme(scopeId: string, name: string, version?: string) {
+    const route = version
+      ? `/v1/themes/${scopeId}/${name}/${version}`
+      : `/v1/themes/${scopeId}/${name}`;
+
+    return this.send<Theme>('get', route, `get theme ${scopeId}/${name}`);
+  }
+
+  publishTheme(body: {
+    name: string;
+    version: string;
+    tokens: { light: ThemeTokens; dark: ThemeTokens };
+    visibility?: 'public' | 'private';
+    derivedFrom?: string;
+    metadata?: Record<string, unknown>;
+  }) {
+    return this.send<{ id: string; created: boolean }>(
+      'post',
+      '/v1/themes',
+      `publish theme ${body.name}@${body.version}`,
+      body,
+    );
   }
 
   listApplications(scopeId?: string, owner?: string) {

@@ -23,6 +23,7 @@ import generateManifestHandler, { GenerateManifestArgs } from './handlers/genera
 import loginHandler, { LoginArgs, logout } from './handlers/login';
 import outdatedHandler, { OutdatedArgs } from './handlers/outdated';
 import publishHandler, { PublishArgs } from './handlers/publish';
+import * as theme from './handlers/theme';
 
 const loadConfig = (cPath: string) => {
   const originalDebug = console.debug;
@@ -386,6 +387,68 @@ yargs(hideBin(process.argv))
         .command(initConfigCommand)
         .command(listConfigCommand)
         .command(setConfigCommand)
+        .demandCommand(),
+  })
+  .command({
+    command: 'theme <target>',
+    describe: 'Publish and browse themes in the appshell registry',
+    handler: () => {},
+    // eslint-disable-next-line @typescript-eslint/no-shadow
+    builder: (yargs) =>
+      yargs
+        .command({
+          command: 'list',
+          describe: 'List themes this scope may use: its own, plus every public one',
+          // eslint-disable-next-line @typescript-eslint/no-shadow
+          builder: (yargs) =>
+            yargs.option('scope', {
+              type: 'string',
+              description: 'List another scope instead of the configured one',
+            }),
+          handler: theme.list as never,
+        })
+        .command({
+          command: 'get <ref>',
+          describe: "Read a theme, values included. 'name', 'scope/name' or 'scope/name@version'",
+          // eslint-disable-next-line @typescript-eslint/no-shadow
+          builder: (yargs) => yargs.positional('ref', { type: 'string', demandOption: true }),
+          handler: theme.get as never,
+        })
+        .command({
+          command: 'init',
+          describe: 'Fork a published theme into a file to edit',
+          // eslint-disable-next-line @typescript-eslint/no-shadow
+          builder: (yargs) =>
+            yargs
+              .option('from', {
+                type: 'string',
+                demandOption: true,
+                description: "Theme to fork, as 'scope/name@version'",
+              })
+              .option('name', {
+                type: 'string',
+                description: "Name for the new theme. Defaults to '<source>-fork'",
+              })
+              .option('out', {
+                alias: 'o',
+                type: 'string',
+                description: 'Write to this file instead of stdout',
+              }),
+          handler: theme.init as never,
+        })
+        .command({
+          command: 'publish',
+          describe: 'Publish a theme from a file',
+          // eslint-disable-next-line @typescript-eslint/no-shadow
+          builder: (yargs) =>
+            yargs.option('file', {
+              alias: 'f',
+              type: 'string',
+              demandOption: true,
+              description: 'Path to the theme resource to publish',
+            }),
+          handler: theme.publish as never,
+        })
         .demandCommand(),
   })
   .command({
