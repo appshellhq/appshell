@@ -227,7 +227,7 @@ describe('resolved themes', () => {
     const resolved = resolveTheme(selection);
     const before = cssFrom(resolved);
 
-    const surface = BASES.neutral.light.surface;
+    const { surface } = BASES.neutral.light;
     try {
       BASES.neutral.light.surface = 'oklch(50% 0.3 20)';
       expect(cssFrom(resolved)).toBe(before);
