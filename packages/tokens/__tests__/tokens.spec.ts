@@ -4,9 +4,11 @@ import {
   TOKEN_ROLES,
   composeTheme,
   contrastRatio,
+  cssFrom,
   describeFinding,
   parseColor,
   pinnedMode,
+  resolveTheme,
   toCss,
   toHex,
   validateTheme,
@@ -55,11 +57,14 @@ describe('colour', () => {
 
 describe('presets', () => {
   // The presets have to pass the validation the contract imposes on everyone else.
-  it.each(combinations)('should pass contrast: $base / $accent / $mode', ({ base, accent, mode }) => {
-    const findings = validateTheme(composeTheme({ base, accent }, mode));
+  it.each(combinations)(
+    'should pass contrast: $base / $accent / $mode',
+    ({ base, accent, mode }) => {
+      const findings = validateTheme(composeTheme({ base, accent }, mode));
 
-    expect(findings.map(describeFinding)).toEqual([]);
-  });
+      expect(findings.map(describeFinding)).toEqual([]);
+    },
+  );
 
   it('should reject an unknown base by name', () => {
     expect(() => composeTheme({ base: 'nope', accent: 'ice' }, 'light')).toThrow(/Unknown base/i);
@@ -185,5 +190,59 @@ describe('toHex', () => {
 
   it('should return nothing for a value it cannot read', () => {
     expect(toHex('bananas')).toBeUndefined();
+  });
+});
+
+/*
+ * These cover the reason resolution was split from emission: a theme can be stored as
+ * values and rendered later without consulting the presets it came from. Without that,
+ * an Application's recorded appearance is only as stable as the build that renders it.
+ */
+describe('resolved themes', () => {
+  const selection = { base: 'neutral', accent: 'ice' };
+
+  it('should render from stored values exactly as it renders from a selection', () => {
+    expect(cssFrom(resolveTheme(selection))).toBe(toCss(selection));
+  });
+
+  it('should render a pinned scheme the same either way', () => {
+    const pinned = { ...selection, colorScheme: 'dark' as const };
+
+    expect(cssFrom(resolveTheme(pinned), { colorScheme: 'dark' })).toBe(toCss(pinned));
+  });
+
+  it('should keep both modes so either can be rendered later', () => {
+    const resolved = resolveTheme(selection);
+
+    expect(resolved.light).toEqual(composeTheme(selection, 'light'));
+    expect(resolved.dark).toEqual(composeTheme(selection, 'dark'));
+    expect(resolved.light.surface).not.toBe(resolved.dark.surface);
+  });
+
+  /*
+   * The point of storing values. A resolved theme is data: whatever happens to the preset
+   * it was resolved from, what it renders does not move.
+   */
+  it('should not follow the preset it was resolved from', () => {
+    const resolved = resolveTheme(selection);
+    const before = cssFrom(resolved);
+
+    const surface = BASES.neutral.light.surface;
+    try {
+      BASES.neutral.light.surface = 'oklch(50% 0.3 20)';
+      expect(cssFrom(resolved)).toBe(before);
+      // ...while anything still resolving by name does move, which is the bug this avoids.
+      expect(toCss(selection)).not.toBe(before);
+    } finally {
+      BASES.neutral.light.surface = surface;
+    }
+  });
+
+  it('should apply overrides over stored values without touching them', () => {
+    const resolved = resolveTheme(selection);
+    const css = cssFrom(resolved, { overrides: { surface: 'oklch(99% 0 0)' } });
+
+    expect(css).toContain('--appshell-surface: oklch(99% 0 0);');
+    expect(resolved.light.surface).not.toBe('oklch(99% 0 0)');
   });
 });

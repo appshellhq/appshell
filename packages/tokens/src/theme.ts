@@ -55,8 +55,7 @@ const derived = (mode: Mode, focusRing: string): Record<string, string> => {
 
 /** Type and dimensions do not vary by mode, and no preset currently changes them. */
 export const DEFAULT_TYPE_AND_DIMENSIONS: Record<string, string> = {
-  'font-body':
-    "system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+  'font-body': "system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
   'font-mono': "ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace",
   'font-size-h1': '2.25rem',
   'font-size-h2': '1.875rem',
@@ -155,15 +154,43 @@ const block = (
  * registry inlines into every page it serves.
  */
 const changed = (from: Theme, to: Theme): Partial<Theme> =>
-  Object.fromEntries(Object.entries(to).filter(([role, value]) => from[role as TokenRole] !== value));
+  Object.fromEntries(
+    Object.entries(to).filter(([role, value]) => from[role as TokenRole] !== value),
+  );
+
+/**
+ * A theme with both modes already worked out.
+ *
+ * This is the shape a *published* theme stores. Resolving a selection and emitting CSS
+ * used to be one step, which meant the only way to render a theme was to re-resolve its
+ * preset names — so the values behind a name lived in whatever build was deployed, and an
+ * Application's recorded appearance moved when that build did. Materialising both modes
+ * lets the values be stored, versioned and rendered from, rather than looked up.
+ */
+export type ResolvedTheme = Record<Mode, Theme>;
+
+/** Works out both modes of a selection, including any overrides it carries. */
+export const resolveTheme = (selection: ThemeSelection): ResolvedTheme => ({
+  light: composeTheme(selection, 'light'),
+  dark: composeTheme(selection, 'dark'),
+});
+
+export type CssOptions = {
+  /** Defaults to `system`. Belongs to whoever is rendering, not to the theme. */
+  colorScheme?: ColorScheme;
+  /** Applied over the resolved values, so a consumer can adjust without forking. */
+  overrides?: Partial<Theme>;
+};
 
 /**
  * Three states, not two: an explicit choice in either direction, and the system default
  * when nothing is stamped on the root. A theme that only handled `prefers-color-scheme`
  * would give a viewer no way to override it.
  */
-export const toCss = (selection: ThemeSelection): string => {
-  const pinned = pinnedMode(selection);
+export const cssFrom = (resolved: ResolvedTheme, options: CssOptions = {}): string => {
+  const { colorScheme, overrides } = options;
+  const pinned = colorScheme && colorScheme !== 'system' ? colorScheme : undefined;
+  const withOverrides = (theme: Theme): Theme => ({ ...theme, ...overrides });
 
   /*
    * `color-scheme` is what tells the browser which way to render the things CSS does not
@@ -171,13 +198,11 @@ export const toCss = (selection: ThemeSelection): string => {
    * theme still gets light scrollbars.
    */
   if (pinned) {
-    const theme = composeTheme(selection, pinned);
-
-    return `${block(':root', theme, '', { 'color-scheme': pinned })}\n`;
+    return `${block(':root', withOverrides(resolved[pinned]), '', { 'color-scheme': pinned })}\n`;
   }
 
-  const light = composeTheme(selection, 'light');
-  const dark = composeTheme(selection, 'dark');
+  const light = withOverrides(resolved.light);
+  const dark = withOverrides(resolved.dark);
   const delta = changed(light, dark);
 
   return [
@@ -191,3 +216,11 @@ export const toCss = (selection: ThemeSelection): string => {
     '',
   ].join('\n');
 };
+
+/**
+ * Resolve and emit in one step. The authoring path — a preset name in hand, CSS wanted.
+ * The registry uses `cssFrom` against a stored theme instead, so what it renders cannot
+ * drift from what was published.
+ */
+export const toCss = (selection: ThemeSelection): string =>
+  cssFrom(resolveTheme(selection), { colorScheme: selection.colorScheme });

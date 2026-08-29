@@ -9,10 +9,14 @@ export {
 } from './contrast';
 export { ACCENTS, BASES, FOCUS_RINGS } from './presets';
 export {
-  composeTheme,
   DEFAULT_TYPE_AND_DIMENSIONS,
+  composeTheme,
+  cssFrom,
   pinnedMode,
+  resolveTheme,
   toCss,
   type ColorScheme,
+  type CssOptions,
+  type ResolvedTheme,
   type ThemeSelection,
 } from './theme';
