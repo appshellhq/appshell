@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.27](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.26...v1.0.0-alpha.27) (2026-08-29)
+
+### Bug Fixes
+
+- **cli:** add --force to publish and unbreak the unpublish version positional ([6e881ac](https://github.com/appshellhq/appshell/commit/6e881ac885d696f86d924b598ea7b6c6070a200c))
+
 # [1.0.0-alpha.26](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.25...v1.0.0-alpha.26) (2026-08-29)
 
 **Note:** Version bump only for package @appshell/cli
