@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.25](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.24...v1.0.0-alpha.25) (2026-08-29)
+
+### Bug Fixes
+
+- resolve the UMD self reference in loader and react ([bcb2097](https://github.com/appshellhq/appshell/commit/bcb2097944be44a449f335e60a9f9275b0fb39d6))
+
+- feat!: delete @appshell/core and move the wire types into runtime ([9b3ed20](https://github.com/appshellhq/appshell/commit/9b3ed2094fba8909531049d354a2763c6c1f80db))
+
+### BREAKING CHANGES
+
+- @appshell/core is removed. Import AppshellRemote, AppshellIndex
+  and Metadata from @appshell/runtime, or from @appshell/react which re-exports
+  them. AppshellManifest stays in @appshell/config.
+
 # [1.0.0-alpha.24](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.23...v1.0.0-alpha.24) (2026-08-28)
 
 **Note:** Version bump only for package @appshell/react
