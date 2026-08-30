@@ -16,6 +16,7 @@
     "build": "webpack --mode production",
     "postbuild": "chmod +x dist/main.js",
     "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit",
     "prebuild": "npm run clean",
     "start": "webpack --watch --mode development",
     "stats": "webpack --json > stats.json"

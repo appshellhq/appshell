@@ -2,12 +2,22 @@
 import { utils } from '@appshell/config';
 import chalk from 'chalk';
 import fs from 'fs';
+import { GlobalArgs } from '../../util/args';
 import { RegistryClient, Theme, ThemeResource } from '../../util/registry';
 
-export type ThemeArgs = {
-  registry: string;
-  scopeId: string;
+/*
+ * `T | undefined` rather than `T?`: a declared option is always present on the parsed
+ * object, holding undefined when it was not passed. Matching that exactly is what lets
+ * each command's builder type line up with its handler without an assertion.
+ */
+export type ThemeListArgs = GlobalArgs & { scope: string | undefined };
+export type ThemeGetArgs = GlobalArgs & { ref: string };
+export type ThemeInitArgs = GlobalArgs & {
+  from: string;
+  name: string | undefined;
+  out: string | undefined;
 };
+export type ThemePublishArgs = GlobalArgs & { file: string };
 
 /**
  * Splits `scope/name@version`, `scope/name` or a bare `name`.
@@ -28,7 +38,7 @@ export const parseRef = (ref: string, defaultScope: string) => {
     : { scopeId: defaultScope, name: parts[0], version };
 };
 
-export const list = async (argv: ThemeArgs & { scope?: string }) => {
+export const list = async (argv: ThemeListArgs) => {
   const themes = await new RegistryClient(argv.registry).listThemes(argv.scope ?? argv.scopeId);
 
   if (!themes.length) {
@@ -46,7 +56,7 @@ export const list = async (argv: ThemeArgs & { scope?: string }) => {
   );
 };
 
-export const get = async (argv: ThemeArgs & { ref: string }) => {
+export const get = async (argv: ThemeGetArgs) => {
   const { scopeId, name, version } = parseRef(argv.ref, argv.scopeId);
   const theme = await new RegistryClient(argv.registry).getTheme(scopeId, name, version);
 
@@ -64,7 +74,7 @@ export const get = async (argv: ThemeArgs & { ref: string }) => {
  * Without this an author writes 41 roles twice by hand, which is the kind of task nobody
  * finishes.
  */
-export const init = async (argv: ThemeArgs & { from: string; name?: string; out?: string }) => {
+export const init = async (argv: ThemeInitArgs) => {
   const { scopeId, name, version } = parseRef(argv.from, argv.scopeId);
   const source = await new RegistryClient(argv.registry).getTheme(scopeId, name, version);
 
@@ -92,7 +102,7 @@ export const init = async (argv: ThemeArgs & { from: string; name?: string; out?
   console.log(`Edit it, then: appshell theme publish -f ${argv.out}`);
 };
 
-export const publish = async (argv: ThemeArgs & { file: string }) => {
+export const publish = async (argv: ThemePublishArgs) => {
   if (!fs.existsSync(argv.file)) {
     throw new Error(`Theme file not found. ${argv.file}`);
   }

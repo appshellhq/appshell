@@ -18,12 +18,14 @@ import initConfigHandler, { InitArgs } from './handlers/config/init';
 import listConfigHandler, { ListConfigArgs } from './handlers/config/list';
 import setConfigHandler, { SetConfigArgs } from './handlers/config/set';
 import * as dev from './handlers/dev';
-import { DevArgs } from './handlers/dev';
+import { DevStartArgs, DevStatusArgs, DevStopArgs } from './handlers/dev';
 import generateManifestHandler, { GenerateManifestArgs } from './handlers/generate.manifest';
 import loginHandler, { LoginArgs, logout } from './handlers/login';
 import outdatedHandler, { OutdatedArgs } from './handlers/outdated';
-import publishHandler, { PublishArgs } from './handlers/publish';
+import publishHandler from './handlers/publish';
 import * as theme from './handlers/theme';
+import { ThemeGetArgs, ThemeInitArgs, ThemeListArgs, ThemePublishArgs } from './handlers/theme';
+import { GlobalArgs } from './util/args';
 
 const loadConfig = (cPath: string) => {
   const originalDebug = console.debug;
@@ -37,76 +39,91 @@ const loadConfig = (cPath: string) => {
 const configPath = process.env.APPSHELL_CONFIG || path.join(os.homedir(), '.appshell', 'config');
 const config = loadConfig(configPath);
 
-const devCommand: yargs.CommandModule<unknown, DevArgs> = {
+/*
+ * Each subcommand is declared with the args it actually accepts, rather than all three
+ * sharing one wide union. That is what lets yargs infer a matching shape: a builder
+ * starting from `Argv<GlobalArgs>` and adding this command's options ends up at exactly
+ * the type its handler takes, so nothing has to be asserted.
+ */
+const devStartCommand: yargs.CommandModule<GlobalArgs, DevStartArgs> = {
+  // `$0` keeps bare `appshell dev` working; starting is the common case.
+  command: ['start', '$0'],
+  describe: 'Open an overlay and print the url that applies it',
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  builder: (yargs) =>
+    yargs
+      .option('port', {
+        type: 'number',
+        description: 'Port this package is running on locally, as http://localhost:<port>',
+      })
+      .option('url', {
+        type: 'string',
+        description: 'Full origin this package is served from, when it is not localhost',
+      })
+      .conflicts('port', 'url')
+      .option('package', {
+        type: 'string',
+        description:
+          'Package whose remotes to redirect. Defaults to the package.json in this directory',
+      })
+      .option('remote', {
+        type: 'array',
+        string: true,
+        description:
+          'Redirect only these remote keys. Defaults to every remote the package publishes',
+      })
+      .option('shell', {
+        choices: ['prod', 'dev'] as const,
+        default: 'dev' as const,
+        description:
+          'Shell bundle to serve. The development build is what supports hot reloading remotes in place',
+      })
+      .option('open', {
+        boolean: true,
+        default: true,
+        description: 'Open the confirmation page in a browser',
+      }),
+  handler: dev.start,
+};
+
+const devStatusCommand: yargs.CommandModule<GlobalArgs, DevStatusArgs> = {
+  command: 'status',
+  describe: 'List the overlays currently open on the application',
+  handler: dev.status,
+};
+
+const devStopCommand: yargs.CommandModule<GlobalArgs, DevStopArgs> = {
+  command: 'stop [id]',
+  describe: 'Close an overlay, reverting the application for anyone holding it',
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  builder: (yargs) =>
+    yargs
+      .positional('id', { type: 'string', description: 'Overlay to close' })
+      .option('package', {
+        type: 'string',
+        description:
+          'Stop redirecting just this package, leaving the rest of the overlay in place. Defaults to the package.json in this directory',
+      })
+      .option('all', {
+        boolean: true,
+        default: false,
+        description: 'Close every overlay open on this application',
+      }),
+  handler: dev.stop,
+};
+
+/*
+ * `GlobalArgs` on both sides: registry, application and scopeId are declared with
+ * `global: true` on the root parser before any command attaches, so by the time this
+ * builder runs they are genuinely present — the type is describing what is there rather
+ * than asserting it.
+ */
+const devCommand: yargs.CommandModule<GlobalArgs, GlobalArgs> = {
   command: 'dev',
   describe: 'Point an application at this package running locally, for this browser only',
   // eslint-disable-next-line @typescript-eslint/no-shadow
   builder: (yargs) =>
-    yargs
-      .command({
-        // `$0` keeps bare `appshell dev` working; starting is the common case.
-        command: ['start', '$0'],
-        describe: 'Open an overlay and print the url that applies it',
-        // eslint-disable-next-line @typescript-eslint/no-shadow
-        builder: (yargs) =>
-          yargs
-            .option('port', {
-              type: 'number',
-              description: 'Port this package is running on locally, as http://localhost:<port>',
-            })
-            .option('url', {
-              type: 'string',
-              description: 'Full origin this package is served from, when it is not localhost',
-            })
-            .conflicts('port', 'url')
-            .option('package', {
-              type: 'string',
-              description:
-                'Package whose remotes to redirect. Defaults to the package.json in this directory',
-            })
-            .option('remote', {
-              type: 'array',
-              string: true,
-              description:
-                'Redirect only these remote keys. Defaults to every remote the package publishes',
-            })
-            .option('shell', {
-              choices: ['prod', 'dev'] as const,
-              default: 'dev' as const,
-              description:
-                'Shell bundle to serve. The development build is what supports hot reloading remotes in place',
-            })
-            .option('open', {
-              boolean: true,
-              default: true,
-              description: 'Open the confirmation page in a browser',
-            }) as yargs.Argv<DevArgs>,
-        handler: dev.start,
-      })
-      .command({
-        command: 'status',
-        describe: 'List the overlays currently open on the application',
-        handler: dev.status,
-      })
-      .command({
-        command: 'stop [id]',
-        describe: 'Close an overlay, reverting the application for anyone holding it',
-        // eslint-disable-next-line @typescript-eslint/no-shadow
-        builder: (yargs) =>
-          yargs
-            .positional('id', { type: 'string', description: 'Overlay to close' })
-            .option('package', {
-              type: 'string',
-              description:
-                'Stop redirecting just this package, leaving the rest of the overlay in place. Defaults to the package.json in this directory',
-            })
-            .option('all', {
-              boolean: true,
-              default: false,
-              description: 'Close every overlay open on this application',
-            }) as yargs.Argv<DevArgs>,
-        handler: dev.stop,
-      }) as unknown as yargs.Argv<DevArgs>,
+    yargs.command(devStartCommand).command(devStatusCommand).command(devStopCommand),
   handler: () => undefined,
 };
 
@@ -247,7 +264,22 @@ const logoutCommand: yargs.CommandModule<unknown, { registry: string }> = {
   handler: logout,
 };
 
-const publishCommand: yargs.CommandModule<unknown, PublishArgs> = {
+/*
+ * The builder's type names the flag as it is written — `package-version` — while the
+ * handler reads `packageVersion`. Both are correct: yargs supplies the camel-cased form
+ * to handlers, which is what `ArgumentsCamelCase` describes. Declaring the option type
+ * literally is what lets the two line up without an assertion.
+ */
+type PublishOptions = GlobalArgs & {
+  template: string;
+  name?: string;
+  'package-version'?: string;
+  visibility?: 'public' | 'private';
+  watch: boolean;
+  force: boolean;
+};
+
+const publishCommand: yargs.CommandModule<GlobalArgs, PublishOptions> = {
   command: 'publish',
   describe: 'Publish a package to the appshell registry',
   // eslint-disable-next-line @typescript-eslint/no-shadow
@@ -290,7 +322,7 @@ const publishCommand: yargs.CommandModule<unknown, PublishArgs> = {
         default: false,
         type: 'boolean',
         description: 'Republish over an existing version whose content differs',
-      }) as yargs.Argv<PublishArgs>,
+      }),
   handler: publishHandler,
 };
 
@@ -396,7 +428,7 @@ yargs(hideBin(process.argv))
     // eslint-disable-next-line @typescript-eslint/no-shadow
     builder: (yargs) =>
       yargs
-        .command({
+        .command<ThemeListArgs>({
           command: 'list',
           describe: 'List themes this scope may use: its own, plus every public one',
           // eslint-disable-next-line @typescript-eslint/no-shadow
@@ -405,16 +437,16 @@ yargs(hideBin(process.argv))
               type: 'string',
               description: 'List another scope instead of the configured one',
             }),
-          handler: theme.list as never,
+          handler: theme.list,
         })
-        .command({
+        .command<ThemeGetArgs>({
           command: 'get <ref>',
           describe: "Read a theme, values included. 'name', 'scope/name' or 'scope/name@version'",
           // eslint-disable-next-line @typescript-eslint/no-shadow
           builder: (yargs) => yargs.positional('ref', { type: 'string', demandOption: true }),
-          handler: theme.get as never,
+          handler: theme.get,
         })
-        .command({
+        .command<ThemeInitArgs>({
           command: 'init',
           describe: 'Fork a published theme into a file to edit',
           // eslint-disable-next-line @typescript-eslint/no-shadow
@@ -434,9 +466,9 @@ yargs(hideBin(process.argv))
                 type: 'string',
                 description: 'Write to this file instead of stdout',
               }),
-          handler: theme.init as never,
+          handler: theme.init,
         })
-        .command({
+        .command<ThemePublishArgs>({
           command: 'publish',
           describe: 'Publish a theme from a file',
           // eslint-disable-next-line @typescript-eslint/no-shadow
@@ -447,7 +479,7 @@ yargs(hideBin(process.argv))
               demandOption: true,
               description: 'Path to the theme resource to publish',
             }),
-          handler: theme.publish as never,
+          handler: theme.publish,
         })
         .demandCommand(),
   })

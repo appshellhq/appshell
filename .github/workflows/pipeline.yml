@@ -51,6 +51,12 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      # cli and react-shell emit no declarations, so nothing else runs tsc over them:
+      # webpack transpiles without checking, ts-jest has diagnostics off, and eslint
+      # applies rules rather than types. Without this a type error in either ships.
+      - name: Typecheck
+        run: npm run typecheck
+
       - name: Test
         run: npm run test:ci
 

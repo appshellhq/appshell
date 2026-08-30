@@ -22,7 +22,8 @@
     "build": "run-s build:prod build:dev",
     "build:prod": "webpack --mode production",
     "build:dev": "webpack --mode development --env flavor=dev",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit"
   },
   "author": "Robert Hamilton <rh@navaris.com>",
   "devDependencies": {

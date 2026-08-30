@@ -13,6 +13,7 @@
     "build": "lerna run --scope=@appshell/webpack-plugin build && lerna run --ignore=@appshell/webpack-plugin build",
     "clean": "lerna run --parallel clean && rm -rf coverage",
     "lint": "eslint 'packages/**/*.{ts,tsx}'",
+    "typecheck": "lerna run typecheck",
     "start:example:react-host": "npm --prefix examples/appshell-react-host run start",
     "serve": "dotenv -- lerna run --parallel serve",
     "start": "dotenv -- lerna run --parallel start",

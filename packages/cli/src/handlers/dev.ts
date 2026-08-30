@@ -1,9 +1,9 @@
 /* eslint-disable no-console */
 import chalk from 'chalk';
 import { spawn } from 'child_process';
+import { GlobalArgs } from '../util/args';
 import { readDevHint, verifyDevHint } from '../util/devHint';
 import { identify } from '../util/identity';
-import { findWorkspace, WorkspacePackage } from '../util/workspace';
 import {
   CreateOverlayBody,
   OpenOverlay,
@@ -11,22 +11,33 @@ import {
   parseApplication,
   RegistryClient,
 } from '../util/registry';
+import { findWorkspace, WorkspacePackage } from '../util/workspace';
 
-export type DevArgs = {
-  registry: string;
-  scopeId: string;
-  application?: string;
-  package?: string;
-  url?: string;
-  port?: number;
-  remote?: string[];
+/*
+ * `T | undefined` rather than `T?` throughout: an option yargs declares is always present
+ * on the parsed object, holding undefined when it was not passed. Writing it as optional
+ * describes a different shape from the one the builder actually produces, which is the
+ * mismatch that used to be papered over with a cast.
+ */
+export type DevStartArgs = GlobalArgs & {
+  package: string | undefined;
+  url: string | undefined;
+  port: number | undefined;
+  remote: string[] | undefined;
   shell: 'prod' | 'dev';
   open: boolean;
-  id?: string;
-  all?: boolean;
 };
 
-const target = (argv: DevArgs) => {
+export type DevStopArgs = GlobalArgs & {
+  id: string | undefined;
+  package: string | undefined;
+  all: boolean;
+};
+
+/** `status` takes nothing of its own. */
+export type DevStatusArgs = GlobalArgs;
+
+const target = (argv: GlobalArgs) => {
   if (!argv.application) {
     throw new Error(
       "No application given. Pass --application or set one with 'appshell config set application <name>'.",
@@ -47,7 +58,7 @@ const target = (argv: DevArgs) => {
  * mint an overlay that redirects a package to where it already points, silently doing
  * nothing in exactly the case this feature exists for.
  */
-const localOrigin = (argv: DevArgs): string | undefined => {
+const localOrigin = (argv: DevStartArgs): string | undefined => {
   if (argv.url) return argv.url;
 
   return argv.port ? `http://localhost:${argv.port}` : undefined;
@@ -76,7 +87,7 @@ const withOrigin = (url: string, origin?: string): string => {
  * answers without this package having been built in the current working tree at all.
  */
 const remotesOf = async (
-  argv: DevArgs,
+  argv: DevStartArgs,
   client: RegistryClient,
   scopeId: string,
 ): Promise<Record<string, OverlayRemoteBody>> => {
@@ -161,7 +172,7 @@ const describeOverlay = (overlay: OpenOverlay) =>
     .filter(Boolean)
     .join(', ') || 'no changes';
 
-export const start = async (argv: DevArgs) => {
+export const start = async (argv: DevStartArgs) => {
   const { scopeId, name } = target(argv);
   const client = new RegistryClient(argv.registry);
   const remotes = await remotesOf(argv, client, scopeId);
@@ -173,7 +184,9 @@ export const start = async (argv: DevArgs) => {
   // extended an existing one; report what is in effect now, not just what was sent.
   const carried = overlay.remotes.filter((key) => !remotes[key]);
 
-  console.log(chalk.green(`\nOverlay ${carried.length ? 'extended' : 'opened'} on ${scopeId}/${name}`));
+  console.log(
+    chalk.green(`\nOverlay ${carried.length ? 'extended' : 'opened'} on ${scopeId}/${name}`),
+  );
   Object.entries(remotes).forEach(([key, remote]) => {
     console.log(`  ${key} ${chalk.dim('->')} ${remote.remoteEntryUrl}`);
   });
@@ -195,7 +208,9 @@ export const start = async (argv: DevArgs) => {
   console.log(`  ${chalk.cyan(confirmUrl)}\n`);
   console.log(
     chalk.dim(
-      `Expires ${new Date(overlay.expiresAt).toLocaleString()} \u00b7 stop with: appshell dev stop ${overlay.id}`,
+      `Expires ${new Date(
+        overlay.expiresAt,
+      ).toLocaleString()} \u00b7 stop with: appshell dev stop ${overlay.id}`,
     ),
   );
 
@@ -279,7 +294,7 @@ const groupByPackage = (remotes: string[], owners: Record<string, string>) =>
     return { ...acc, [pkg]: [...(acc[pkg] ?? []), key] };
   }, {});
 
-export const status = async (argv: DevArgs) => {
+export const status = async (argv: DevStatusArgs) => {
   const { scopeId, name } = target(argv);
   const client = new RegistryClient(argv.registry);
   const [overlays, application] = await Promise.all([
@@ -287,7 +302,9 @@ export const status = async (argv: DevArgs) => {
     client.getApplication(scopeId, name),
   ]);
 
-  const activated = Object.keys(application.packages ?? {}).map((id) => id.split('/').pop() as string);
+  const activated = Object.keys(application.packages ?? {}).map(
+    (id) => id.split('/').pop() as string,
+  );
   const workspace = findWorkspace(process.cwd());
 
   if (workspace?.packages.length) {
@@ -316,7 +333,9 @@ export const status = async (argv: DevArgs) => {
 
     console.log(
       chalk.dim(
-        `    opened by ${overlay.owner} \u00b7 expires ${new Date(overlay.expiresAt).toLocaleString()}`,
+        `    opened by ${overlay.owner} \u00b7 expires ${new Date(
+          overlay.expiresAt,
+        ).toLocaleString()}`,
       ),
     );
     console.log(chalk.dim(`    apply: ${client.baseUrl}${overlay.confirmUrl}`));
@@ -338,7 +357,7 @@ export const status = async (argv: DevArgs) => {
  * than have an arbitrary developer's overlay edited on their behalf.
  */
 const overlayRedirecting = async (
-  argv: DevArgs,
+  argv: DevStopArgs,
   client: RegistryClient,
   scopeId: string,
   name: string,
@@ -366,7 +385,7 @@ const overlayRedirecting = async (
   return { id: candidates[0].id, keys: owned };
 };
 
-export const stop = async (argv: DevArgs) => {
+export const stop = async (argv: DevStopArgs) => {
   const { scopeId, name } = target(argv);
   const client = new RegistryClient(argv.registry);
 
@@ -402,7 +421,9 @@ export const stop = async (argv: DevArgs) => {
   }
 
   const results = await Promise.all(
-    ids.map(async (id) => ({ id, ...(await client.closeOverlay(scopeId, name, id)) })),
+    // `id` last: the response echoes it, but the one that was asked about is what the
+    // message should name.
+    ids.map(async (id) => ({ ...(await client.closeOverlay(scopeId, name, id)), id })),
   );
 
   results.forEach(({ id, revoked }) =>
