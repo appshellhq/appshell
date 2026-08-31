@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.29](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.28...v1.0.0-alpha.29) (2026-08-31)
+
+### Bug Fixes
+
+- **react-shell:** declare the workspace plugin it builds with ([035c271](https://github.com/appshellhq/appshell/commit/035c271bc6eb435597b69701152c5bfa24771a30))
+
 # [1.0.0-alpha.28](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.27...v1.0.0-alpha.28) (2026-08-30)
 
 ### Features
