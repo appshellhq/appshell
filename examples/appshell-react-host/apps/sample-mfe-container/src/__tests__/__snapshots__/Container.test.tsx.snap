@@ -8,11 +8,21 @@ exports[`should match snapshot 1`] = `
     <header
       class="flex min-h-screen flex-col items-center justify-center bg-surface font-sans text-[calc(10px+2vmin)] text-on-surface"
     >
-      <pre>
-        sample-mfe-container
-         v
-        0.1.0
-      </pre>
+      <div
+        class="flex items-baseline gap-sm"
+      >
+        <pre
+          class="min-w-0 truncate"
+        >
+          sample-mfe-container
+        </pre>
+        <span
+          class="rounded-sm bg-primary px-sm text-small text-on-primary"
+        >
+          v
+          0.1.0
+        </span>
+      </div>
       <div
         class="grid grid-flow-col gap-lg"
       >

@@ -3,16 +3,26 @@
 exports[`should match snapshot 1`] = `
 <div>
   <div
-    class="flex w-[400px] min-w-0 max-w-full flex-col overflow-hidden rounded-lg bg-surface-raised px-lg pb-lg text-on-surface-raised shadow-md"
+    class="flex w-[400px] min-w-0 max-w-full flex-col overflow-hidden rounded-lg border-t-4 border-primary bg-surface-raised px-lg pb-lg text-on-surface-raised shadow-md"
   >
     <header
       class="text-h3"
     >
-      <pre>
-        sample-mfe-ping
-         v
-        0.1.0
-      </pre>
+      <div
+        class="flex items-baseline gap-sm"
+      >
+        <pre
+          class="min-w-0 truncate"
+        >
+          sample-mfe-ping
+        </pre>
+        <span
+          class="rounded-sm bg-primary px-sm text-small text-on-primary"
+        >
+          v
+          0.1.0
+        </span>
+      </div>
     </header>
     <div
       class="flex min-h-0 grow"
