@@ -72,6 +72,11 @@ const devStartCommand: yargs.CommandModule<GlobalArgs, DevStartArgs> = {
         description:
           'Redirect only these remote keys. Defaults to every remote the package publishes',
       })
+      .option('theme', {
+        type: 'string',
+        description:
+          "Render with a different theme for this browser only, as 'base-accent' or a published ref",
+      })
       .option('shell', {
         choices: ['prod', 'dev'] as const,
         default: 'dev' as const,

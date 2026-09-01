@@ -48,9 +48,19 @@ export type OverlayRemoteBody = {
   manifestUrl?: string;
 };
 
+/** Either a published ref, or the base/accent pair naming one. The registry pins it. */
+export type ThemeInputBody = {
+  ref?: string;
+  base?: string;
+  accent?: string;
+  colorScheme?: 'system' | 'light' | 'dark';
+};
+
 export type CreateOverlayBody = {
   remotes: Record<string, OverlayRemoteBody>;
   shellFlavor?: 'prod' | 'dev';
+  /** Renders with a different theme for this browser only. Never touches the application. */
+  theme?: ThemeInputBody;
 };
 
 export type CreatedOverlay = {
@@ -68,6 +78,8 @@ export type OpenOverlay = {
   owner: string;
   remotes: string[];
   shellFlavor: 'prod' | 'dev';
+  /** The theme this overlay substitutes, when it substitutes one. */
+  theme?: string;
   createdAt: string;
   expiresAt: string;
   confirmUrl: string;

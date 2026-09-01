@@ -138,13 +138,20 @@ export type AppshellComposition<TMetadata = Metadata> = {
   vars: Record<string, Record<string, string | number | undefined>>;
   /**
    * Present whenever a per-developer overlay changed anything about this render — a
-   * redirected remote, a different shell bundle, or both. The shell is expected to
-   * surface it: a page that quietly runs code from somewhere else is the one thing
-   * this feature must never be, and swapping the shell out counts.
+   * redirected remote, a different shell bundle, a substituted theme, or any combination.
+   * The shell is expected to surface it: a page that quietly runs code from somewhere
+   * else is the one thing this feature must never be, and swapping the shell or the theme
+   * out counts.
    *
-   * `shellFlavor` is what was actually served, not what was asked for.
+   * `shellFlavor` is what was actually served, not what was asked for. `theme` is the ref
+   * the overlay substituted, present only when it substituted one.
    */
-  overlay?: { id: string; remotes: string[]; shellFlavor: 'prod' | 'dev' };
+  overlay?: {
+    id: string;
+    remotes: string[];
+    shellFlavor: 'prod' | 'dev';
+    theme?: string;
+  };
 };
 
 /**

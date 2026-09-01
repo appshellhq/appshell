@@ -1,6 +1,7 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import { themeInput } from '../src/handlers/dev';
 import { parseRef, publish } from '../src/handlers/theme';
 
 describe('parseRef', () => {
@@ -87,5 +88,29 @@ describe('publish validation', () => {
     );
 
     await expect(publish(args(file))).rejects.toThrow(/both a light and a dark map/);
+  });
+});
+
+/*
+ * `--theme` takes either form and tells them apart by the slash a ref always has and a
+ * pair never does, rather than adding a second flag to disambiguate.
+ */
+describe('themeInput', () => {
+  it('reads a base-accent pair', () => {
+    expect(themeInput('midnight-ember')).toEqual({ base: 'midnight', accent: 'ember' });
+  });
+
+  it('reads a published ref', () => {
+    expect(themeInput('acme/brand@1.0.0')).toEqual({ ref: 'acme/brand@1.0.0' });
+  });
+
+  it('treats anything with a slash as a ref, since a pair never has one', () => {
+    expect(themeInput('appshell/neutral-ice@1.0.0')).toEqual({
+      ref: 'appshell/neutral-ice@1.0.0',
+    });
+  });
+
+  it.each(['midnight', 'midnight-', '-ember'])('rejects %p rather than guessing', (value) => {
+    expect(() => themeInput(value)).toThrow(/is not a theme/);
   });
 });

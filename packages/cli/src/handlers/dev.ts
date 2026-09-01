@@ -20,6 +20,7 @@ import { findWorkspace, WorkspacePackage } from '../util/workspace';
  * mismatch that used to be papered over with a cast.
  */
 export type DevStartArgs = GlobalArgs & {
+  theme: string | undefined;
   package: string | undefined;
   url: string | undefined;
   port: number | undefined;
@@ -164,10 +165,37 @@ const launch = (url: string) => {
   }
 };
 
+/**
+ * Reads `--theme` as either a published ref or a `base-accent` pair.
+ *
+ * `midnight-ember` is the pair; `acme/brand@1.0.0` is a ref. A ref always contains a
+ * slash, which a pair never does, so they are told apart without a second flag. The
+ * registry pins whichever form arrives and refuses one it cannot resolve.
+ */
+export const themeInput = (value: string) => {
+  if (value.includes('/')) {
+    return { ref: value };
+  }
+
+  const [base, accent] = value.split('-');
+
+  if (!base || !accent) {
+    throw new Error(
+      `'${value}' is not a theme. Use 'base-accent', such as 'midnight-ember', or a published ` +
+        `ref such as 'acme/brand@1.0.0'.`,
+    );
+  }
+
+  return { base, accent };
+};
+
 const describeOverlay = (overlay: OpenOverlay) =>
   [
     overlay.shellFlavor === 'dev' && 'development shell',
     overlay.remotes.length && `${overlay.remotes.length} redirected`,
+    // Otherwise a theme-only overlay reports "no changes" while having changed what the
+    // entire page looks like.
+    overlay.theme && `theme ${overlay.theme}`,
   ]
     .filter(Boolean)
     .join(', ') || 'no changes';
@@ -176,7 +204,11 @@ export const start = async (argv: DevStartArgs) => {
   const { scopeId, name } = target(argv);
   const client = new RegistryClient(argv.registry);
   const remotes = await remotesOf(argv, client, scopeId);
-  const body: CreateOverlayBody = { remotes, shellFlavor: argv.shell };
+  const body: CreateOverlayBody = {
+    remotes,
+    shellFlavor: argv.shell,
+    ...(argv.theme ? { theme: themeInput(argv.theme) } : {}),
+  };
   const overlay = await client.createOverlay(scopeId, name, body);
   const confirmUrl = `${client.baseUrl}${overlay.confirmUrl}`;
 

@@ -12,7 +12,7 @@ const compositionWith = (overlay?: AppshellComposition['overlay']): AppshellComp
     remotes: {},
     vars: {},
     overlay,
-  }) as AppshellComposition;
+  } as AppshellComposition);
 
 const badge = () => document.getElementById('appshell-overlay-badge');
 
@@ -31,6 +31,32 @@ describe('overlayBadgeMarkup', () => {
     expect(overlayBadgeMarkup(['A/One'], 'dev')).toContain(
       'development shell, 1 remote redirected',
     );
+  });
+
+  /*
+   * Named rather than counted. A theme changes what the whole page looks like, so the
+   * useful question is which one — a badge saying "something is different" while the
+   * difference is the thing you are staring at helps nobody.
+   */
+  it('should name the theme an overlay substituted', () => {
+    expect(overlayBadgeMarkup([], 'prod', 'acme/brand@1.0.0')).toContain('theme acme/brand@1.0.0');
+  });
+
+  it('should say nothing about a theme when the overlay did not change one', () => {
+    expect(overlayBadgeMarkup(['A/One'], 'prod')).not.toContain('theme');
+  });
+
+  it('should list a theme alongside the other changes', () => {
+    expect(overlayBadgeMarkup(['A/One'], 'dev', 'acme/brand@1.0.0')).toContain(
+      'development shell, 1 remote redirected, theme acme/brand@1.0.0',
+    );
+  });
+
+  it('should escape a theme ref for the same reason it escapes a remote key', () => {
+    const markup = overlayBadgeMarkup([], 'prod', '<img src=x onerror=alert(1)>');
+
+    expect(markup).not.toContain('<img');
+    expect(markup).toContain('&lt;img');
   });
 
   it('should escape a remote key rather than trusting where it came from', () => {
@@ -66,7 +92,13 @@ describe('mountOverlayBadge', () => {
   });
 
   it('should name every redirected remote so the page cannot lie by omission', () => {
-    mountOverlayBadge(compositionWith({ id: 'o1', remotes: ['PingModule/Ping', 'PongModule/Pong'], shellFlavor: 'dev' }));
+    mountOverlayBadge(
+      compositionWith({
+        id: 'o1',
+        remotes: ['PingModule/Ping', 'PongModule/Pong'],
+        shellFlavor: 'dev',
+      }),
+    );
 
     const items = [...(badge()?.querySelectorAll('li') ?? [])].map((li) => li.textContent);
 
@@ -75,20 +107,28 @@ describe('mountOverlayBadge', () => {
 
   it('should mount outside the react root so a crash in the package cannot take it down', () => {
     document.body.innerHTML = '<div id="root"></div>';
-    mountOverlayBadge(compositionWith({ id: 'o1', remotes: ['PongModule/Pong'], shellFlavor: 'dev' }));
+    mountOverlayBadge(
+      compositionWith({ id: 'o1', remotes: ['PongModule/Pong'], shellFlavor: 'dev' }),
+    );
 
     expect(document.getElementById('root')?.contains(badge())).toBe(false);
     expect(badge()?.parentElement).toBe(document.body);
   });
 
   it('should stay open by default rather than hiding behind a click', () => {
-    mountOverlayBadge(compositionWith({ id: 'o1', remotes: ['PongModule/Pong'], shellFlavor: 'dev' }));
+    mountOverlayBadge(
+      compositionWith({ id: 'o1', remotes: ['PongModule/Pong'], shellFlavor: 'dev' }),
+    );
 
     expect(badge()?.querySelector('details')?.hasAttribute('open')).toBe(true);
   });
 
   it('should not stack a second badge if called twice', () => {
-    const composition = compositionWith({ id: 'o1', remotes: ['PongModule/Pong'], shellFlavor: 'dev' });
+    const composition = compositionWith({
+      id: 'o1',
+      remotes: ['PongModule/Pong'],
+      shellFlavor: 'dev',
+    });
 
     mountOverlayBadge(composition);
     mountOverlayBadge(composition);

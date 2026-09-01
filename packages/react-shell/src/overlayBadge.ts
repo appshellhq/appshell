@@ -1,7 +1,8 @@
 import type { AppshellComposition } from '@appshell/config';
 
 /**
- * Marks a page whose remotes have been redirected by a per-developer overlay.
+ * Marks a page a per-developer overlay has changed — redirected remotes, a development
+ * shell, or a substituted theme.
  *
  * Deliberately plain DOM in its own element rather than a component inside the React
  * tree, for two reasons. It has to survive a crash in the composed app — the moment
@@ -39,10 +40,15 @@ const escape = (value: string) => value.replace(/&/g, '&amp;').replace(/</g, '&l
 export const overlayBadgeMarkup = (
   remotes: string[],
   shellFlavor: 'prod' | 'dev' = 'prod',
+  theme?: string,
 ): string => {
   const changes = [
     shellFlavor === 'dev' && 'development shell',
     remotes.length && `${remotes.length} remote${remotes.length === 1 ? '' : 's'} redirected`,
+    // Named, not just counted. A theme changes what the whole page looks like, so the
+    // useful question is which one — otherwise the badge says something is different
+    // while the difference is the very thing you are looking at.
+    theme && `theme ${escape(theme)}`,
   ].filter(Boolean);
 
   const items = remotes
@@ -68,7 +74,11 @@ export default (composition?: AppshellComposition): void => {
 
   const container = document.createElement('div');
   container.id = CONTAINER_ID;
-  container.innerHTML = overlayBadgeMarkup(overlay.remotes ?? [], overlay.shellFlavor);
+  container.innerHTML = overlayBadgeMarkup(
+    overlay.remotes ?? [],
+    overlay.shellFlavor,
+    overlay.theme,
+  );
 
   document.body.appendChild(container);
 };
