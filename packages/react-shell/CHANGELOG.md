@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.30](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.29...v1.0.0-alpha.30) (2026-09-01)
+
+### Features
+
+- **cli:** appshell dev --theme ([a566418](https://github.com/appshellhq/appshell/commit/a56641847448c39cd9c27742223ffff15dfd6925))
+
 # [1.0.0-alpha.29](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.28...v1.0.0-alpha.29) (2026-08-31)
 
 ### Bug Fixes

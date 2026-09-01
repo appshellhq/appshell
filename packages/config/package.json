@@ -1,6 +1,6 @@
 {
   "name": "@appshell/config",
-  "version": "1.0.0-alpha.29",
+  "version": "1.0.0-alpha.30",
   "description": "Utility for producing a global appshell manifest for module federation micro-frontends",
   "main": "dist/main.js",
   "types": "dist/types/index.d.ts",
@@ -32,7 +32,7 @@
   "license": "MIT",
   "gitHead": "e8105f3c5eeb4aec8e3f0e06b151d0a0ef394d12",
   "dependencies": {
-    "@appshell/runtime": "^1.0.0-alpha.29",
+    "@appshell/runtime": "^1.0.0-alpha.30",
     "yaml": "^2.8.0"
   }
 }
