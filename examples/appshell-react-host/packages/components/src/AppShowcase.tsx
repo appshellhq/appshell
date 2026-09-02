@@ -1,3 +1,6 @@
+// `React` is used implicitly: babel and tsc are both on the classic JSX runtime here, so
+// the emitted code calls React.createElement and an editor that removes this import as
+// unused produces a bundle that throws at runtime.
 import React, { FC, ReactNode } from 'react';
 
 type AppShowcaseProps = {
@@ -15,7 +18,7 @@ type AppShowcaseProps = {
  * nothing. A demo that does not demonstrate is worse than no demo.
  */
 const AppShowcase: FC<AppShowcaseProps> = ({ header, children }) => (
-  <div className="flex w-[400px] min-w-0 max-w-full flex-col overflow-hidden rounded-lg border-t-4 border-primary bg-surface-raised px-lg pb-lg text-on-surface-raised shadow-md">
+  <div className="flex w-[400px] min-w-0 max-w-full flex-col overflow-hidden rounded-lg border-2 border-primary bg-surface-raised px-lg pb-lg text-on-surface-raised shadow-md">
     <header className="text-h3">{header}</header>
     <div className="flex min-h-0 grow">{children}</div>
   </div>

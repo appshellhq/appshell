@@ -3,7 +3,7 @@
 exports[`AppShowcase should match snapshot 1`] = `
 <div>
   <div
-    class="flex w-[400px] min-w-0 max-w-full flex-col overflow-hidden rounded-lg border-b-4 border-primary bg-surface-raised px-lg pb-lg text-on-surface-raised shadow-md"
+    class="flex w-[400px] min-w-0 max-w-full flex-col overflow-hidden rounded-lg border-2 border-primary bg-surface-raised px-lg pb-lg text-on-surface-raised shadow-md"
   >
     <header
       class="text-h3"
