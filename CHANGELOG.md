@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.31](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.30...v1.0.0-alpha.31) (2026-09-02)
+
+### Bug Fixes
+
+- **examples:** restore the React import AppShowcase needs to compile ([5a2eddd](https://github.com/appshellhq/appshell/commit/5a2eddd856a5805427e87d42f4cc7f8f06e9fd0c))
+
 # [1.0.0-alpha.30](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.29...v1.0.0-alpha.30) (2026-09-01)
 
 ### Features
