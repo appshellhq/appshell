@@ -63,6 +63,49 @@ jobs:
       - name: Build
         run: npm run build
 
+  # The example is a separate npm project with its own lock file and its own workspaces,
+  # so the root `npm test` never sees it — `jest --listTests` returns nothing from
+  # examples/. Its tests had therefore never run in CI, and a654fcc was pushed with a
+  # component and its snapshot disagreeing. That went green, and was found days later by
+  # someone building locally.
+  #
+  # Its own job rather than a step in `build`: a failure here means the example is broken,
+  # which is a different thing from the packages being broken, and the job name should say
+  # which. It also installs @appshell/* from npm rather than from this tree, so a red run
+  # can mean a published package regressed — worth knowing, and worth not confusing with
+  # a regression in the change under test.
+  example:
+    name: Example app
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: examples/appshell-react-host
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          cache: 'npm'
+          cache-dependency-path: examples/appshell-react-host/package-lock.json
+
+      # `.env` is git-ignored; sample.env carries the same keys and is what a developer is
+      # told to copy.
+      - name: Provide the environment the build expects
+        run: cp sample.env .env
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Builds the shared components package before the three apps. The apps resolve it
+      # through its `main`, so its dist has to exist before anything renders — which is
+      # also why the tests cannot run without this.
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm test
+
   publish_npm_packages:
     needs: build
     if: ${{ github.ref == 'refs/heads/main' || contains(github.ref, 'refs/heads/feat') || contains(github.ref, 'refs/heads/fix') }}
