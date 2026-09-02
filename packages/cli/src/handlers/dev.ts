@@ -2,7 +2,7 @@
 import chalk from 'chalk';
 import { spawn } from 'child_process';
 import { GlobalArgs } from '../util/args';
-import { readDevHint, verifyDevHint } from '../util/devHint';
+import { DevHint, readDevHint, verifyDevHint } from '../util/devHint';
 import { identify } from '../util/identity';
 import {
   CreateOverlayBody,
@@ -82,6 +82,47 @@ const withOrigin = (url: string, origin?: string): string => {
 };
 
 /**
+ * The origin to redirect to, taken from the hint the plugin leaves in `dist/`.
+ *
+ * The hint is used unless the probe *disproves* it. Failing to confirm it is not a
+ * disproof — a dev server that has not been started yet looks exactly the same from here,
+ * and opening the overlay first is a normal thing to do. A wrong overlay is visible on the
+ * page and revertible with `appshell dev stop`; an overlay that quietly redirects nothing
+ * is neither, which is why that used to cost people an afternoon.
+ *
+ * A port serving another package's remotes is the one case that is genuinely disproved,
+ * and it is refused rather than warned about, because redirecting at somebody else's
+ * bundle is the wrong answer rather than an unconfirmed one.
+ */
+export const hintedOrigin = async (
+  hint: DevHint,
+  keys: string[],
+  label: string,
+): Promise<string> => {
+  const check = await verifyDevHint(hint, keys);
+
+  if (check.verdict === 'displaced') {
+    throw new Error(
+      `${hint.origin} is serving ${check.serving.join(', ')}, not ${label}. That dev-server ` +
+        `hint is left over from another run. Pass --port to say where ${label} is running.`,
+    );
+  }
+
+  if (check.verdict === 'serving') {
+    console.log(chalk.dim(`Found ${label} serving at ${hint.origin}`));
+  } else {
+    console.log(chalk.yellow(`Could not confirm a dev server: ${check.reason}.`));
+    console.log(
+      chalk.yellow(
+        `Redirecting to ${hint.origin} anyway. Start it, or pass --port if it is elsewhere.`,
+      ),
+    );
+  }
+
+  return hint.origin;
+};
+
+/**
  * The overlay redirects exactly the remotes this package has published into the target
  * application, asked of the registry rather than read out of a local build. The
  * registry is the only thing that knows what is actually activated there, and it
@@ -92,14 +133,15 @@ const remotesOf = async (
   client: RegistryClient,
   scopeId: string,
 ): Promise<Record<string, OverlayRemoteBody>> => {
-  const explicit = localOrigin(argv);
-  // An explicit port or url always wins. The hint cannot know about a devbox or
-  // Codespace where the browser reaches this package somewhere other than where it binds.
-  const hint = explicit ? undefined : readDevHint(process.cwd());
+  // An explicit port or url always wins, and is never probed: a flag is stated intent,
+  // where a hint is a guess. It also covers the devbox or Codespace where the browser
+  // reaches this package somewhere other than where it binds, which no probe can know.
+  const source = localOrigin(argv) ?? readDevHint(process.cwd());
 
-  // Nothing to point at and nothing to ask: the overlay still carries the shell flavor,
-  // which is the half that matters where the application already resolves to localhost.
-  if (!explicit && !hint) return {};
+  // Nothing to point at and nothing to ask: the overlay still carries the shell flavor
+  // and theme, which are the halves that matter where the application already resolves
+  // to localhost.
+  if (!source) return {};
 
   const pkg = argv.package ?? identify(process.cwd()).name;
   const { remotes } = await client.packageManifest(scopeId, pkg);
@@ -116,27 +158,14 @@ const remotesOf = async (
   }
 
   const selected = Object.entries(remotes).filter(([key]) => !wanted || wanted.has(key));
-  let origin = explicit;
-
-  if (!origin && hint) {
-    const serving = await verifyDevHint(
-      hint,
-      selected.map(([key]) => key),
-    );
-
-    if (serving) {
-      origin = hint.origin;
-      console.log(chalk.dim(`Found ${pkg} serving at ${hint.origin}`));
-    } else {
-      console.log(
-        chalk.yellow(
-          `${hint.origin} is not serving ${pkg} any more; ignoring the stale dev-server hint.`,
-        ),
-      );
-    }
-  }
-
-  if (!origin) return {};
+  const origin =
+    typeof source === 'string'
+      ? source
+      : await hintedOrigin(
+          source,
+          selected.map(([key]) => key),
+          `${scopeId}/${pkg}`,
+        );
 
   return selected.reduce<Record<string, OverlayRemoteBody>>(
     (acc, [key, remote]) => ({
@@ -209,6 +238,16 @@ export const start = async (argv: DevStartArgs) => {
     shellFlavor: argv.shell,
     ...(argv.theme ? { theme: themeInput(argv.theme) } : {}),
   };
+  // A confirmation page for an overlay that changes nothing is worse than an error,
+  // because it looks like it worked. Refusing here is what makes the page below always
+  // worth opening.
+  if (!Object.keys(remotes).length && argv.shell !== 'dev' && !argv.theme) {
+    throw new Error(
+      `Nothing to overlay on ${scopeId}/${name}. Pass --port to redirect this package at ` +
+        `your dev server, --shell dev for the development bundle, or --theme to try a theme.`,
+    );
+  }
+
   const overlay = await client.createOverlay(scopeId, name, body);
   const confirmUrl = `${client.baseUrl}${overlay.confirmUrl}`;
 

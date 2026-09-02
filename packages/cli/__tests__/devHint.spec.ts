@@ -49,9 +49,14 @@ describe('readDevHint', () => {
   });
 });
 
+/*
+ * The three verdicts are the point: the middle one keeps `dev start` working when the dev
+ * server simply has not been started yet, which is the case that used to produce an
+ * overlay redirecting nothing at all.
+ */
 describe('verifyDevHint', () => {
-  const respond = (body: unknown, ok = true) =>
-    jest.fn().mockResolvedValue({ ok, json: async () => body });
+  const respond = (body: unknown, ok = true, status = 200) =>
+    jest.fn().mockResolvedValue({ ok, status, json: async () => body });
 
   afterEach(() => {
     jest.restoreAllMocks();
@@ -61,45 +66,93 @@ describe('verifyDevHint', () => {
     globalThis.fetch = impl as unknown as typeof fetch;
   };
 
-  it('should accept an origin serving the remotes about to be redirected', async () => {
+  it('should confirm an origin serving every remote about to be redirected', async () => {
     withFetch(respond({ remotes: { 'PongModule/Pong': {}, 'PongModule/CoolComponent': {} } }));
 
-    await expect(verifyDevHint(HINT, ['PongModule/Pong'])).resolves.toBe(true);
+    await expect(verifyDevHint(HINT, ['PongModule/Pong'])).resolves.toEqual({
+      verdict: 'serving',
+    });
   });
 
-  it('should refuse an origin now serving a different package', async () => {
-    // The port was reused. A probe that only asked "did anything answer" would pass
-    // here and redirect this package at somebody else's bundle.
+  // The port was reused. A probe that only asked "did anything answer" would pass here
+  // and redirect this package at somebody else's bundle.
+  it('should call an origin serving only another package displaced', async () => {
     withFetch(respond({ remotes: { 'PingModule/Ping': {} } }));
 
-    await expect(verifyDevHint(HINT, ['PongModule/Pong'])).resolves.toBe(false);
+    await expect(verifyDevHint(HINT, ['PongModule/Pong'])).resolves.toEqual({
+      verdict: 'displaced',
+      serving: ['PingModule/Ping'],
+    });
   });
 
-  it('should refuse when only some of the remotes are served', async () => {
+  // The origin is right and the build is behind, which is worth saying and not worth
+  // refusing over — so this must not be reported as somebody else's port.
+  it('should not call a stale build of the same package displaced', async () => {
     withFetch(respond({ remotes: { 'PongModule/Pong': {} } }));
 
     await expect(
       verifyDevHint(HINT, ['PongModule/Pong', 'PongModule/CoolComponent']),
-    ).resolves.toBe(false);
+    ).resolves.toEqual({
+      verdict: 'unconfirmed',
+      reason: expect.stringContaining('PongModule/CoolComponent'),
+    });
   });
 
-  it('should refuse when nothing is listening', async () => {
+  it('should leave a port nothing answers on unconfirmed rather than disproved', async () => {
     withFetch(jest.fn().mockRejectedValue(new Error('ECONNREFUSED')));
 
-    await expect(verifyDevHint(HINT, ['PongModule/Pong'])).resolves.toBe(false);
+    await expect(verifyDevHint(HINT, ['PongModule/Pong'])).resolves.toEqual({
+      verdict: 'unconfirmed',
+      reason: expect.stringContaining('nothing answered'),
+    });
   });
 
-  it('should refuse a non-ok response', async () => {
-    withFetch(respond({}, false));
+  // Asking the wrong question is not evidence about the answer. This is also what the
+  // current probe path returns, so it must not be the verdict that refuses.
+  it('should leave a non-ok response unconfirmed', async () => {
+    withFetch(respond({}, false, 404));
 
-    await expect(verifyDevHint(HINT, ['PongModule/Pong'])).resolves.toBe(false);
+    await expect(verifyDevHint(HINT, ['PongModule/Pong'])).resolves.toEqual({
+      verdict: 'unconfirmed',
+      reason: expect.stringContaining('404'),
+    });
   });
 
-  it('should refuse rather than vacuously pass when there is nothing to check', async () => {
+  it('should leave a response that is not a manifest unconfirmed', async () => {
+    withFetch(
+      jest.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => {
+          throw new Error('Unexpected token <');
+        },
+      }),
+    );
+
+    await expect(verifyDevHint(HINT, ['PongModule/Pong'])).resolves.toEqual({
+      verdict: 'unconfirmed',
+      reason: expect.stringContaining('did not answer with a manifest'),
+    });
+  });
+
+  // A half-started dev server looks like this, so it is not somebody else's port.
+  it('should leave an origin serving no remotes at all unconfirmed', async () => {
+    withFetch(respond({ remotes: {} }));
+
+    await expect(verifyDevHint(HINT, ['PongModule/Pong'])).resolves.toEqual({
+      verdict: 'unconfirmed',
+      reason: expect.stringContaining('serving no remotes'),
+    });
+  });
+
+  it('should not probe when there is nothing to check for', async () => {
     const fetchMock = respond({ remotes: {} });
     withFetch(fetchMock);
 
-    await expect(verifyDevHint(HINT, [])).resolves.toBe(false);
+    await expect(verifyDevHint(HINT, [])).resolves.toEqual({
+      verdict: 'unconfirmed',
+      reason: expect.any(String),
+    });
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });
