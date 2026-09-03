@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.33](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.32...v1.0.0-alpha.33) (2026-09-03)
+
+### Bug Fixes
+
+- **webpack-plugin:** serve the manifest a package's manifestUrl promises ([8284334](https://github.com/appshellhq/appshell/commit/8284334099a04dacf1517a1cfd7c807b663c6e1e))
+
 # [1.0.0-alpha.32](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.31...v1.0.0-alpha.32) (2026-09-02)
 
 **Note:** Version bump only for package @appshell/webpack-plugin
