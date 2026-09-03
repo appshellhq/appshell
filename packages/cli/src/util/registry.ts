@@ -70,6 +70,13 @@ export type CreatedOverlay = {
   url: string;
   remotes: string[];
   shellFlavor: 'prod' | 'dev';
+  /**
+   * The theme this overlay substitutes, pinned by the registry, when it substitutes one.
+   *
+   * Declared on both overlay responses because both report what the overlay does, and
+   * having it on only one is how `dev start` came to omit the theme it had just applied.
+   */
+  theme?: string;
   expiresAt: string;
 };
 
