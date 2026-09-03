@@ -549,7 +549,6 @@ export const buildCli = (args: string[]) => {
                 yargs
                   .positional('name', { type: 'string', demandOption: true })
                   .option('ephemeral', { boolean: true, default: false, type: 'boolean' })
-                  .option('visibility', { type: 'string', choices: ['public', 'private'] as const })
                   .option('shell-bundle-url', {
                     type: 'string',
                     describe:
@@ -629,7 +628,6 @@ export const buildCli = (args: string[]) => {
                       'allowOverrides',
                       'sharedBaselines',
                       'sharedDepsEnforcement',
-                      'visibility',
                     ] as const,
                     description: 'Optional list of application sections to sync',
                   }),
@@ -650,11 +648,6 @@ export const buildCli = (args: string[]) => {
                     type: 'string',
                     description:
                       "Target application as 'name' or 'scope/name'. Defaults to --application.",
-                  })
-                  .option('visibility', {
-                    type: 'string',
-                    choices: ['public', 'private'] as const,
-                    description: 'Optional visibility override on the target application',
                   })
                   .option('ephemeral', {
                     boolean: true,

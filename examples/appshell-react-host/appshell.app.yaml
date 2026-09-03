@@ -30,6 +30,6 @@ spec:
       # it pins the palette, the browser's own controls, and the chrome colour together.
       colorScheme: dark
   # This is a local development application, and `appshell dev` is the reason it
-  # exists. Public applications default this off, since that is where an overlay
-  # would sit closest to real traffic.
+  # exists. Always explicit: an overlay changes which code runs in a browser, so
+  # nothing infers the permission on your behalf.
   allowOverlays: true

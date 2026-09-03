@@ -21,7 +21,6 @@ const target = (argv: AppArgs & { name?: string }) => {
   return parseApplication(application, argv.scopeId);
 };
 
-
 /**
  * Reads a declared application resource. `${VAR}` placeholders are expanded from
  * `process.env` exactly as `appshell.config.yaml` expands them, so one file can
@@ -71,7 +70,6 @@ export const list = async (argv: AppArgs & { owner?: string }) => {
       name: `${env.scopeId}/${env.name}`,
       revision: env.revision,
       packages: Object.keys(env.packages ?? {}).length,
-      visibility: env.visibility,
       ephemeral: env.ephemeral,
       owner: env.owner,
     })),
@@ -89,14 +87,12 @@ export const create = async (
   argv: AppArgs & {
     name: string;
     ephemeral: boolean;
-    visibility?: 'public' | 'private';
     shellBundleUrl?: string;
   },
 ) => {
   const { id } = await new RegistryClient(argv.registry).createApplication({
     name: argv.name,
     ephemeral: argv.ephemeral,
-    visibility: argv.visibility,
     shell: argv.shellBundleUrl ? { shellBundleUrl: argv.shellBundleUrl } : undefined,
   });
 
@@ -169,7 +165,6 @@ export const sync = async (
       | 'allowOverrides'
       | 'sharedBaselines'
       | 'sharedDepsEnforcement'
-      | 'visibility'
     >;
   },
 ) => {
@@ -200,7 +195,6 @@ export const clone = async (
   argv: AppArgs & {
     from: string;
     to?: string;
-    visibility?: 'public' | 'private';
     ephemeral?: boolean;
   },
 ) => {
@@ -216,7 +210,6 @@ export const clone = async (
   await new RegistryClient(argv.registry).cloneApplication(destination.scopeId, destination.name, {
     fromScopeId: source.scopeId,
     fromName: source.name,
-    visibility: argv.visibility,
     ephemeral: argv.ephemeral,
   });
 

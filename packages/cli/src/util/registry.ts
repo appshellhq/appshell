@@ -8,7 +8,6 @@ export type ApplicationSummary = {
   scopeId: string;
   name: string;
   owner: string;
-  visibility: 'public' | 'private';
   ephemeral: boolean;
   revision: number;
   packages: Record<string, { packageId: string; activatedAt: string }>;
@@ -126,7 +125,6 @@ export const OVERLAY_EFFECTS_ARE_EXHAUSTIVE: EveryEffectIsListed = true;
 
 export type CreateApplicationBody = {
   name: string;
-  visibility?: 'public' | 'private';
   ephemeral?: boolean;
   shell?: Record<string, unknown>;
   overrides?: Record<string, unknown>;
@@ -143,14 +141,12 @@ export type SyncApplicationBody = {
     | 'allowOverrides'
     | 'sharedBaselines'
     | 'sharedDepsEnforcement'
-    | 'visibility'
   >;
 };
 
 export type CloneApplicationBody = {
   fromScopeId: string;
   fromName: string;
-  visibility?: 'public' | 'private';
   ephemeral?: boolean;
 };
 
@@ -200,7 +196,6 @@ export type ApplicationResource = {
     allowOverlays?: boolean;
     sharedBaselines?: Record<string, unknown>;
     sharedDepsEnforcement?: 'off' | 'warn' | 'block';
-    visibility?: 'public' | 'private';
     ephemeral?: boolean;
   };
 };
