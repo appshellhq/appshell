@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.36](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.35...v1.0.0-alpha.36) (2026-09-03)
+
+### Bug Fixes
+
+- **config:** stop manifestFrom substituting into the template it was given ([3b99509](https://github.com/appshellhq/appshell/commit/3b99509a6028c0f19334a0751875e16efbb28374))
+
 # [1.0.0-alpha.35](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.34...v1.0.0-alpha.35) (2026-09-03)
 
 **Note:** Version bump only for package @appshell/config
