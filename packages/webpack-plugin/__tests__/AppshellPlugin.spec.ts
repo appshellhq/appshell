@@ -34,6 +34,16 @@ const mocked = {
   persistedContext: persistedContext as jest.MockedFunction<typeof persistedContext>,
 };
 
+/**
+ * A compiler that fires the hooks webpack fires, in the order webpack fires them.
+ *
+ * The previous version recorded `hooks.compilation` as a `jest.fn()` and never invoked
+ * it, so nothing the plugin does in `processAssets` had ever run under test: the token
+ * scan, the token usage written onto the template, and the manifest asset. All three were
+ * covered only by a real compilation in emitManifest.spec.ts. A double that accepts a tap
+ * and never calls it does not merely leave a gap — it reports success for code that never
+ * executed.
+ */
 class MockCompiler {
   options: Partial<WebpackOptionsNormalized>;
 
@@ -41,7 +51,21 @@ class MockCompiler {
 
   context = 'packages/webpack-plugin';
 
-  handlers: Record<string, (compilation: Partial<Compilation>) => Promise<void>> = {};
+  private afterEmit: Record<string, (compilation: Partial<Compilation>) => Promise<void>> = {};
+
+  /*
+   * Kept by the name each tap registered under, so only this plugin's are fired.
+   *
+   * AppshellPlugin applies DefinePlugin, which taps the same hook and expects webpack's
+   * second argument, a live NormalModuleFactory, plus dependency templates and compilation
+   * hooks off a WeakMap. Stubbing all of that would be reimplementing webpack inside a
+   * unit test to exercise a plugin that is not the subject. Whether DefinePlugin works is
+   * webpack's business; a real compilation in emitManifest.spec.ts covers the two of them
+   * together.
+   */
+  private onCompilation: { name: string; tap: (compilation: Partial<Compilation>) => void }[] = [];
+
+  private onProcessAssets: ((assets: Record<string, unknown>) => void)[] = [];
 
   hooks = {
     afterEmit: {
@@ -49,22 +73,54 @@ class MockCompiler {
         name: string,
         callback: (compilation: Partial<Compilation>) => Promise<void>,
       ) => {
-        this.handlers[name] = callback;
+        this.afterEmit[name] = callback;
       },
     },
-    // Only so the DefinePlugin the plugin applies has something to register against.
-    // Nothing invokes it — the substitution itself is webpack's business, not ours.
-    compilation: { tap: jest.fn() },
+    compilation: {
+      tap: (name: string, callback: (compilation: Partial<Compilation>) => void) => {
+        this.onCompilation.push({ name, tap: callback });
+      },
+    },
   };
 
   constructor(options: Partial<WebpackOptionsNormalized>, compilation: Partial<Compilation>) {
     this.options = options;
-    this.compilation = compilation;
+    this.compilation = {
+      ...compilation,
+      hooks: {
+        processAssets: {
+          tap: (_options: unknown, callback: (assets: Record<string, unknown>) => void) => {
+            this.onProcessAssets.push(callback);
+          },
+        },
+      },
+      emitAsset: (name: string, source: { source: () => string | Buffer }) => {
+        (this.compilation.assets as Record<string, unknown>)[name] = source;
+      },
+    } as unknown as Partial<Compilation>;
   }
 
-  invokeHandlers() {
-    return Promise.all(
-      values(this.handlers).map((handler) => handler.call(null, this.compilation)),
+  /** The emitted asset by name, as the string a dev server would serve. */
+  asset(name: string): string | undefined {
+    const source = (this.compilation.assets as Record<string, { source?: () => unknown }>)?.[name];
+
+    return source?.source ? String(source.source()) : undefined;
+  }
+
+  /**
+   * One build, in webpack's order: the compilation hook, then processAssets over whatever
+   * the compilation holds, then afterEmit.
+   */
+  async compile() {
+    this.onCompilation
+      .filter(({ name }) => name === 'AppshellPlugin')
+      .forEach(({ tap }) => tap(this.compilation));
+    this.onProcessAssets.forEach((tap) =>
+      tap((this.compilation.assets ?? {}) as Record<string, unknown>),
+    );
+
+    await Promise.all(
+      values(this.afterEmit).map((handler) => handler.call(null, this.compilation)),
     );
   }
 }
@@ -171,11 +227,10 @@ describe('AppshellPlugin', () => {
   describe('tokenUsage', () => {
     // A reference with a fallback degrades on its own; one without has no plan B.
     it('should split required from optional on whether a fallback is present', () => {
-      const { required, optional } = AppshellPlugin.tokenUsage(
-        ({
-          'main.css': '.a{color:var(--appshell-on-surface)}.b{background:var(--appshell-primary, #0af)}',
-        }),
-      );
+      const { required, optional } = AppshellPlugin.tokenUsage({
+        'main.css':
+          '.a{color:var(--appshell-on-surface)}.b{background:var(--appshell-primary, #0af)}',
+      });
 
       expect(required).toEqual(['on-surface']);
       expect(optional).toEqual(['primary']);
@@ -183,18 +238,18 @@ describe('AppshellPlugin', () => {
 
     // One place in the package having nothing to fall back to settles it for the package.
     it('should treat a role used both ways as required', () => {
-      const { required, optional } = AppshellPlugin.tokenUsage(
-        ({ 'main.css': 'var(--appshell-primary, #0af) var(--appshell-primary)' }),
-      );
+      const { required, optional } = AppshellPlugin.tokenUsage({
+        'main.css': 'var(--appshell-primary, #0af) var(--appshell-primary)',
+      });
 
       expect(required).toEqual(['primary']);
       expect(optional).toEqual([]);
     });
 
     it('should report a name that is not a role rather than counting it as a need', () => {
-      const { required, optional, unknown } = AppshellPlugin.tokenUsage(
-        ({ 'main.css': 'var(--appshell-primry)' }),
-      );
+      const { required, optional, unknown } = AppshellPlugin.tokenUsage({
+        'main.css': 'var(--appshell-primry)',
+      });
 
       expect(unknown).toEqual(['primry']);
       expect(required).toEqual([]);
@@ -202,32 +257,33 @@ describe('AppshellPlugin', () => {
     });
 
     it('should find tokens in javascript as well as stylesheets', () => {
-      const { required } = AppshellPlugin.tokenUsage(
-        ({ 'main.js': 'const s={color:"var(--appshell-danger)"}' }),
-      );
+      const { required } = AppshellPlugin.tokenUsage({
+        'main.js': 'const s={color:"var(--appshell-danger)"}',
+      });
 
       expect(required).toEqual(['danger']);
     });
 
     it('should not scan assets that cannot reference a token', () => {
-      const { required } = AppshellPlugin.tokenUsage(
-        ({ 'logo.svg': 'var(--appshell-primary)', 'font.woff2': 'var(--appshell-border)' }),
-      );
+      const { required } = AppshellPlugin.tokenUsage({
+        'logo.svg': 'var(--appshell-primary)',
+        'font.woff2': 'var(--appshell-border)',
+      });
 
       expect(required).toEqual([]);
     });
 
     it('should tolerate whitespace inside the reference', () => {
-      const { required, optional } = AppshellPlugin.tokenUsage(
-        ({ 'main.css': 'var( --appshell-surface ) var( --appshell-border , red)' }),
-      );
+      const { required, optional } = AppshellPlugin.tokenUsage({
+        'main.css': 'var( --appshell-surface ) var( --appshell-border , red)',
+      });
 
       expect(required).toEqual(['surface']);
       expect(optional).toEqual(['border']);
     });
 
     it('should report nothing for output that uses no tokens', () => {
-      expect(AppshellPlugin.tokenUsage(({ 'main.js': 'console.log(1)' }))).toEqual({
+      expect(AppshellPlugin.tokenUsage({ 'main.js': 'console.log(1)' })).toEqual({
         required: [],
         optional: [],
         unknown: [],
@@ -236,7 +292,7 @@ describe('AppshellPlugin', () => {
   });
 
   describe('createTemplate', () => {
-    const pluginWith = (options: any) => ({ _options: options }) as any;
+    const pluginWith = (options: any) => ({ _options: options } as any);
 
     it('should key vars by the federation container name', () => {
       const template = AppshellPlugin.createTemplate(
@@ -321,7 +377,7 @@ describe('AppshellPlugin', () => {
       const plugin = new AppshellPlugin({ config });
 
       plugin.apply(compiler as any);
-      await compiler.invokeHandlers();
+      await compiler.compile();
 
       expect(writeFileSyncSpy).toHaveBeenCalledWith(
         expect.anything(),
@@ -334,7 +390,7 @@ describe('AppshellPlugin', () => {
       const plugin = new AppshellPlugin({ config, registry });
 
       plugin.apply(compiler as any);
-      await compiler.invokeHandlers();
+      await compiler.compile();
 
       expect(mocked.publish).not.toHaveBeenCalled();
     });
@@ -346,7 +402,7 @@ describe('AppshellPlugin', () => {
       const plugin = new AppshellPlugin({ config });
 
       plugin.apply(compiler as any);
-      await compiler.invokeHandlers();
+      await compiler.compile();
 
       expect(mocked.publish).toHaveBeenCalledWith(
         expect.objectContaining({ registry, force: true }),
@@ -361,7 +417,7 @@ describe('AppshellPlugin', () => {
       const plugin = new AppshellPlugin({ config });
 
       plugin.apply(compiler as any);
-      await compiler.invokeHandlers();
+      await compiler.compile();
 
       expect(mocked.publish).not.toHaveBeenCalled();
     });
@@ -372,7 +428,7 @@ describe('AppshellPlugin', () => {
       const plugin = new AppshellPlugin({ config, publish: true });
 
       plugin.apply(compiler as any);
-      await compiler.invokeHandlers();
+      await compiler.compile();
 
       expect(mocked.publish).toHaveBeenCalledWith(expect.objectContaining({ registry }));
     });
@@ -383,7 +439,7 @@ describe('AppshellPlugin', () => {
       const plugin = new AppshellPlugin({ config });
 
       plugin.apply(compiler as any);
-      await compiler.invokeHandlers();
+      await compiler.compile();
 
       expect(mocked.publish).not.toHaveBeenCalled();
       expect(errors).toHaveLength(0);
@@ -396,7 +452,7 @@ describe('AppshellPlugin', () => {
       const plugin = new AppshellPlugin({ config, registry, publish: true });
 
       plugin.apply(compiler as any);
-      await compiler.invokeHandlers();
+      await compiler.compile();
 
       expect(logger.warn).toHaveBeenCalledWith(
         expect.stringMatching(/overriding your CLI context/i),
@@ -409,12 +465,88 @@ describe('AppshellPlugin', () => {
       expect(() => plugin.apply(compiler as any)).toThrowError(/no registry was given/i);
     });
 
+    /*
+     * All of this runs in processAssets, which the compiler double used to record and
+     * never invoke. Every assertion below passed vacuously before, or would have.
+     */
+    describe('processAssets', () => {
+      it('should emit the manifest as a compilation asset', async () => {
+        jest.spyOn(fs, 'writeFileSync').mockImplementation();
+        new AppshellPlugin({ config, publish: false }).apply(compiler as any);
+        await compiler.compile();
+
+        expect(compiler.asset('appshell.manifest.json')).toBeDefined();
+      });
+
+      it('should emit a manifest with the remotes substituted', async () => {
+        jest.spyOn(fs, 'writeFileSync').mockImplementation();
+        new AppshellPlugin({ config, publish: false }).apply(compiler as any);
+        await compiler.compile();
+
+        const manifest = JSON.parse(compiler.asset('appshell.manifest.json') as string);
+
+        expect(Object.keys(manifest.remotes)).toEqual(
+          expect.arrayContaining(['TestModule/Foo', 'TestModule/Bar']),
+        );
+      });
+
+      /*
+       * Substitution writes in place, and building the manifest here from the same object
+       * written to disk at afterEmit replaced the template's own placeholders with values
+       * from the build environment — `${RUNTIME_ENV}` became the string "undefined".
+       *
+       * A template is meant to carry placeholders; that is the whole distinction between
+       * it and a manifest. Nothing downstream would have contradicted it, and no test
+       * could see it while the compilation hook was never fired.
+       */
+      it('should leave the template it was built from untouched', async () => {
+        const written = jest.spyOn(fs, 'writeFileSync').mockImplementation();
+        new AppshellPlugin({ config, publish: false }).apply(compiler as any);
+        await compiler.compile();
+
+        const template = JSON.parse(written.mock.calls[0][1] as string);
+
+        /* eslint-disable no-template-curly-in-string -- the placeholder is the subject */
+        expect(template.vars.TestModule.RUNTIME_ENV).toBe('${RUNTIME_ENV}');
+        expect(template.remotes['TestModule/Foo'].url).toBe('${APPS_TEST_URL}');
+        /* eslint-enable no-template-curly-in-string */
+      });
+
+      it('should write the scanned token usage onto the template', async () => {
+        const written = jest.spyOn(fs, 'writeFileSync').mockImplementation();
+        compiler.compilation.assets = {
+          'main.css': { source: () => '.a{color:var(--appshell-primary)}' },
+        } as never;
+        new AppshellPlugin({ config, publish: false }).apply(compiler as any);
+        await compiler.compile();
+
+        const template = JSON.parse(written.mock.calls[0][1] as string);
+
+        expect(template.tokens.TestModule.required).toContain('primary');
+      });
+
+      // The scan has to precede the emit, or the manifest understates what the package
+      // needs and nothing downstream disagrees.
+      it('should carry that same usage into the emitted manifest', async () => {
+        jest.spyOn(fs, 'writeFileSync').mockImplementation();
+        compiler.compilation.assets = {
+          'main.css': { source: () => '.a{color:var(--appshell-primary)}' },
+        } as never;
+        new AppshellPlugin({ config, publish: false }).apply(compiler as any);
+        await compiler.compile();
+
+        const manifest = JSON.parse(compiler.asset('appshell.manifest.json') as string);
+
+        expect(manifest.tokens.TestModule.required).toContain('primary');
+      });
+    });
+
     it('should publish the generated manifest after emit', async () => {
       jest.spyOn(fs, 'writeFileSync').mockImplementation();
       const plugin = new AppshellPlugin({ config, registry, publish: true });
 
       plugin.apply(compiler as any);
-      await compiler.invokeHandlers();
+      await compiler.compile();
 
       expect(mocked.publish).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -432,7 +564,7 @@ describe('AppshellPlugin', () => {
       const plugin = new AppshellPlugin({ config, registry, publish: true });
 
       plugin.apply(compiler as any);
-      await compiler.invokeHandlers();
+      await compiler.compile();
 
       expect(mocked.publish).toHaveBeenCalledWith(expect.objectContaining({ force: true }));
     });
@@ -443,7 +575,7 @@ describe('AppshellPlugin', () => {
       const plugin = new AppshellPlugin({ config, registry, publish: true });
 
       plugin.apply(compiler as any);
-      await compiler.invokeHandlers();
+      await compiler.compile();
 
       expect(mocked.publish).toHaveBeenCalledWith(expect.objectContaining({ force: false }));
     });
@@ -462,7 +594,7 @@ describe('AppshellPlugin', () => {
       });
 
       plugin.apply(compiler as any);
-      await compiler.invokeHandlers();
+      await compiler.compile();
 
       expect(mocked.activate).toHaveBeenCalledWith(
         registry,
@@ -479,7 +611,9 @@ describe('AppshellPlugin', () => {
       const plugin = new AppshellPlugin({ config, registry, publish: true });
 
       plugin.apply(compiler as any);
-      await expect(compiler.invokeHandlers()).resolves.toBeDefined();
+      // Resolving at all is the assertion: a thrown error stops the build, where a
+      // compilation error lets watch mode report it and carry on.
+      await expect(compiler.compile()).resolves.toBeUndefined();
 
       expect(errors).toHaveLength(1);
       expect(errors[0].message).toMatch(/403 forbidden/);
