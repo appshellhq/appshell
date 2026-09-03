@@ -17,6 +17,8 @@ const CONFIG = [
   '  TestModule/Foo:',
   '    url: ${APPS_TEST_URL}',
   '    filename: remoteEntry.js',
+  'vars:',
+  '  SUPPORT_URL: ${SUPPORT_URL}',
   '',
 ].join('\n');
 
@@ -51,6 +53,9 @@ const compile = (root: string, mode: 'production' | 'development') =>
             name: 'TestModule',
             filename: 'remoteEntry.js',
             exposes: { './Foo': path.join(root, 'src', 'Entry1.js') },
+            // Required of any package declaring vars, and the plugin enforces it: without
+            // the store as a singleton there is nothing to deliver them into.
+            shared: { '@appshell/runtime': { singleton: true } },
           }),
           new AppshellPlugin({
             config: path.join(root, 'appshell.config.yaml'),
@@ -130,5 +135,20 @@ describe('the emitted manifest', () => {
     );
 
     expect(template.tokens.TestModule.required).toContain('primary');
+  });
+
+  /*
+   * A template carries placeholders; that is the whole distinction between it and a
+   * manifest. Building the manifest from the same object substituted them in place, so
+   * the template on disk carried one environment's values — exactly what publishing from
+   * a template is meant to avoid.
+   */
+  it('should leave the template holding placeholders, not this build environment', () => {
+    const template = JSON.parse(
+      fs.readFileSync(path.join(root, 'dist', 'appshell.template.json'), 'utf-8'),
+    );
+
+    expect(template.vars.TestModule.SUPPORT_URL).toBe('${SUPPORT_URL}');
+    expect(template.remotes['TestModule/Foo'].url).toBe('${APPS_TEST_URL}');
   });
 });
