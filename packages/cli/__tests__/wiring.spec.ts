@@ -216,3 +216,32 @@ describe('global options', () => {
     expect(handedTo(dev.status)?.scopeId).toBe('default');
   });
 });
+
+/*
+ * Found by this file. `appshell nonsens` printed nothing and exited 0, so a mistyped
+ * command in a script read as success — the worst possible failure for a CLI, because
+ * there is nothing to notice.
+ */
+describe('unknown commands', () => {
+  it('should refuse a command that does not exist', () => {
+    expect(run('nonsense').error).toMatch(/Unknown argument|Unknown command/i);
+  });
+
+  it('should refuse an unknown subcommand too', () => {
+    expect(run('theme nonsense').error).toBeDefined();
+  });
+
+  it('should demand a command rather than doing nothing', () => {
+    expect(run('').error).toMatch(/Specify a command/);
+  });
+
+  it('should demand a subcommand rather than doing nothing', () => {
+    expect(run('theme').error).toBeDefined();
+  });
+
+  // Unknown options stay tolerated: global flags accrete, and an older CLI refusing a
+  // newer flag is a worse failure than ignoring one.
+  it('should tolerate an unknown option on a known command', () => {
+    expect(run('dev status --future-flag').error).toBeUndefined();
+  });
+});

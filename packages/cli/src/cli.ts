@@ -375,300 +375,317 @@ const unpublishCommand: yargs.CommandModule<
 export const buildCli = (args: string[]) => {
   config = loadConfig(configPathOf());
 
-  return yargs(args)
-    .option('apiKey', {
-      alias: 'k',
-      default: process.env.APPSHELL_API_KEY || config.apiKey || '',
-      type: 'string',
-      description: 'Api key to use for appshell registry',
-      global: true,
-    })
-    .option('apiKeyHeader', {
-      default: process.env.APPSHELL_API_KEY_HEADER || config.apiKeyHeader || 'x-api-key',
-      type: 'string',
-      description: 'Header to send the registry api key in',
-      global: true,
-    })
-    .option('registry', {
-      alias: 'r',
-      describe: 'Appshell registry to operate against',
-      default: process.env.APPSHELL_REGISTRY || config.registry || 'http://localhost:7150',
-      type: 'string',
-      global: true,
-    })
-    .option('application', {
-      alias: 'a',
-      describe: "Application to operate against, as 'name' or 'scope/name'",
-      default: process.env.APPSHELL_APPLICATION || config.application,
-      type: 'string',
-      global: true,
-    })
-    .option('scopeId', {
-      describe: 'Scope that owns unqualified packages and applications',
-      default: process.env.APPSHELL_SCOPE_ID || config.scopeId || 'default',
-      type: 'string',
-      global: true,
-    })
-    .option('verbose', {
-      alias: 'v',
-      boolean: true,
-      default: false,
-      type: 'boolean',
-      description: 'Verbose output',
-      global: true,
-    })
-    .middleware((argv) => {
-      if (!argv.verbose) {
-        // eslint-disable-next-line no-console
-        console.debug = () => {};
-      }
-    })
-    .command({
-      command: 'generate [target]',
-      describe: 'Generates a resource',
-      handler: () => {},
-      // eslint-disable-next-line @typescript-eslint/no-shadow
-      builder: (yargs) => yargs.command(generateManifestCommand).demandCommand(),
-    })
-    .command({
-      command: 'config [target]',
-      describe: 'Configures the appshell cli',
-      handler: () => {},
-      // eslint-disable-next-line @typescript-eslint/no-shadow
-      builder: (yargs) =>
-        yargs
-          .command(initConfigCommand)
-          .command(listConfigCommand)
-          .command(setConfigCommand)
-          .demandCommand(),
-    })
-    .command({
-      command: 'theme <target>',
-      describe: 'Publish and browse themes in the appshell registry',
-      handler: () => {},
-      // eslint-disable-next-line @typescript-eslint/no-shadow
-      builder: (yargs) =>
-        yargs
-          .command<ThemeListArgs>({
-            command: 'list',
-            describe: 'List themes this scope may use: its own, plus every public one',
-            // eslint-disable-next-line @typescript-eslint/no-shadow
-            builder: (yargs) =>
-              yargs.option('scope', {
-                type: 'string',
-                description: 'List another scope instead of the configured one',
-              }),
-            handler: theme.list,
-          })
-          .command<ThemeGetArgs>({
-            command: 'get <ref>',
-            describe: "Read a theme, values included. 'name', 'scope/name' or 'scope/name@version'",
-            // eslint-disable-next-line @typescript-eslint/no-shadow
-            builder: (yargs) => yargs.positional('ref', { type: 'string', demandOption: true }),
-            handler: theme.get,
-          })
-          .command<ThemeInitArgs>({
-            command: 'init',
-            describe: 'Fork a published theme into a file to edit',
-            // eslint-disable-next-line @typescript-eslint/no-shadow
-            builder: (yargs) =>
-              yargs
-                .option('from', {
+  return (
+    yargs(args)
+      .option('apiKey', {
+        alias: 'k',
+        default: process.env.APPSHELL_API_KEY || config.apiKey || '',
+        type: 'string',
+        description: 'Api key to use for appshell registry',
+        global: true,
+      })
+      .option('apiKeyHeader', {
+        default: process.env.APPSHELL_API_KEY_HEADER || config.apiKeyHeader || 'x-api-key',
+        type: 'string',
+        description: 'Header to send the registry api key in',
+        global: true,
+      })
+      .option('registry', {
+        alias: 'r',
+        describe: 'Appshell registry to operate against',
+        default: process.env.APPSHELL_REGISTRY || config.registry || 'http://localhost:7150',
+        type: 'string',
+        global: true,
+      })
+      .option('application', {
+        alias: 'a',
+        describe: "Application to operate against, as 'name' or 'scope/name'",
+        default: process.env.APPSHELL_APPLICATION || config.application,
+        type: 'string',
+        global: true,
+      })
+      .option('scopeId', {
+        describe: 'Scope that owns unqualified packages and applications',
+        default: process.env.APPSHELL_SCOPE_ID || config.scopeId || 'default',
+        type: 'string',
+        global: true,
+      })
+      .option('verbose', {
+        alias: 'v',
+        boolean: true,
+        default: false,
+        type: 'boolean',
+        description: 'Verbose output',
+        global: true,
+      })
+      .middleware((argv) => {
+        if (!argv.verbose) {
+          // eslint-disable-next-line no-console
+          console.debug = () => {};
+        }
+      })
+      .command({
+        command: 'generate [target]',
+        describe: 'Generates a resource',
+        handler: () => {},
+        // eslint-disable-next-line @typescript-eslint/no-shadow
+        builder: (yargs) => yargs.command(generateManifestCommand).demandCommand(),
+      })
+      .command({
+        command: 'config [target]',
+        describe: 'Configures the appshell cli',
+        handler: () => {},
+        // eslint-disable-next-line @typescript-eslint/no-shadow
+        builder: (yargs) =>
+          yargs
+            .command(initConfigCommand)
+            .command(listConfigCommand)
+            .command(setConfigCommand)
+            .demandCommand(),
+      })
+      .command({
+        command: 'theme <target>',
+        describe: 'Publish and browse themes in the appshell registry',
+        handler: () => {},
+        // eslint-disable-next-line @typescript-eslint/no-shadow
+        builder: (yargs) =>
+          yargs
+            .command<ThemeListArgs>({
+              command: 'list',
+              describe: 'List themes this scope may use: its own, plus every public one',
+              // eslint-disable-next-line @typescript-eslint/no-shadow
+              builder: (yargs) =>
+                yargs.option('scope', {
+                  type: 'string',
+                  description: 'List another scope instead of the configured one',
+                }),
+              handler: theme.list,
+            })
+            .command<ThemeGetArgs>({
+              command: 'get <ref>',
+              describe:
+                "Read a theme, values included. 'name', 'scope/name' or 'scope/name@version'",
+              // eslint-disable-next-line @typescript-eslint/no-shadow
+              builder: (yargs) => yargs.positional('ref', { type: 'string', demandOption: true }),
+              handler: theme.get,
+            })
+            .command<ThemeInitArgs>({
+              command: 'init',
+              describe: 'Fork a published theme into a file to edit',
+              // eslint-disable-next-line @typescript-eslint/no-shadow
+              builder: (yargs) =>
+                yargs
+                  .option('from', {
+                    type: 'string',
+                    demandOption: true,
+                    description: "Theme to fork, as 'scope/name@version'",
+                  })
+                  .option('name', {
+                    type: 'string',
+                    description: "Name for the new theme. Defaults to '<source>-fork'",
+                  })
+                  .option('out', {
+                    alias: 'o',
+                    type: 'string',
+                    description: 'Write to this file instead of stdout',
+                  }),
+              handler: theme.init,
+            })
+            .command<ThemePublishArgs>({
+              command: 'publish',
+              describe: 'Publish a theme from a file',
+              // eslint-disable-next-line @typescript-eslint/no-shadow
+              builder: (yargs) =>
+                yargs.option('file', {
+                  alias: 'f',
                   type: 'string',
                   demandOption: true,
-                  description: "Theme to fork, as 'scope/name@version'",
-                })
-                .option('name', {
-                  type: 'string',
-                  description: "Name for the new theme. Defaults to '<source>-fork'",
-                })
-                .option('out', {
-                  alias: 'o',
-                  type: 'string',
-                  description: 'Write to this file instead of stdout',
+                  description: 'Path to the theme resource to publish',
                 }),
-            handler: theme.init,
-          })
-          .command<ThemePublishArgs>({
-            command: 'publish',
-            describe: 'Publish a theme from a file',
-            // eslint-disable-next-line @typescript-eslint/no-shadow
-            builder: (yargs) =>
-              yargs.option('file', {
-                alias: 'f',
-                type: 'string',
-                demandOption: true,
-                description: 'Path to the theme resource to publish',
-              }),
-            handler: theme.publish,
-          })
-          .demandCommand(),
-    })
-    .command({
-      command: 'app <target>',
-      describe: 'Manage appshell applications',
-      handler: () => {},
-      // eslint-disable-next-line @typescript-eslint/no-shadow
-      builder: (yargs) =>
-        yargs
-          .command({
-            command: 'apply',
-            describe: 'Reconcile an application against a declared resource file',
-            // eslint-disable-next-line @typescript-eslint/no-shadow
-            builder: (yargs) =>
-              yargs.option('file', {
-                alias: 'f',
-                type: 'string',
-                demandOption: true,
-                requiresArg: true,
-                describe: 'Path to an application resource, as yaml or json',
-              }),
-            handler: app.apply as never,
-          })
-          .command({
-            command: 'list',
-            aliases: ['ls'],
-            describe: 'List applications',
-            // eslint-disable-next-line @typescript-eslint/no-shadow
-            builder: (yargs) =>
-              yargs.option('owner', { type: 'string', description: 'Filter by owner' }),
-            handler: app.list as never,
-          })
-          .command({
-            command: 'get [name]',
-            describe: 'Show a single application',
-            handler: app.get as never,
-          })
-          .command({
-            command: 'create <name>',
-            describe: 'Create an application',
-            // eslint-disable-next-line @typescript-eslint/no-shadow
-            builder: (yargs) =>
-              yargs
-                .positional('name', { type: 'string', demandOption: true })
-                .option('ephemeral', { boolean: true, default: false, type: 'boolean' })
-                .option('visibility', { type: 'string', choices: ['public', 'private'] as const })
-                .option('shell-bundle-url', {
-                  type: 'string',
-                  describe: 'Shell bundle this application loads, instead of the registry default',
-                }),
-            handler: app.create as never,
-          })
-          .command({
-            command: 'delete [name]',
-            aliases: ['rm'],
-            describe: 'Delete an application',
-            handler: app.remove as never,
-          })
-          .command({
-            command: 'deactivate <package>',
-            describe: "Remove a package from an application, as 'name' or 'scope/name'",
-            // eslint-disable-next-line @typescript-eslint/no-shadow
-            builder: (yargs) => yargs.positional('package', { type: 'string', demandOption: true }),
-            handler: app.deactivate as never,
-          })
-          .command({
-            command: 'revisions [name]',
-            describe: 'List an application revision history',
-            // eslint-disable-next-line @typescript-eslint/no-shadow
-            builder: (yargs) => yargs.option('limit', { type: 'number' }),
-            handler: app.revisions as never,
-          })
-          .command({
-            command: 'rollback [name]',
-            describe: 'Roll an application back to a previous revision',
-            // eslint-disable-next-line @typescript-eslint/no-shadow
-            builder: (yargs) =>
-              yargs.option('to', { type: 'number', demandOption: true, description: 'Revision' }),
-            handler: app.rollback as never,
-          })
-          .command({
-            command: 'composition [name]',
-            describe: 'Print the resolved composition for an application',
-            handler: app.composition as never,
-          })
-          .command({
-            command: 'open [name]',
-            describe: 'Print the shell url for an application',
-            handler: app.open as never,
-          })
-          .command({
-            command: 'sync',
-            describe: 'Sync a target application from a source application',
-            // eslint-disable-next-line @typescript-eslint/no-shadow
-            builder: (yargs) =>
-              yargs
-                .option('from', {
+              handler: theme.publish,
+            })
+            .demandCommand(),
+      })
+      .command({
+        command: 'app <target>',
+        describe: 'Manage appshell applications',
+        handler: () => {},
+        // eslint-disable-next-line @typescript-eslint/no-shadow
+        builder: (yargs) =>
+          yargs
+            .command({
+              command: 'apply',
+              describe: 'Reconcile an application against a declared resource file',
+              // eslint-disable-next-line @typescript-eslint/no-shadow
+              builder: (yargs) =>
+                yargs.option('file', {
+                  alias: 'f',
                   type: 'string',
                   demandOption: true,
-                  description: "Source application as 'name' or 'scope/name'",
-                })
-                .option('to', {
-                  type: 'string',
-                  description:
-                    "Target application as 'name' or 'scope/name'. Defaults to --application.",
-                })
-                .option('mode', {
-                  type: 'string',
-                  choices: ['replace', 'merge'] as const,
-                  default: 'replace',
-                  description: 'replace copies source fields verbatim, merge applies source values',
-                })
-                .option('include', {
-                  type: 'array',
-                  string: true,
-                  choices: [
-                    'packages',
-                    'shell',
-                    'overrides',
-                    'allowOverrides',
-                    'sharedBaselines',
-                    'sharedDepsEnforcement',
-                    'visibility',
-                  ] as const,
-                  description: 'Optional list of application sections to sync',
+                  requiresArg: true,
+                  describe: 'Path to an application resource, as yaml or json',
                 }),
-            handler: app.sync as never,
-          })
-          .command({
-            command: 'clone',
-            describe: 'Create a new application by cloning a source application',
-            // eslint-disable-next-line @typescript-eslint/no-shadow
-            builder: (yargs) =>
-              yargs
-                .option('from', {
-                  type: 'string',
-                  demandOption: true,
-                  description: "Source application as 'name' or 'scope/name'",
-                })
-                .option('to', {
-                  type: 'string',
-                  description:
-                    "Target application as 'name' or 'scope/name'. Defaults to --application.",
-                })
-                .option('visibility', {
-                  type: 'string',
-                  choices: ['public', 'private'] as const,
-                  description: 'Optional visibility override on the target application',
-                })
-                .option('ephemeral', {
-                  boolean: true,
-                  type: 'boolean',
-                  description: 'Optional ephemeral override on the target application',
-                }),
-            handler: app.clone as never,
-          })
-          .demandCommand(),
-    })
-    .command(devCommand)
-    .command(loginCommand)
-    .command(logoutCommand)
-    .command(publishCommand)
-    .command(unpublishCommand)
-    .command(outdatedCommand)
-    .version(cliVersion)
-    .help()
-    .alias('h', 'help');
+              handler: app.apply as never,
+            })
+            .command({
+              command: 'list',
+              aliases: ['ls'],
+              describe: 'List applications',
+              // eslint-disable-next-line @typescript-eslint/no-shadow
+              builder: (yargs) =>
+                yargs.option('owner', { type: 'string', description: 'Filter by owner' }),
+              handler: app.list as never,
+            })
+            .command({
+              command: 'get [name]',
+              describe: 'Show a single application',
+              handler: app.get as never,
+            })
+            .command({
+              command: 'create <name>',
+              describe: 'Create an application',
+              // eslint-disable-next-line @typescript-eslint/no-shadow
+              builder: (yargs) =>
+                yargs
+                  .positional('name', { type: 'string', demandOption: true })
+                  .option('ephemeral', { boolean: true, default: false, type: 'boolean' })
+                  .option('visibility', { type: 'string', choices: ['public', 'private'] as const })
+                  .option('shell-bundle-url', {
+                    type: 'string',
+                    describe:
+                      'Shell bundle this application loads, instead of the registry default',
+                  }),
+              handler: app.create as never,
+            })
+            .command({
+              command: 'delete [name]',
+              aliases: ['rm'],
+              describe: 'Delete an application',
+              handler: app.remove as never,
+            })
+            .command({
+              command: 'deactivate <package>',
+              describe: "Remove a package from an application, as 'name' or 'scope/name'",
+              // eslint-disable-next-line @typescript-eslint/no-shadow
+              builder: (yargs) =>
+                yargs.positional('package', { type: 'string', demandOption: true }),
+              handler: app.deactivate as never,
+            })
+            .command({
+              command: 'revisions [name]',
+              describe: 'List an application revision history',
+              // eslint-disable-next-line @typescript-eslint/no-shadow
+              builder: (yargs) => yargs.option('limit', { type: 'number' }),
+              handler: app.revisions as never,
+            })
+            .command({
+              command: 'rollback [name]',
+              describe: 'Roll an application back to a previous revision',
+              // eslint-disable-next-line @typescript-eslint/no-shadow
+              builder: (yargs) =>
+                yargs.option('to', { type: 'number', demandOption: true, description: 'Revision' }),
+              handler: app.rollback as never,
+            })
+            .command({
+              command: 'composition [name]',
+              describe: 'Print the resolved composition for an application',
+              handler: app.composition as never,
+            })
+            .command({
+              command: 'open [name]',
+              describe: 'Print the shell url for an application',
+              handler: app.open as never,
+            })
+            .command({
+              command: 'sync',
+              describe: 'Sync a target application from a source application',
+              // eslint-disable-next-line @typescript-eslint/no-shadow
+              builder: (yargs) =>
+                yargs
+                  .option('from', {
+                    type: 'string',
+                    demandOption: true,
+                    description: "Source application as 'name' or 'scope/name'",
+                  })
+                  .option('to', {
+                    type: 'string',
+                    description:
+                      "Target application as 'name' or 'scope/name'. Defaults to --application.",
+                  })
+                  .option('mode', {
+                    type: 'string',
+                    choices: ['replace', 'merge'] as const,
+                    default: 'replace',
+                    description:
+                      'replace copies source fields verbatim, merge applies source values',
+                  })
+                  .option('include', {
+                    type: 'array',
+                    string: true,
+                    choices: [
+                      'packages',
+                      'shell',
+                      'overrides',
+                      'allowOverrides',
+                      'sharedBaselines',
+                      'sharedDepsEnforcement',
+                      'visibility',
+                    ] as const,
+                    description: 'Optional list of application sections to sync',
+                  }),
+              handler: app.sync as never,
+            })
+            .command({
+              command: 'clone',
+              describe: 'Create a new application by cloning a source application',
+              // eslint-disable-next-line @typescript-eslint/no-shadow
+              builder: (yargs) =>
+                yargs
+                  .option('from', {
+                    type: 'string',
+                    demandOption: true,
+                    description: "Source application as 'name' or 'scope/name'",
+                  })
+                  .option('to', {
+                    type: 'string',
+                    description:
+                      "Target application as 'name' or 'scope/name'. Defaults to --application.",
+                  })
+                  .option('visibility', {
+                    type: 'string',
+                    choices: ['public', 'private'] as const,
+                    description: 'Optional visibility override on the target application',
+                  })
+                  .option('ephemeral', {
+                    boolean: true,
+                    type: 'boolean',
+                    description: 'Optional ephemeral override on the target application',
+                  }),
+              handler: app.clone as never,
+            })
+            .demandCommand(),
+      })
+      .command(devCommand)
+      .command(loginCommand)
+      .command(logoutCommand)
+      .command(publishCommand)
+      .command(unpublishCommand)
+      .command(outdatedCommand)
+      .version(cliVersion)
+      .help()
+      .alias('h', 'help')
+      /*
+       * Without these, `appshell nonsens` printed nothing and exited 0, so a typo in a
+       * script read as success. Every subcommand group already demands one; the top level
+       * was the one that did not.
+       *
+       * `strictCommands` rather than `strict`: unknown *options* stay tolerated, because
+       * global flags are added over time and rejecting them would break callers who pass a
+       * newer flag to an older CLI. An unknown command has no such excuse.
+       */
+      .demandCommand(1, 'Specify a command. Run `appshell --help` to see them.')
+      .strictCommands()
+  );
 };
 
 export default buildCli;
