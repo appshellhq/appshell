@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.34](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.33...v1.0.0-alpha.34) (2026-09-03)
+
+### Bug Fixes
+
+- **cli:** declare theme on the create-overlay response ([acf4787](https://github.com/appshellhq/appshell/commit/acf478784f4ad88e5bb439a3dd05ad7a1c22b8fe))
+- **cli:** report the theme dev start applied ([71e39a7](https://github.com/appshellhq/appshell/commit/71e39a752e0a9e79e7a3ff941d2c8ce63e385346))
+
 # [1.0.0-alpha.33](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.32...v1.0.0-alpha.33) (2026-09-03)
 
 ### Bug Fixes
