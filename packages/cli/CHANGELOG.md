@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.35](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.34...v1.0.0-alpha.35) (2026-09-03)
+
+### Bug Fixes
+
+- **cli:** refuse an unknown command instead of exiting 0 ([96f2ab9](https://github.com/appshellhq/appshell/commit/96f2ab9b8c7c9cabb4c6208eaaf54df7f2cc28cc))
+
 # [1.0.0-alpha.34](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.33...v1.0.0-alpha.34) (2026-09-03)
 
 ### Bug Fixes
