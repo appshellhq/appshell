@@ -35,6 +35,11 @@ module.exports = (env, { mode }) => {
     // plugins: [isDevelopment && new Visualizer()].filter(Boolean),
     externals: {
       react: 'react',
+      // The automatic JSX runtime resolves these rather than reaching for `React`, so
+      // they need externalising alongside it — otherwise this library imports React from
+      // the host while bundling its own copy of the element factory.
+      'react/jsx-runtime': 'react/jsx-runtime',
+      'react/jsx-dev-runtime': 'react/jsx-dev-runtime',
       'react-dom': 'reactDOM',
     },
   };
