@@ -1,6 +1,10 @@
 /** @jest-environment jsdom */
 import type { AppshellComposition } from '@appshell/config';
-import mountOverlayBadge, { overlayBadgeMarkup } from '../src/overlayBadge';
+import mountOverlayBadge, {
+  OVERLAY_EFFECTS,
+  overlayBadgeMarkup,
+  type OverlayEffect,
+} from '../src/overlayBadge';
 
 const compositionWith = (overlay?: AppshellComposition['overlay']): AppshellComposition =>
   ({
@@ -18,17 +22,23 @@ const badge = () => document.getElementById('appshell-overlay-badge');
 
 describe('overlayBadgeMarkup', () => {
   it('should pluralise the count', () => {
-    expect(overlayBadgeMarkup(['A/One'])).toContain('1 remote redirected');
-    expect(overlayBadgeMarkup(['A/One', 'B/Two'])).toContain('2 remotes redirected');
+    expect(overlayBadgeMarkup({ id: 'o1', remotes: ['A/One'] })).toContain('1 remote redirected');
+    expect(overlayBadgeMarkup({ id: 'o1', remotes: ['A/One', 'B/Two'] })).toContain(
+      '2 remotes redirected',
+    );
   });
 
   it('should name the development shell, which is a change the page cannot otherwise show', () => {
-    expect(overlayBadgeMarkup([], 'dev')).toContain('development shell');
-    expect(overlayBadgeMarkup(['A/One'], 'prod')).not.toContain('development shell');
+    expect(overlayBadgeMarkup({ id: 'o1', remotes: [], shellFlavor: 'dev' })).toContain(
+      'development shell',
+    );
+    expect(overlayBadgeMarkup({ id: 'o1', remotes: ['A/One'], shellFlavor: 'prod' })).not.toContain(
+      'development shell',
+    );
   });
 
   it('should list both changes when an overlay made both', () => {
-    expect(overlayBadgeMarkup(['A/One'], 'dev')).toContain(
+    expect(overlayBadgeMarkup({ id: 'o1', remotes: ['A/One'], shellFlavor: 'dev' })).toContain(
       'development shell, 1 remote redirected',
     );
   });
@@ -39,28 +49,42 @@ describe('overlayBadgeMarkup', () => {
    * difference is the thing you are staring at helps nobody.
    */
   it('should name the theme an overlay substituted', () => {
-    expect(overlayBadgeMarkup([], 'prod', 'acme/brand@1.0.0')).toContain('theme acme/brand@1.0.0');
+    expect(
+      overlayBadgeMarkup({ id: 'o1', remotes: [], shellFlavor: 'prod', theme: 'acme/brand@1.0.0' }),
+    ).toContain('theme acme/brand@1.0.0');
   });
 
   it('should say nothing about a theme when the overlay did not change one', () => {
-    expect(overlayBadgeMarkup(['A/One'], 'prod')).not.toContain('theme');
-  });
-
-  it('should list a theme alongside the other changes', () => {
-    expect(overlayBadgeMarkup(['A/One'], 'dev', 'acme/brand@1.0.0')).toContain(
-      'development shell, 1 remote redirected, theme acme/brand@1.0.0',
+    expect(overlayBadgeMarkup({ id: 'o1', remotes: ['A/One'], shellFlavor: 'prod' })).not.toContain(
+      'theme',
     );
   });
 
+  it('should list a theme alongside the other changes', () => {
+    expect(
+      overlayBadgeMarkup({
+        id: 'o1',
+        remotes: ['A/One'],
+        shellFlavor: 'dev',
+        theme: 'acme/brand@1.0.0',
+      }),
+    ).toContain('development shell, 1 remote redirected, theme acme/brand@1.0.0');
+  });
+
   it('should escape a theme ref for the same reason it escapes a remote key', () => {
-    const markup = overlayBadgeMarkup([], 'prod', '<img src=x onerror=alert(1)>');
+    const markup = overlayBadgeMarkup({
+      id: 'o1',
+      remotes: [],
+      shellFlavor: 'prod',
+      theme: '<img src=x onerror=alert(1)>',
+    });
 
     expect(markup).not.toContain('<img');
     expect(markup).toContain('&lt;img');
   });
 
   it('should escape a remote key rather than trusting where it came from', () => {
-    const markup = overlayBadgeMarkup(['<img src=x onerror=alert(1)>']);
+    const markup = overlayBadgeMarkup({ id: 'o1', remotes: ['<img src=x onerror=alert(1)>'] });
 
     expect(markup).not.toContain('<img');
     expect(markup).toContain('&lt;img');
@@ -134,5 +158,43 @@ describe('mountOverlayBadge', () => {
     mountOverlayBadge(composition);
 
     expect(document.querySelectorAll('#appshell-overlay-badge')).toHaveLength(1);
+  });
+});
+
+/*
+ * Generated from OVERLAY_EFFECTS rather than written out, so the badge cannot fall behind
+ * the overlay. This is the surface where the omission was first found: it listed remotes
+ * and shell flavour, and a theme-only overlay produced a badge naming nothing that had
+ * changed.
+ *
+ * Two stages, and only the first is a compile error. Adding a field to the composition's
+ * overlay fails to compile until it is classified as an effect or as identity, because
+ * that check lives in src, which is typechecked. Classifying it as an effect then makes
+ * `it.each` iterate a key this Record has no entry for, and the case fails — at test time,
+ * since spec files are not in the typecheck include.
+ */
+describe('every effect an overlay carries', () => {
+  const carrying: Record<
+    OverlayEffect,
+    { only: NonNullable<AppshellComposition['overlay']>; mentions: RegExp }
+  > = {
+    remotes: {
+      only: { id: 'o1', remotes: ['PongModule/Pong'], shellFlavor: 'prod' },
+      mentions: /1 remote redirected/,
+    },
+    shellFlavor: {
+      only: { id: 'o1', remotes: [], shellFlavor: 'dev' },
+      mentions: /development shell/,
+    },
+    theme: {
+      only: { id: 'o1', remotes: [], shellFlavor: 'prod', theme: 'acme/brand@2.0.0' },
+      mentions: /theme acme\/brand@2\.0\.0/,
+    },
+  };
+
+  it.each(OVERLAY_EFFECTS)('should be named on the badge when only %s is set', (effect) => {
+    const { only, mentions } = carrying[effect];
+
+    expect(overlayBadgeMarkup(only)).toMatch(mentions);
   });
 });

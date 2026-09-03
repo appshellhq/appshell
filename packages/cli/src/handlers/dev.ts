@@ -7,6 +7,7 @@ import { identify } from '../util/identity';
 import {
   CreateOverlayBody,
   OpenOverlay,
+  OverlayEffect,
   OverlayRemoteBody,
   parseApplication,
   RegistryClient,
@@ -218,7 +219,14 @@ export const themeInput = (value: string) => {
   return { base, accent };
 };
 
-const describeOverlay = (overlay: OpenOverlay) =>
+/*
+ * Both describers take exactly the effects, not a whole overlay. `start` holds a
+ * CreatedOverlay and `status` an OpenOverlay; what they have in common is the only thing
+ * either is describing.
+ */
+export type OverlayEffects = Pick<OpenOverlay, OverlayEffect>;
+
+export const describeOverlay = (overlay: OverlayEffects) =>
   [
     overlay.shellFlavor === 'dev' && 'development shell',
     overlay.remotes.length && `${overlay.remotes.length} redirected`,
@@ -228,6 +236,37 @@ const describeOverlay = (overlay: OpenOverlay) =>
   ]
     .filter(Boolean)
     .join(', ') || 'no changes';
+
+/**
+ * What `dev start` says the overlay does, as lines.
+ *
+ * Extracted so it can be checked against OVERLAY_EFFECTS the way the other surfaces are.
+ * Inline console.log calls are why this one was the last to learn about themes: there was
+ * nothing to assert on short of capturing stdout.
+ *
+ * Reports `overlay.shellFlavor` rather than the flag that asked for it, since the registry
+ * echoes back what is actually in effect — which may have come from an earlier run.
+ */
+export const effectLines = (
+  overlay: OverlayEffects,
+  redirected: Record<string, OverlayRemoteBody>,
+): string[] => {
+  const carried = overlay.remotes.filter((key) => !redirected[key]);
+
+  return [
+    ...Object.entries(redirected).map(
+      ([key, remote]) => `  ${key} ${chalk.dim('->')} ${remote.remoteEntryUrl}`,
+    ),
+    ...carried.map((key) => `  ${key} ${chalk.dim('-> still redirected from an earlier run')}`),
+    !overlay.remotes.length &&
+      chalk.dim('  no remotes redirected (pass --port to point this package at your dev server)'),
+    overlay.shellFlavor === 'dev' &&
+      `  ${chalk.dim('shell')} ${chalk.dim('->')} development bundle`,
+    // The registry pins whichever form `--theme` took, so this reports the ref that was
+    // actually resolved rather than echoing back what was typed.
+    overlay.theme && `  ${chalk.dim('theme')} ${chalk.dim('->')} ${overlay.theme}`,
+  ].filter((line): line is string => Boolean(line));
+};
 
 export const start = async (argv: DevStartArgs) => {
   const { scopeId, name } = target(argv);
@@ -258,20 +297,7 @@ export const start = async (argv: DevStartArgs) => {
   console.log(
     chalk.green(`\nOverlay ${carried.length ? 'extended' : 'opened'} on ${scopeId}/${name}`),
   );
-  Object.entries(remotes).forEach(([key, remote]) => {
-    console.log(`  ${key} ${chalk.dim('->')} ${remote.remoteEntryUrl}`);
-  });
-  carried.forEach((key) => {
-    console.log(`  ${key} ${chalk.dim('-> still redirected from an earlier run')}`);
-  });
-  if (!overlay.remotes.length) {
-    console.log(
-      chalk.dim('  no remotes redirected (pass --port to point this package at your dev server)'),
-    );
-  }
-  if (argv.shell === 'dev') {
-    console.log(`  ${chalk.dim('shell')} ${chalk.dim('->')} development bundle`);
-  }
+  effectLines(overlay, remotes).forEach((line) => console.log(line));
   // The registry pins whichever form `--theme` took, so this reports the ref that was
   // actually resolved rather than echoing back what was typed. Reporting it at all is the
   // point: a theme-only overlay otherwise printed nothing but "no remotes redirected",

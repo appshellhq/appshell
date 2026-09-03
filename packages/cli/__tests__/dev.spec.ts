@@ -1,5 +1,6 @@
-import { hintedOrigin } from '../src/handlers/dev';
+import { describeOverlay, effectLines, hintedOrigin, OverlayEffects } from '../src/handlers/dev';
 import { DevHint } from '../src/util/devHint';
+import { OVERLAY_EFFECTS, OverlayEffect } from '../src/util/registry';
 
 const HINT: DevHint = {
   version: 1,
@@ -74,5 +75,63 @@ describe('hintedOrigin', () => {
     withFetch(respond({ remotes: { 'PingModule/Ping': {} } }));
 
     await expect(hintedOrigin(HINT, ['PongModule/Pong'], 'default/pong')).rejects.toThrow(/--port/);
+  });
+});
+
+/*
+ * Generated from OVERLAY_EFFECTS rather than written out, so neither describer can fall
+ * behind the overlay shape. Both omitted the theme when it was added; `dev start`'s output
+ * was the last to be fixed, because inline console.log calls left nothing to assert on.
+ *
+ * Two stages, and only the first is a compile error. Adding a field to OpenOverlay fails
+ * to compile until it is classified as an effect or as identity, because that check lives
+ * in src, which is typechecked. Classifying it as an effect then makes `it.each` iterate a
+ * key these Records have no entry for, and both cases fail — at test time, since spec files
+ * are not in the typecheck include. Enough to stop a surface drifting, and worth stating
+ * accurately rather than claiming the types catch more than they do.
+ *
+ * The expectations are per surface on purpose. `status` prints a one-line summary and
+ * counts redirected remotes; `start` lists them by name with their targets. Both report
+ * the effect; neither is wrong; a single shared assertion would have to pick one idiom and
+ * call the other a failure.
+ */
+describe('every effect an overlay carries', () => {
+  const only: Record<OverlayEffect, OverlayEffects> = {
+    remotes: { remotes: ['PongModule/Pong'], shellFlavor: 'prod' },
+    shellFlavor: { remotes: [], shellFlavor: 'dev' },
+    theme: { remotes: [], shellFlavor: 'prod', theme: 'acme/brand@2.0.0' },
+  };
+
+  const inStatus: Record<OverlayEffect, RegExp> = {
+    remotes: /1 redirected/,
+    shellFlavor: /development shell/,
+    theme: /acme\/brand@2\.0\.0/,
+  };
+
+  const inStart: Record<OverlayEffect, RegExp> = {
+    remotes: /PongModule\/Pong/,
+    shellFlavor: /development bundle/,
+    theme: /acme\/brand@2\.0\.0/,
+  };
+
+  it.each(OVERLAY_EFFECTS)('should be described by dev status when only %s is set', (effect) => {
+    expect(describeOverlay(only[effect])).toMatch(inStatus[effect]);
+  });
+
+  it.each(OVERLAY_EFFECTS)('should be reported by dev start when only %s is set', (effect) => {
+    const redirected = Object.fromEntries(
+      only[effect].remotes.map((key) => [
+        key,
+        { remoteEntryUrl: `http://localhost:3002/${key}.js` },
+      ]),
+    );
+
+    expect(effectLines(only[effect], redirected).join('\n')).toMatch(inStart[effect]);
+  });
+
+  // Not "no changes": that is what a theme-only overlay used to report while having
+  // changed what the entire page looks like.
+  it('should say so only when there is genuinely nothing', () => {
+    expect(describeOverlay({ remotes: [], shellFlavor: 'prod' })).toBe('no changes');
   });
 });

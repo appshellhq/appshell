@@ -14,6 +14,12 @@ import type { AppshellComposition } from '@appshell/config';
  * stylesheet of its own would be one more thing for them to override.
  */
 
+/**
+ * The overlay as the composition carries it. Derived rather than restated, so the badge is
+ * typed by what the registry actually sends.
+ */
+type OverlayEffects = NonNullable<AppshellComposition['overlay']>;
+
 const CONTAINER_ID = 'appshell-overlay-badge';
 
 const styles = {
@@ -37,11 +43,41 @@ const styles = {
 
 const escape = (value: string) => value.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 
-export const overlayBadgeMarkup = (
-  remotes: string[],
-  shellFlavor: 'prod' | 'dev' = 'prod',
-  theme?: string,
-): string => {
+/** Which overlay this is, as opposed to what it does. Nothing here changes the page. */
+type OverlayIdentity = 'id';
+
+/** A field that changes what the developer sees, and so has to appear on the badge. */
+export type OverlayEffect = Exclude<keyof OverlayEffects, OverlayIdentity>;
+
+/**
+ * The effects, enumerated so the badge can be checked against them.
+ *
+ * The badge is where this was first missed: it listed remotes and shell flavour, and a
+ * theme-only overlay produced a badge naming nothing that had changed. Two other surfaces
+ * had the same omission independently.
+ *
+ * The registry and the CLI each keep their own list against their own type — the three
+ * share no code, and each is checked against the shape it actually renders, so none can
+ * drift quietly from the surface it guards.
+ */
+export const OVERLAY_EFFECTS = ['remotes', 'shellFlavor', 'theme'] as const;
+
+/*
+ * Adding a field to the composition's overlay now forces a decision here: name it as an
+ * effect or as identity. Leaving it unclassified fails to compile, before any test runs.
+ */
+type Unclassified = Exclude<OverlayEffect, (typeof OVERLAY_EFFECTS)[number]>;
+type EveryEffectIsListed = Unclassified extends never ? true : 'unclassified overlay field';
+export const OVERLAY_EFFECTS_ARE_EXHAUSTIVE: EveryEffectIsListed = true;
+
+/*
+ * Takes the overlay rather than three of its fields. Splatting them at the call site is
+ * how the theme came to be dropped: the caller had it and simply did not pass it, and
+ * nothing said so. Passing the object means a field the overlay gains is a field this
+ * function is handed.
+ */
+export const overlayBadgeMarkup = (overlay: OverlayEffects): string => {
+  const { remotes = [], shellFlavor = 'prod', theme } = overlay;
   const changes = [
     shellFlavor === 'dev' && 'development shell',
     remotes.length && `${remotes.length} remote${remotes.length === 1 ? '' : 's'} redirected`,
@@ -74,11 +110,7 @@ export default (composition?: AppshellComposition): void => {
 
   const container = document.createElement('div');
   container.id = CONTAINER_ID;
-  container.innerHTML = overlayBadgeMarkup(
-    overlay.remotes ?? [],
-    overlay.shellFlavor,
-    overlay.theme,
-  );
+  container.innerHTML = overlayBadgeMarkup(overlay);
 
   document.body.appendChild(container);
 };

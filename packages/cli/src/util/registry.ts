@@ -92,6 +92,38 @@ export type OpenOverlay = {
   confirmUrl: string;
 };
 
+/** Which overlay this is, as opposed to what it does. Nothing here changes the page. */
+type OverlayIdentity = 'id' | 'owner' | 'createdAt' | 'expiresAt' | 'confirmUrl';
+
+/** A field that changes what the developer sees, and so must be reported wherever an
+ * overlay is described. */
+export type OverlayEffect = Exclude<keyof OpenOverlay, OverlayIdentity>;
+
+/**
+ * The effects, enumerated so the surfaces that describe an overlay can be checked against
+ * them rather than trusted to keep up.
+ *
+ * A theme was added to the overlay and three separate surfaces went on not mentioning it —
+ * the badge, the registry's confirmation page, and `dev start`'s own output. Each omission
+ * shipped. The failure is silent and always the same: the thing you asked for is the one
+ * thing not reported, which reads as the feature not working.
+ *
+ * The registry keeps its own copy of this list against its own type, because the two
+ * repos share no code. Each is checked against the shape it actually renders, so neither
+ * can drift quietly.
+ */
+export const OVERLAY_EFFECTS = ['remotes', 'shellFlavor', 'theme'] as const;
+
+/*
+ * Adding a field to OpenOverlay now forces a decision: name it as an effect or as
+ * identity. Leaving it unclassified fails to compile, before any test runs — which
+ * matters because the tests are generated from this list, so a field missing from it is a
+ * field nothing checks.
+ */
+type Unclassified = Exclude<OverlayEffect, (typeof OVERLAY_EFFECTS)[number]>;
+type EveryEffectIsListed = Unclassified extends never ? true : 'unclassified overlay field';
+export const OVERLAY_EFFECTS_ARE_EXHAUSTIVE: EveryEffectIsListed = true;
+
 export type CreateApplicationBody = {
   name: string;
   visibility?: 'public' | 'private';
