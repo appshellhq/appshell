@@ -1,6 +1,6 @@
 {
   "name": "@appshell/tokens",
-  "version": "1.0.0-alpha.36",
+  "version": "1.0.0-alpha.37",
   "description": "The Appshell design token contract, its presets, and contrast validation",
   "main": "dist/main.js",
   "types": "dist/types/index.d.ts",

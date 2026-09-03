@@ -1,6 +1,6 @@
 {
   "name": "@appshell/webpack-plugin",
-  "version": "1.0.0-alpha.36",
+  "version": "1.0.0-alpha.37",
   "description": "Webpack plugin used to generate a global Appshell configuration for micro-frontends built with Module Federation",
   "main": "dist/main.js",
   "types": "dist/types/webpack-plugin/src/index.d.ts",
@@ -34,6 +34,6 @@
   "license": "MIT",
   "gitHead": "e8105f3c5eeb4aec8e3f0e06b151d0a0ef394d12",
   "dependencies": {
-    "@appshell/tokens": "^1.0.0-alpha.36"
+    "@appshell/tokens": "^1.0.0-alpha.37"
   }
 }

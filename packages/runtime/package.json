@@ -1,6 +1,6 @@
 {
   "name": "@appshell/runtime",
-  "version": "1.0.0-alpha.36",
+  "version": "1.0.0-alpha.37",
   "description": "The shared singleton that delivers a package's runtime configuration to it",
   "main": "dist/main.js",
   "types": "dist/types/index.d.ts",

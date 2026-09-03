@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.37](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.36...v1.0.0-alpha.37) (2026-09-03)
+
+### Bug Fixes
+
+- **examples:** set globalObject so the components bundle loads outside a browser ([adf7705](https://github.com/appshellhq/appshell/commit/adf7705084ecf3689260672d8563c276fa669819))
+
 # [1.0.0-alpha.36](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.35...v1.0.0-alpha.36) (2026-09-03)
 
 ### Bug Fixes
