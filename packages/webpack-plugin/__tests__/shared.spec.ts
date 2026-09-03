@@ -18,7 +18,27 @@ describe('appshellShared', () => {
       '@appshell/react',
       'react',
       'react-dom',
+      'react/jsx-runtime',
+      'react/jsx-dev-runtime',
     ]);
+  });
+
+  /*
+   * Federation matches share keys exactly, so `react` does not cover `react/jsx-runtime`.
+   * Under the automatic JSX runtime every .tsx file resolves it, so omitting it gives each
+   * remote its own copy of the element factory while React itself is a singleton — the
+   * same subpath trap `@appshell/runtime` fell into.
+   */
+  it('should share the jsx runtime, which the react key does not cover', () => {
+    const shared = appshellShared({ react: true, dependencies: { react: '18.2.0' } });
+
+    // Pinned to react's range: these ship inside it and cannot be depended on separately.
+    expect(shared['react/jsx-runtime']).toEqual({ singleton: true, requiredVersion: '18.2.0' });
+    expect(shared['react/jsx-dev-runtime']).toEqual({ singleton: true, requiredVersion: '18.2.0' });
+  });
+
+  it('should leave the jsx runtime out when react is not shared', () => {
+    expect(Object.keys(appshellShared())).not.toContain('react/jsx-runtime');
   });
 
   it('should pin a version when the dependency is named', () => {

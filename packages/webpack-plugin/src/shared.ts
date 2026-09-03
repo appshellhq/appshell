@@ -15,6 +15,20 @@ const REACT_BINDINGS = '@appshell/react';
 
 const REACT = ['react', 'react-dom'];
 
+/**
+ * The automatic JSX runtime, which every `.tsx` file now resolves instead of reaching for
+ * `React`.
+ *
+ * Shared explicitly because federation matches share keys exactly: `react` does not cover
+ * `react/jsx-runtime`, so leaving it out gives every remote its own copy of the element
+ * factory while React itself is a singleton. The same subpath trap `@appshell/runtime`
+ * fell into.
+ *
+ * Pinned to whatever range the package declares for `react`, since these ship inside it
+ * and cannot be depended on separately.
+ */
+const REACT_JSX = ['react/jsx-runtime', 'react/jsx-dev-runtime'];
+
 export type AppshellSharedOptions = {
   /** Include the React bindings and React itself. */
   react?: boolean;
@@ -60,9 +74,21 @@ export const appshellShared = ({
       : { singleton: true };
 
   const names = [RUNTIME, ...(react ? [REACT_BINDINGS, ...REACT] : [])];
+  const jsx = react
+    ? REACT_JSX.reduce<SharedObject>(
+        (acc, name) => ({
+          ...acc,
+          [name]: dependencies.react
+            ? { singleton: true, requiredVersion: dependencies.react }
+            : { singleton: true },
+        }),
+        {},
+      )
+    : {};
 
   return {
     ...names.reduce<SharedObject>((acc, name) => ({ ...acc, [name]: singleton(name) }), {}),
+    ...jsx,
     ...extra,
   };
 };
