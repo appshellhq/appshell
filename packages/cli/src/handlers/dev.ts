@@ -272,6 +272,13 @@ export const start = async (argv: DevStartArgs) => {
   if (argv.shell === 'dev') {
     console.log(`  ${chalk.dim('shell')} ${chalk.dim('->')} development bundle`);
   }
+  // The registry pins whichever form `--theme` took, so this reports the ref that was
+  // actually resolved rather than echoing back what was typed. Reporting it at all is the
+  // point: a theme-only overlay otherwise printed nothing but "no remotes redirected",
+  // which reads as having done nothing.
+  if (overlay.theme) {
+    console.log(`  ${chalk.dim('theme')} ${chalk.dim('->')} ${overlay.theme}`);
+  }
 
   // Nothing is applied until a browser confirms: the cookie has to land in the user
   // agent that will load the shell, and this one is a terminal.
