@@ -1,6 +1,5 @@
 import { RemoteProvider } from '@appshell/react';
 import { render, screen } from '@testing-library/react';
-import React from 'react';
 import Pong from '../Pong';
 import manifest from './test.manifest.json';
 

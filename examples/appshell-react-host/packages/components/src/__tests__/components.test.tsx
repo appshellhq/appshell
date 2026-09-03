@@ -1,6 +1,5 @@
 import type { AppshellRemote } from '@appshell/react';
 import { render, screen } from '@testing-library/react';
-import React from 'react';
 import { AppShowcase, PackageBlock, Remote } from '../index';
 
 describe('PackageBlock', () => {

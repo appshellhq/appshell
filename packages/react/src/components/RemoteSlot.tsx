@@ -1,6 +1,6 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import remoteLoader from '@appshell/loader';
-import React, { ComponentType, ReactElement, ReactNode, useEffect, useState } from 'react';
+import { ComponentType, ReactElement, ReactNode, useEffect, useState } from 'react';
 import { RemoteProvider } from '../contexts/RemoteContext';
 import LoadingError from './LoadingError';
 

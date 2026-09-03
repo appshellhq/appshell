@@ -2,7 +2,6 @@
 import { AppshellRemote } from '@appshell/config';
 import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
-import React from 'react';
 import { RemoteProvider } from '../src/contexts/RemoteContext';
 import useRemote from '../src/hooks/useRemote';
 

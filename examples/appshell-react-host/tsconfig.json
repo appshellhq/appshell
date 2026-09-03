@@ -7,11 +7,8 @@
     "declarationMap": true,
     "emitDeclarationOnly": false,
     "esModuleInterop": true,
-    "lib": [
-      "esnext",
-      "dom"
-    ],
-    "jsx": "react",
+    "lib": ["esnext", "dom"],
+    "jsx": "react-jsx",
     "module": "commonjs",
     "moduleResolution": "node",
     "resolveJsonModule": true,
@@ -25,13 +22,6 @@
     // the two disagree about ReactNode, so every JSX component fails TS2786.
     "preserveSymlinks": true
   },
-  "include": [
-    "./apps/*/src",
-    "./packages/*/src"
-  ],
-  "exclude": [
-    "./apps/*/dist",
-    "./apps/*/src/__tests__",
-    "node_modules"
-  ]
+  "include": ["./apps/*/src", "./packages/*/src"],
+  "exclude": ["./apps/*/dist", "./apps/*/src/__tests__", "node_modules"]
 }

@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { FC, SVGProps } from 'react';
+import { FC, SVGProps } from 'react';
 
 /**
  * SVGs are compiled to React components by @svgr/webpack, so a test importing one needs

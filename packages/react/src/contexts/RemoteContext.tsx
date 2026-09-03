@@ -1,6 +1,6 @@
 import { AppshellRemote } from '@appshell/config';
 import type { FC, ReactNode } from 'react';
-import React, { createContext } from 'react';
+import { createContext } from 'react';
 
 interface RemoteProviderProps {
   remote?: AppshellRemote;

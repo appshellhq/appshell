@@ -1,7 +1,4 @@
-// `React` is used implicitly: babel and tsc are both on the classic JSX runtime here, so
-// the emitted code calls React.createElement and an editor that removes this import as
-// unused produces a bundle that throws at runtime.
-import React, { FC, ReactNode } from 'react';
+import { FC, ReactNode } from 'react';
 
 type AppShowcaseProps = {
   header: ReactNode | string;

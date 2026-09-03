@@ -1,5 +1,4 @@
 import { act, render, screen } from '@testing-library/react';
-import React from 'react';
 import Container from '../Container';
 
 // Vars carry configuration, not appearance — colour reaches this package through the
@@ -8,10 +7,7 @@ jest.mock('../env', () => ({
   SUPPORT_URL: 'https://support.example.com',
 }));
 
-const renderContainer = () =>
-  act(() =>
-    render(<Container />),
-  );
+const renderContainer = () => act(() => render(<Container />));
 
 test('should match snapshot', async () => {
   const { container } = await renderContainer();

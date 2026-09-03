@@ -1,5 +1,4 @@
 import { RemoteSlot } from '@appshell/react';
-import React from 'react';
 import { PackageBlock } from 'react-appshell-host-components';
 import pkg from '../package.json';
 import AppshellLogo from './assets/appshell-logo.svg';
@@ -45,7 +44,12 @@ const Container = () => (
           <AppshellLogo className={LOGO} role="img" aria-label="Appshell" />
         </a>
         <div className="flex select-none self-center text-h1 after:content-['+']" />
-        <a className={LINK} href="https://webpack.js.org/" target="_blank" rel="noopener noreferrer">
+        <a
+          className={LINK}
+          href="https://webpack.js.org/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           <WebpackLogo className={LOGO} role="img" aria-label="Webpack" />
         </a>
       </div>

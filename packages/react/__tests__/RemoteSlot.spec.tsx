@@ -2,7 +2,6 @@
 import * as remoteLoader from '@appshell/loader';
 import '@testing-library/jest-dom';
 import { act, render, screen } from '@testing-library/react';
-import React from 'react';
 import RemoteSlot from '../src/components/RemoteSlot';
 import manifest from './fixtures/Manifest';
 import TestComponent from './fixtures/TestComponent';
@@ -11,7 +10,12 @@ const TestFallback = () => <div>loading...</div>;
 
 describe('RemoteSlot', () => {
   it('should match snapshot', async () => {
-    jest.spyOn(remoteLoader, 'default').mockReturnValueOnce(async () => [TestComponent, manifest.remotes['TestModule/TestComponent']]);
+    jest
+      .spyOn(remoteLoader, 'default')
+      .mockReturnValueOnce(async () => [
+        TestComponent,
+        manifest.remotes['TestModule/TestComponent'],
+      ]);
 
     const { container, findByText } = await act(() =>
       render(<RemoteSlot remote="TestModule/TestComponent" />),

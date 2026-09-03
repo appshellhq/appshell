@@ -12,6 +12,12 @@ module.exports = {
     'airbnb/hooks',
     'eslint:recommended',
     'plugin:react/recommended',
+    // Turns off react-in-jsx-scope and jsx-uses-react. Both encode the classic runtime,
+    // where JSX compiled to React.createElement and every file needed React in scope.
+    // Under the automatic runtime the compiler imports what it needs, so requiring the
+    // import is not merely unnecessary — it reinstates the thing that broke the example
+    // build, an import an editor is right to delete and a bundle that needs it anyway.
+    'plugin:react/jsx-runtime',
     'plugin:@typescript-eslint/recommended',
     'plugin:@typescript-eslint/eslint-recommended',
     'plugin:import/recommended',

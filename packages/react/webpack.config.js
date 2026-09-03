@@ -29,7 +29,7 @@ module.exports = (env, { mode }) => {
             {
               loader: 'babel-loader',
               options: {
-                presets: ['@babel/preset-react', '@babel/preset-typescript'],
+                presets: [['@babel/preset-react', { runtime: 'automatic' }], '@babel/preset-typescript'],
               },
             },
           ],
@@ -42,6 +42,13 @@ module.exports = (env, { mode }) => {
     externals: {
       '@appshell/runtime': '@appshell/runtime',
       react: 'react',
+      // The automatic JSX runtime resolves these rather than reaching for `React`, so
+      // they need externalising alongside it. Left bundled, this package ships its own
+      // copy of the element factory while importing React from the host — the elements
+      // still interoperate, but a package that externalises react and inlines half of it
+      // is not saying what it means.
+      'react/jsx-runtime': 'react/jsx-runtime',
+      'react/jsx-dev-runtime': 'react/jsx-dev-runtime',
       'react-dom': 'reactDOM',
     },
   };

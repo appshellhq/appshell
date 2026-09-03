@@ -65,7 +65,7 @@ module.exports = (env, { mode }) => {
             {
               loader: 'babel-loader',
               options: {
-                presets: ['@babel/preset-react', '@babel/preset-typescript'],
+                presets: [['@babel/preset-react', { runtime: 'automatic' }], '@babel/preset-typescript'],
                 // Only under the dev server. The babel plugin emits `$RefreshReg$`/
                 // `$RefreshSig$` calls that ReactRefreshWebpackPlugin defines, and the
                 // dev bundle deliberately omits that plugin: nothing hot-updates the
