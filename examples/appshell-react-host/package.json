@@ -26,8 +26,8 @@
     "test:ci": "npm run test -- a --watchAll=false"
   },
   "dependencies": {
-    "@appshell/react": "^1.0.0-alpha.35",
-    "@appshell/runtime": "^1.0.0-alpha.35",
+    "@appshell/react": "^1.0.0-alpha.36",
+    "@appshell/runtime": "^1.0.0-alpha.36",
     "@testing-library/jest-dom": "^6.6.0",
     "@testing-library/react": "^16.1.0",
     "@testing-library/user-event": "^14.5.0",
@@ -47,8 +47,8 @@
     "webpack-dev-server": "^5.2.0"
   },
   "devDependencies": {
-    "@appshell/cli": "^1.0.0-alpha.35",
-    "@appshell/webpack-plugin": "^1.0.0-alpha.35",
+    "@appshell/cli": "^1.0.0-alpha.36",
+    "@appshell/webpack-plugin": "^1.0.0-alpha.36",
     "@babel/core": "^7.14.3",
     "@babel/preset-react": "^7.13.13",
     "@babel/preset-typescript": "^7.22.5",
