@@ -5,6 +5,7 @@ import {
   AppshellConfig,
   AppshellTemplate,
   generateManifest,
+  manifestFrom,
   ModuleFederationPluginOptions,
   persistedContext,
   publish,
@@ -14,6 +15,7 @@ import {
   utils,
   validators,
 } from '@appshell/config';
+import { TOKEN_ROLES } from '@appshell/tokens';
 import fs from 'fs';
 import hash_sum from 'hash-sum';
 import { entries, keys } from 'lodash';
@@ -26,8 +28,8 @@ import {
   DefinePlugin,
   WebpackOptionsNormalized,
   WebpackPluginInstance,
+  sources as webpackSources,
 } from 'webpack';
-import { TOKEN_ROLES } from '@appshell/tokens';
 import { isServing, writeDevHint } from './devHint';
 
 type AppshellPluginOptions = {
@@ -73,6 +75,21 @@ const TOKEN_REFERENCE = /var\(\s*--appshell-([a-z0-9-]+)\s*(,?)/g;
 
 /** Text webpack emitted. Images and fonts cannot reference a token. */
 const SCANNABLE = /\.(js|mjs|cjs|css|html)$/;
+
+/**
+ * Where a package's manifest is served from, relative to its own origin.
+ *
+ * Not a new convention: `manifestUrl` in every published manifest has always been
+ * `<url>/appshell.manifest.json`. Until this was emitted, that URL resolved nowhere —
+ * nothing dereferenced it at runtime, so the only thing that noticed was the CLI's
+ * dev-server probe, which asked for it and got a 404 every time.
+ *
+ * Emitted as a compilation asset rather than written with `fs`, which is what makes it
+ * work in both modes: webpack-dev-server serves assets from memory, so a served package
+ * answers for it without anything touching disk, and a production build writes it to the
+ * output directory alongside the bundle it describes.
+ */
+const MANIFEST_ASSET = 'appshell.manifest.json';
 
 const delay = (ms: number) =>
   new Promise<void>((resolve) => {
@@ -259,7 +276,6 @@ export default class AppshellPlugin {
 
     return true;
   }
-
 
   /**
    * Which tokens this package's output actually reaches for.
@@ -463,6 +479,25 @@ export default class AppshellPlugin {
               Object.entries(assets).map(([name, source]) => [name, source.source().toString()]),
             ),
           );
+
+          if (observed.required.length || observed.optional.length) {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            template.tokens = {
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              [template.module.name!]: {
+                required: observed.required,
+                optional: observed.optional,
+              },
+            };
+          }
+
+          // Emitted here, after the scan and from the same template the publish below
+          // uses, so the file a browser can fetch and the manifest the registry stores
+          // cannot describe different builds.
+          compilation.emitAsset(
+            MANIFEST_ASSET,
+            new webpackSources.RawSource(JSON.stringify(manifestFrom(template))),
+          );
         },
       );
     });
@@ -478,20 +513,16 @@ export default class AppshellPlugin {
         fs.mkdirSync(outputDir, { recursive: true });
       }
 
-      const { required, optional, unknown } = observed;
-
-      unknown.forEach((role) =>
+      observed.unknown.forEach((role) =>
         logger.warn(
           `--appshell-${role} is not a design token. Check the spelling against the ` +
             `contract in @appshell/tokens; a name that is not a role resolves to nothing.`,
         ),
       );
 
-      if (required.length || optional.length) {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        template.tokens = { [template.module.name!]: { required, optional } };
-      }
-
+      // `template.tokens` was set during processAssets, where the scan happens. Written
+      // with `fs` rather than emitted, because webpack-dev-server keeps its assets in
+      // memory and the CLI reads this one off disk while a dev server is running.
       fs.writeFileSync(outputFile, JSON.stringify(template));
 
       // Only while actually serving. A production build must never leave one behind for
