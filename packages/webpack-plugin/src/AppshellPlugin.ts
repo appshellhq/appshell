@@ -4,7 +4,6 @@ import {
   activate,
   AppshellConfig,
   AppshellTemplate,
-  generateManifest,
   manifestFrom,
   ModuleFederationPluginOptions,
   persistedContext,
@@ -470,6 +469,14 @@ export default class AppshellPlugin {
      */
     let observed = { required: [] as string[], optional: [] as string[], unknown: [] as string[] };
 
+    /*
+     * Built once, during processAssets, and used for both the emitted asset and the
+     * publish below. Reading it back off disk to publish would be a second substitution
+     * pass over the same template — the shape that keeps one fact in two places and in
+     * step only by attention.
+     */
+    let manifest: ReturnType<typeof manifestFrom> | undefined;
+
     compiler.hooks.compilation.tap(PLUGIN_NAME, (compilation) => {
       compilation.hooks.processAssets.tap(
         { name: PLUGIN_NAME, stage: Compilation.PROCESS_ASSETS_STAGE_REPORT },
@@ -491,12 +498,12 @@ export default class AppshellPlugin {
             };
           }
 
-          // Emitted here, after the scan and from the same template the publish below
-          // uses, so the file a browser can fetch and the manifest the registry stores
-          // cannot describe different builds.
+          // Emitted here, after the scan, so the file a browser can fetch and the
+          // manifest the registry stores are the same object rather than two builds of it.
+          manifest = manifestFrom(template);
           compilation.emitAsset(
             MANIFEST_ASSET,
-            new webpackSources.RawSource(JSON.stringify(manifestFrom(template))),
+            new webpackSources.RawSource(JSON.stringify(manifest)),
           );
         },
       );
@@ -543,8 +550,6 @@ export default class AppshellPlugin {
       }
 
       try {
-        const manifest = await generateManifest(outputFile);
-
         if (!manifest) {
           throw new Error(`No manifest was generated from ${outputFile}.`);
         }

@@ -1,11 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {
-  activate,
-  generateManifest,
-  persistedContext,
-  publish,
-  resolveContext,
-} from '@appshell/config';
+import { activate, persistedContext, publish, resolveContext } from '@appshell/config';
 import fs from 'fs';
 import { values } from 'lodash';
 import { rimrafSync } from 'rimraf';
@@ -20,7 +14,6 @@ import webpackConfig from './assets/webpack.config';
 jest.mock('@appshell/config', () => ({
   ...jest.requireActual('@appshell/config'),
   activate: jest.fn(),
-  generateManifest: jest.fn(),
   publish: jest.fn(),
   resolveContext: jest.fn(),
   persistedContext: jest.fn(),
@@ -28,7 +21,6 @@ jest.mock('@appshell/config', () => ({
 
 const mocked = {
   activate: activate as jest.MockedFunction<typeof activate>,
-  generateManifest: generateManifest as jest.MockedFunction<typeof generateManifest>,
   publish: publish as jest.MockedFunction<typeof publish>,
   resolveContext: resolveContext as jest.MockedFunction<typeof resolveContext>,
   persistedContext: persistedContext as jest.MockedFunction<typeof persistedContext>,
@@ -151,7 +143,6 @@ describe('AppshellPlugin', () => {
       },
     );
 
-    mocked.generateManifest.mockResolvedValue({ remotes: {} } as any);
     mocked.publish.mockResolvedValue({ id: 'acme/widgets@1.0.0', created: true });
     mocked.activate.mockResolvedValue(undefined);
     // Hermetic by default: no persisted CLI context, nothing resolved from ~/.appshell.
@@ -553,6 +544,8 @@ describe('AppshellPlugin', () => {
           registry,
           name: 'webpack-plugin',
           version: expect.stringMatching(/^\d+\.\d+\.\d+/),
+          // The manifest built during processAssets, not a second one read back off disk.
+          manifest: expect.objectContaining({ remotes: expect.any(Object) }),
         }),
       );
       expect(errors).toHaveLength(0);
