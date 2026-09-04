@@ -380,7 +380,11 @@ export class RegistryClient {
 
   /** What the registry actually has published for a package, not what a local build says. */
   packageManifest(scopeId: string, name: string) {
-    return this.send<{ remotes: Record<string, { remoteEntryUrl: string; manifestUrl: string }> }>(
+    return this.send<{
+      remotes: Record<string, { remoteEntryUrl: string; manifestUrl: string }>;
+      /** Declared, not valued: a `${VAR}` here is a name the application must supply. */
+      vars?: Record<string, Record<string, string | number>>;
+    }>(
       'get',
       `/v1/packages/${scopeId}/${name}/manifest`,
       `fetch the published manifest for ${scopeId}/${name}`,
@@ -421,6 +425,35 @@ export class RegistryClient {
     );
   }
 
+  /**
+   * Activation, with the configuration the package needs supplied in the same request.
+   *
+   * One call rather than a write followed by a hope: the registry merges the values into
+   * the application's `overrides.vars` and then checks the packages against them, so
+   * supplying and validating see the same state.
+   */
+  activate(
+    scopeId: string,
+    name: string,
+    packageId: string,
+    vars?: Record<string, Record<string, string | number>>,
+  ) {
+    return this.send<{ id: string; message: string }>(
+      'post',
+      `/v1/applications/${scopeId}/${name}/packages`,
+      `activate ${packageId} in ${scopeId}/${name}`,
+      { packageId, ...(vars ? { vars } : {}) },
+    );
+  }
+
+  varsReport(scopeId: string, name: string) {
+    return this.send<{
+      enforcement: 'off' | 'warn' | 'block';
+      unsupplied: number;
+      requirements: { name: string; scope: string; supplied: boolean }[];
+    }>('get', `/v1/applications/${scopeId}/${name}/vars`, `read vars for ${scopeId}/${name}`);
+  }
+
   deactivate(scopeId: string, name: string, appScopeId: string, appName: string) {
     return this.send<{ id: string }>(
       'delete',
@@ -451,4 +484,27 @@ export const parseApplication = (application: string, defaultScopeId: string) =>
   }
 
   return { scopeId, name };
+};
+
+/**
+ * `scope/name@version`, `name@version`, or a bare `name` for the latest.
+ *
+ * Separate from `parseApplication` because a package reference carries a version and an
+ * application never does — reusing one parser for both is how a version ends up silently
+ * treated as part of a name.
+ */
+export const parsePackage = (reference: string, defaultScopeId: string) => {
+  const at = reference.lastIndexOf('@');
+  const coordinates = at > 0 ? reference.slice(0, at) : reference;
+  const version = at > 0 ? reference.slice(at + 1) : undefined;
+  const { scopeId, name } = parseApplication(coordinates, defaultScopeId);
+
+  if (!version) {
+    throw new Error(
+      `Invalid package '${reference}'. Expected 'scope/name@version' — a version says which ` +
+        `build to activate, and the application decides that rather than inheriting it.`,
+    );
+  }
+
+  return { scopeId, name, version };
 };

@@ -2,7 +2,12 @@
 import { configmap, utils } from '@appshell/config';
 import chalk from 'chalk';
 import fs from 'fs';
-import { ApplicationResource, parseApplication, RegistryClient } from '../../util/registry';
+import {
+  ApplicationResource,
+  parseApplication,
+  parsePackage,
+  RegistryClient,
+} from '../../util/registry';
 
 export type AppArgs = {
   registry: string;
@@ -104,6 +109,96 @@ export const remove = async (argv: AppArgs & { name: string }) => {
   await new RegistryClient(argv.registry).deleteApplication(scopeId, name);
 
   console.log(chalk.green(`Deleted application ${scopeId}/${name}`));
+};
+
+/**
+ * Reads `--set NAME=value`, resolving each name to the federation scope that reads it.
+ *
+ * The scope is looked up in the package being activated rather than typed, because the
+ * package already says which names it declares and under which scope — asking the author
+ * to repeat it is a second place to be wrong. A name the package does not declare is a
+ * typo, and saying so before the request beats supplying configuration nothing reads.
+ *
+ * `Scope.NAME=value` is accepted for the case a package declares one name under more than
+ * one scope, which nothing does today but the syntax cannot rule out.
+ */
+export const settings = (
+  pairs: string[] | undefined,
+  declared: Record<string, Record<string, unknown>>,
+): Record<string, Record<string, string>> | undefined => {
+  if (!pairs?.length) return undefined;
+
+  return pairs.reduce<Record<string, Record<string, string>>>((acc, pair) => {
+    const at = pair.indexOf('=');
+
+    if (at < 1) {
+      throw new Error(`'${pair}' is not a setting. Use NAME=value.`);
+    }
+
+    const key = pair.slice(0, at);
+    const value = pair.slice(at + 1);
+    const [qualifier, unqualified] = key.includes('.') ? key.split('.') : [undefined, key];
+    const scopes = Object.entries(declared)
+      .filter(([scope, vars]) => (qualifier ? scope === qualifier : unqualified in vars))
+      .map(([scope]) => scope);
+
+    if (!scopes.length) {
+      throw new Error(
+        `Nothing declares ${key}. This package declares: ${
+          Object.entries(declared)
+            .flatMap(([scope, vars]) => Object.keys(vars).map((n) => `${scope}.${n}`))
+            .join(', ') || 'no vars'
+        }.`,
+      );
+    }
+
+    if (scopes.length > 1) {
+      throw new Error(
+        `${unqualified} is declared under more than one scope: ${scopes.join(
+          ', ',
+        )}. Qualify it, such as ${scopes[0]}.${unqualified}=...`,
+      );
+    }
+
+    return { ...acc, [scopes[0]]: { ...acc[scopes[0]], [unqualified]: value } };
+  }, {});
+};
+
+/**
+ * Activates a package, supplying the configuration it declares in the same request.
+ *
+ * Activation is the binding moment: it is where the set of packages changes and where a
+ * deploy job has the environment to hand. The registry merges the values into the
+ * application's `overrides.vars` and then checks the packages against them, so supplying
+ * and validating see the same state rather than racing.
+ */
+export const activate = async (argv: AppArgs & { package: string; set?: string[] }) => {
+  const { scopeId, name } = target(argv);
+  const { scopeId: pkgScopeId, name: pkgName, version } = parsePackage(argv.package, argv.scopeId);
+  const client = new RegistryClient(argv.registry);
+  // Only fetched when there is something to resolve against.
+  const declared = argv.set?.length
+    ? (await client.packageManifest(pkgScopeId, pkgName)).vars ?? {}
+    : {};
+
+  const packageId = `${pkgScopeId}/${pkgName}@${version}`;
+
+  await client.activate(scopeId, name, packageId, settings(argv.set, declared));
+
+  // The response carries the application id, not the package's — naming what was activated
+  // is the useful half, and echoing the application twice reads as a bug.
+  console.log(chalk.green(`Activated ${packageId} in ${scopeId}/${name}`));
+
+  const report = await client.varsReport(scopeId, name);
+  const missing = report.requirements.filter(({ supplied }) => !supplied);
+
+  if (missing.length) {
+    console.log(
+      chalk.yellow(
+        `  still unsupplied: ${missing.map(({ scope, name: n }) => `${scope}.${n}`).join(', ')}`,
+      ),
+    );
+  }
 };
 
 export const deactivate = async (argv: AppArgs & { package: string }) => {

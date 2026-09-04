@@ -563,6 +563,21 @@ export const buildCli = (args: string[]) => {
               handler: app.remove as never,
             })
             .command({
+              command: 'activate <package>',
+              describe:
+                "Activate a package, as 'scope/name@version', supplying any vars it declares",
+              // eslint-disable-next-line @typescript-eslint/no-shadow
+              builder: (yargs) =>
+                yargs.positional('package', { type: 'string', demandOption: true }).option('set', {
+                  type: 'array',
+                  string: true,
+                  description:
+                    'Supply a var the package declares, as NAME=value. Repeatable. The scope ' +
+                    'is resolved from the package, so a name it does not declare is refused.',
+                }),
+              handler: app.activate as never,
+            })
+            .command({
               command: 'deactivate <package>',
               describe: "Remove a package from an application, as 'name' or 'scope/name'",
               // eslint-disable-next-line @typescript-eslint/no-shadow
