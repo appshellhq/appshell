@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.41](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.40...v1.0.0-alpha.41) (2026-09-04)
+
+### Features
+
+- **cli:** appshell app activate, with --set for the vars a package declares ([adbfb16](https://github.com/appshellhq/appshell/commit/adbfb16308d06d4f95da7db55720321c3a4870d4))
+
 # [1.0.0-alpha.40](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.39...v1.0.0-alpha.40) (2026-09-04)
 
 **Note:** Version bump only for package @appshell/cli
