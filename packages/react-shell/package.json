@@ -1,6 +1,6 @@
 {
   "name": "@appshell/react-shell",
-  "version": "1.0.0-alpha.41",
+  "version": "1.0.0-alpha.42",
   "description": "Appshell shell bundle for React",
   "main": "dist/main.js",
   "repository": {
@@ -27,7 +27,7 @@
   },
   "author": "Robert Hamilton <rh@navaris.com>",
   "devDependencies": {
-    "@appshell/webpack-plugin": "^1.0.0-alpha.41",
+    "@appshell/webpack-plugin": "^1.0.0-alpha.42",
     "@module-federation/enhanced": "^2.8.2"
   },
   "browserslist": {

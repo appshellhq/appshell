@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.42](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.41...v1.0.0-alpha.42) (2026-09-04)
+
+### Features
+
+- **cli,examples:** address remotes by scope/package/Component ([fa89e54](https://github.com/appshellhq/appshell/commit/fa89e5477d8d9b53db582c676e255e85432a1890))
+
 # [1.0.0-alpha.41](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.40...v1.0.0-alpha.41) (2026-09-04)
 
 ### Features
