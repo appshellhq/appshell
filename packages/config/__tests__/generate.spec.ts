@@ -17,6 +17,10 @@ describe('generate', () => {
   beforeAll(() => {
     process.env.REGISTRY = 'packages/cli/__tests__/assets/appshell_registry';
     process.env.ROOT = 'TestModule/Workspace';
+    // The fixture's deployment coordinates. Publishing now refuses to emit a manifest with
+    // one unresolved, where it used to spell `undefined` into the URL and carry on.
+    process.env.APPS_TEST_URL = 'http://remote-module.com';
+    process.env.APPS_TEST_REMOTE_ENTRY_PATH = 'remoteEntry.js';
     process.env.TEST_ENV_FOO = 'foo';
     process.env.TEST_ENV_BAR = 'bar';
     process.env.TEST_NUM = '100';
@@ -24,6 +28,8 @@ describe('generate', () => {
 
   afterAll(() => {
     delete process.env.REGISTRY;
+    delete process.env.APPS_TEST_URL;
+    delete process.env.APPS_TEST_REMOTE_ENTRY_PATH;
     delete process.env.ROOT;
     delete process.env.TEST_ENV_FOO;
     delete process.env.TEST_ENV_BAR;

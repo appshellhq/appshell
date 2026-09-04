@@ -21,7 +21,6 @@ export const manifestFrom = <TMetadata extends Record<string, unknown>>(
   template: AppshellTemplate,
 ) => {
   const copy = structuredClone(template);
-
   return toAppshellManifest<TMetadata>(copy, configmap.create(copy));
 };
 

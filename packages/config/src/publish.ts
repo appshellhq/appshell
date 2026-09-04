@@ -32,10 +32,13 @@ const describe = (error: unknown) => {
   }
 
   const { message } = response.data ?? {};
-  const detail =
-    `${response.status} ${Array.isArray(message) ? message.join(', ') : message ?? ''}`.trim();
+  const detail = `${response.status} ${
+    Array.isArray(message) ? message.join(', ') : message ?? ''
+  }`.trim();
 
-  return response.status === 401 ? `${detail} Run \`appshell login\` or set APPSHELL_TOKEN.` : detail;
+  return response.status === 401
+    ? `${detail} Run \`appshell login\` or set APPSHELL_TOKEN.`
+    : detail;
 };
 
 /**
@@ -53,6 +56,31 @@ export const publish = async ({
   metadata,
   force,
 }: PublishOptions): Promise<PublishResult> => {
+  /*
+   * A deployment coordinate that never resolved cannot be published.
+   *
+   * Vars may legitimately arrive unresolved — a `${VAR}` under `vars` is a declaration, and
+   * the application supplies it. A remote url is the opposite: nobody downstream can supply
+   * it, because only the build knows where its own artifact is served. Publishing one
+   * unresolved stores an immutable manifest that nothing can ever load, and the failure
+   * surfaces much later as a browser fetching a URL with a variable name in the path.
+   *
+   * Checked here rather than when the manifest is built, so a build without a complete
+   * environment still emits its assets. Only publishing is refused.
+   */
+  const unresolved = Object.entries(manifest?.remotes ?? {}).flatMap(([key, remote]) =>
+    Object.entries(remote)
+      .filter(([, value]) => typeof value === 'string' && /\$\{\w+}/.test(value))
+      .map(([field, value]) => `${key}.${field} (${value})`),
+  );
+
+  if (unresolved.length) {
+    throw new Error(
+      `Cannot publish ${name}@${version}: these deployment coordinates were never ` +
+        `resolved — ${unresolved.join(', ')}. Set the variables they name, or write a literal.`,
+    );
+  }
+
   try {
     const { data } = await axios.post<PublishResult>(
       `${registry.replace(/\/$/, '')}/v1/packages`,

@@ -29,6 +29,22 @@ spec:
       # `system` follows the viewer. Set light or dark to ship one look on purpose —
       # it pins the palette, the browser's own controls, and the chrome colour together.
       colorScheme: dark
+  # Configuration the packages read, supplied by the application rather than baked
+  # into the package at publish.
+  #
+  # `sample-mfe-container` declares `SUPPORT_URL` in its own appshell.config.yaml and
+  # leaves it as a `${VAR}` placeholder — that is the declaration: it reads this name
+  # and cannot know the value, because only whoever runs the application does. The
+  # placeholder below is expanded from the environment when this file is applied, so
+  # the same file supplies staging's value in staging and production's in production.
+  #
+  # Keyed by federation scope, which is how the runtime store hands each package its
+  # own vars and nobody else's.
+  overrides:
+    vars:
+      ContainerModule:
+        SUPPORT_URL: ${SUPPORT_URL}
+
   # This is a local development application, and `appshell dev` is the reason it
   # exists. Always explicit: an overlay changes which code runs in a browser, so
   # nothing infers the permission on your behalf.

@@ -58,7 +58,7 @@ exports[`generate manifest should generate an appshell manifest from the config 
     },
     "TestModule/Bar": {
       "id": "TestModule/Bar",
-      "manifestUrl": "http://remote-module.com/remoteEntry.js/appshell.manifest.json",
+      "manifestUrl": "http://remote-module.com/appshell.manifest.json",
       "metadata": {
         "displayGroup": "main",
         "displayName": "Bar App",
@@ -67,13 +67,13 @@ exports[`generate manifest should generate an appshell manifest from the config 
         "route": "/bar",
       },
       "module": "./Bar",
-      "remoteEntryUrl": "http://remote-module.com/remoteEntry.js/undefined",
+      "remoteEntryUrl": "http://remote-module.com/remoteEntry.js",
       "scope": "TestModule",
       "shareScope": "@sharedscope",
     },
     "TestModule/Foo": {
       "id": "TestModule/Foo",
-      "manifestUrl": "http://remote-module.com/remoteEntry.js/appshell.manifest.json",
+      "manifestUrl": "http://remote-module.com/appshell.manifest.json",
       "metadata": {
         "displayGroup": "main",
         "displayName": "Foo App",
@@ -82,15 +82,15 @@ exports[`generate manifest should generate an appshell manifest from the config 
         "route": "/foo",
       },
       "module": "./Foo",
-      "remoteEntryUrl": "http://remote-module.com/remoteEntry.js/remoteEntry.js",
+      "remoteEntryUrl": "http://remote-module.com/remoteEntry.js",
       "scope": "TestModule",
       "shareScope": "@sharedscope",
     },
   },
   "tokens": undefined,
   "vars": {
-    "RUNTIME_ENV": "development",
-    "RUNTIME_ENV_VERSION": "1.0.0",
+    "RUNTIME_ENV": "\${RUNTIME_ENV}",
+    "RUNTIME_ENV_VERSION": "\${RUNTIME_ENV_VERSION}",
   },
 }
 `;

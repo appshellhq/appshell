@@ -86,5 +86,28 @@ export const toAppshellManifest = <TMetadata extends Record<string, unknown>>(
     'AppshellTemplate',
     'AppshellManifest',
   );
-  return configmap.apply(manifest, args);
+
+  /*
+   * `vars` are deliberately left unsubstituted, while everything else is resolved.
+   *
+   * The two are unlike things sharing one syntax. `remotes.*.url` is a deployment
+   * coordinate — a property of the artifact, known only to whoever built it, and correctly
+   * frozen into an immutable version. A var is configuration the running package reads,
+   * and resolving it here bakes the build environment into that same immutable version:
+   * publish from CI and every other environment inherits CI's values, which are right in
+   * exactly one place.
+   *
+   * It also made the digest lie. `digestOf` hashes the manifest, so the same commit built
+   * in two environments published as different content at the same version — an identity
+   * that depended on where the build ran.
+   *
+   * So a `${VAR}` under `vars` stays a placeholder, and that is the declaration: this
+   * package reads this name and cannot value it. A literal stays a literal, and that is an
+   * honest static default. After an application's `overrides.vars` are layered on, anything
+   * still matching `${...}` is precisely the unsupplied set — requiredness is structural
+   * rather than declared, so there is no second list to keep in step.
+   */
+  const { vars } = manifest;
+
+  return { ...configmap.apply({ ...manifest, vars: {} }, args), vars };
 };
