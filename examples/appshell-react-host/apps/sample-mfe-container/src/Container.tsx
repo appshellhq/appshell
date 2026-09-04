@@ -65,8 +65,8 @@ const Container = () => (
         correctly also stops the page jumping when the remote arrives.
       */}
       <div className="grid grid-flow-col gap-lg">
-        <RemoteSlot remote="PingModule/Ping" fallback={<CardSkeleton />} />
-        <RemoteSlot remote="PongModule/Pong" fallback={<CardSkeleton />} />
+        <RemoteSlot remote="default/sample-mfe-ping/Ping" fallback={<CardSkeleton />} />
+        <RemoteSlot remote="default/sample-mfe-pong/Pong" fallback={<CardSkeleton />} />
       </div>
     </header>
   </div>

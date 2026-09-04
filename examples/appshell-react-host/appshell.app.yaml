@@ -15,7 +15,10 @@ kind: Application
 name: appshell-example
 spec:
   shell:
-    root: ContainerModule/Container
+    # Addressed by what the registry knows — scope/package/Component — rather than by the
+    # federation container name, which a package picks in its webpack config and two
+    # packages can pick identically.
+    root: default/sample-mfe-container/Container
     title: Appshell Example
     description: Three micro-frontends composed by the appshell registry
     # Everything the composed page paints with. A base carries surfaces, text, border

@@ -81,24 +81,24 @@ exports[`should match snapshot 1`] = `
           style="border: 3px solid red;"
         >
           <h5>
-            Error loading Appshell component 'PingModule/Ping.'
+            Error loading Appshell component 'default/sample-mfe-ping/Ping.'
           </h5>
           <span
             style="font-size: 1rem;"
           >
-            Error: Remote resource not found in registry. Expected: PingModule/Ping
+            Error: Remote resource not found in registry. Expected: default/sample-mfe-ping/Ping
           </span>
         </div>
         <div
           style="border: 3px solid red;"
         >
           <h5>
-            Error loading Appshell component 'PongModule/Pong.'
+            Error loading Appshell component 'default/sample-mfe-pong/Pong.'
           </h5>
           <span
             style="font-size: 1rem;"
           >
-            Error: Remote resource not found in registry. Expected: PongModule/Pong
+            Error: Remote resource not found in registry. Expected: default/sample-mfe-pong/Pong
           </span>
         </div>
       </div>

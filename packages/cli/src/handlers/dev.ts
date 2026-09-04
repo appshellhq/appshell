@@ -168,10 +168,18 @@ const remotesOf = async (
           `${scopeId}/${pkg}`,
         );
 
+  /*
+   * Keyed by registry address, because that is what the composition an overlay patches is
+   * keyed by. The manifest still names its remotes by federation container — that is what
+   * the package calls its own surface — so the address is composed here from the identity
+   * the registry knows.
+   */
+  const address = (key: string) => `${scopeId}/${pkg}/${key.split('/').slice(1).join('/')}`;
+
   return selected.reduce<Record<string, OverlayRemoteBody>>(
     (acc, [key, remote]) => ({
       ...acc,
-      [key]: {
+      [address(key)]: {
         remoteEntryUrl: withOrigin(remote.remoteEntryUrl, origin),
         manifestUrl: withOrigin(remote.manifestUrl, origin),
       },
