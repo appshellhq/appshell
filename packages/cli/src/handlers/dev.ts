@@ -5,6 +5,7 @@ import { GlobalArgs } from '../util/args';
 import { DevHint, readDevHint, verifyDevHint } from '../util/devHint';
 import { identify } from '../util/identity';
 import {
+  absoluteUrl,
   CreateOverlayBody,
   OpenOverlay,
   OverlayEffect,
@@ -296,7 +297,7 @@ export const start = async (argv: DevStartArgs) => {
   }
 
   const overlay = await client.createOverlay(scopeId, name, body);
-  const confirmUrl = `${client.baseUrl}${overlay.confirmUrl}`;
+  const confirmUrl = absoluteUrl(overlay.confirmUrl, client.baseUrl);
 
   /*
    * The registry keeps one overlay per developer per application, so this may have extended
@@ -461,7 +462,7 @@ export const status = async (argv: DevStatusArgs) => {
         ).toLocaleString()}`,
       ),
     );
-    console.log(chalk.dim(`    apply: ${client.baseUrl}${overlay.confirmUrl}`));
+    console.log(chalk.dim(`    apply: ${absoluteUrl(overlay.confirmUrl, client.baseUrl)}`));
     console.log(chalk.dim(`    close: appshell dev stop ${overlay.id}`));
   });
 

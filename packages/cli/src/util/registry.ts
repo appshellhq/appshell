@@ -501,6 +501,19 @@ export const parseApplication = (application: string, defaultScopeId: string) =>
  * application never does — reusing one parser for both is how a version ends up silently
  * treated as part of a name.
  */
+/**
+ * The registry returns browser-facing URLs relative when one host serves both the API
+ * and the shell, and absolute when the serving plane answers on its own hostname.
+ * Resolving through `URL` handles both: an absolute value wins outright, a relative
+ * one resolves against the registry.
+ *
+ * Concatenating instead — which is what this replaced — silently produced
+ * `https://registry.example.com https://apps.example.com/overlays/...` once the two
+ * planes were split.
+ */
+export const absoluteUrl = (url: string, baseUrl: string): string =>
+  new URL(url, baseUrl).toString();
+
 export const parsePackage = (reference: string, defaultScopeId: string) => {
   const at = reference.lastIndexOf('@');
   const coordinates = at > 0 ? reference.slice(0, at) : reference;
