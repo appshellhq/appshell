@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.44](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.43...v1.0.0-alpha.44) (2026-09-05)
+
+### Bug Fixes
+
+- **cli:** stop opening a browser tab for an overlay already confirmed ([6fda7b0](https://github.com/appshellhq/appshell/commit/6fda7b0db846974ebdbd1b40c43920a17ffd1cd3))
+
 # [1.0.0-alpha.43](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.42...v1.0.0-alpha.43) (2026-09-04)
 
 **Note:** Version bump only for package @appshell/cli
