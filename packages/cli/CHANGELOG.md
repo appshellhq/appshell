@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.45](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.44...v1.0.0-alpha.45) (2026-09-05)
+
+### Bug Fixes
+
+- **cli:** resolve the registry's browser URLs instead of concatenating them ([08eac66](https://github.com/appshellhq/appshell/commit/08eac66692d75bc4e7500d3f5bcec905c00c8466))
+
 # [1.0.0-alpha.44](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.43...v1.0.0-alpha.44) (2026-09-05)
 
 ### Bug Fixes
