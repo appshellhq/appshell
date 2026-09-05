@@ -70,6 +70,14 @@ export type CreatedOverlay = {
   remotes: string[];
   shellFlavor: 'prod' | 'dev';
   /**
+   * False when an overlay was already open and this extended it.
+   *
+   * A browser carries one overlay id, so an extended overlay is one some browser has
+   * already confirmed — nobody needs sending back to the confirmation page. The id is
+   * stable either way, which is why this cannot be inferred from the response.
+   */
+  created?: boolean;
+  /**
    * The theme this overlay substitutes, pinned by the registry, when it substitutes one.
    *
    * Declared on both overlay responses because both report what the overlay does, and

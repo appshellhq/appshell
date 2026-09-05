@@ -298,26 +298,35 @@ export const start = async (argv: DevStartArgs) => {
   const overlay = await client.createOverlay(scopeId, name, body);
   const confirmUrl = `${client.baseUrl}${overlay.confirmUrl}`;
 
-  // The registry keeps one overlay per developer per application, so this may have
-  // extended an existing one; report what is in effect now, not just what was sent.
-  const carried = overlay.remotes.filter((key) => !remotes[key]);
+  /*
+   * The registry keeps one overlay per developer per application, so this may have extended
+   * an existing one. Asked of the registry rather than inferred: carried remotes used to
+   * stand in for this, and got it wrong for a theme-only change, which carries none either
+   * way. `effectLines` still reports what is in effect now rather than only what was sent.
+   */
+  const extended = overlay.created === false;
 
-  console.log(
-    chalk.green(`\nOverlay ${carried.length ? 'extended' : 'opened'} on ${scopeId}/${name}`),
-  );
+  console.log(chalk.green(`\nOverlay ${extended ? 'extended' : 'opened'} on ${scopeId}/${name}`));
+  // `effectLines` reports the theme along with everything else the overlay changes; this
+  // used to print it a second time, left behind when that block was extracted.
   effectLines(overlay, remotes).forEach((line) => console.log(line));
-  // The registry pins whichever form `--theme` took, so this reports the ref that was
-  // actually resolved rather than echoing back what was typed. Reporting it at all is the
-  // point: a theme-only overlay otherwise printed nothing but "no remotes redirected",
-  // which reads as having done nothing.
-  if (overlay.theme) {
-    console.log(`  ${chalk.dim('theme')} ${chalk.dim('->')} ${overlay.theme}`);
-  }
 
-  // Nothing is applied until a browser confirms: the cookie has to land in the user
-  // agent that will load the shell, and this one is a terminal.
-  console.log(chalk.bold('\nOpen this in your browser to apply it:'));
-  console.log(`  ${chalk.cyan(confirmUrl)}\n`);
+  /*
+   * Nothing is applied until a browser confirms: the cookie has to land in the user agent
+   * that will load the shell, and this one is a terminal.
+   *
+   * An extended overlay is one a browser already confirmed — the id is stable, so the
+   * cookie it holds is still valid and the page picks the change up on its next load. Said
+   * quietly, and without opening anything, because the alternative was a tab per theme
+   * while flipping through them.
+   */
+  if (extended) {
+    console.log(chalk.dim('\nAlready applied in the browser that confirmed this overlay.'));
+    console.log(chalk.dim(`Reload the page, or confirm in another browser: ${confirmUrl}\n`));
+  } else {
+    console.log(chalk.bold('\nOpen this in your browser to apply it:'));
+    console.log(`  ${chalk.cyan(confirmUrl)}\n`);
+  }
   console.log(
     chalk.dim(
       `Expires ${new Date(
@@ -326,7 +335,9 @@ export const start = async (argv: DevStartArgs) => {
     ),
   );
 
-  if (argv.open) {
+  // Only when there is something to confirm. Opening a tab for an overlay a browser
+  // already holds is the annoyance this exists to avoid.
+  if (argv.open && !extended) {
     launch(confirmUrl);
   }
 };
