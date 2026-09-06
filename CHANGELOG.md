@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.46](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.45...v1.0.0-alpha.46) (2026-09-06)
+
+### Features
+
+- **runtime:** let a package read who is looking at the page ([2ddfbb8](https://github.com/appshellhq/appshell/commit/2ddfbb8c8cff66662a838e3437e66ba733d4088f))
+
 # [1.0.0-alpha.45](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.44...v1.0.0-alpha.45) (2026-09-05)
 
 ### Bug Fixes
