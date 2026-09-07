@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.48](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.47...v1.0.0-alpha.48) (2026-09-07)
+
+### Features
+
+- **webpack-plugin:** a dev server opens an overlay instead of publishing ([c9bae9a](https://github.com/appshellhq/appshell/commit/c9bae9a0037aadaa543bed53163e29aff0dbe9ee)), closes [appshellhq/appshell#3](https://github.com/appshellhq/appshell/issues/3)
+
 # [1.0.0-alpha.47](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.46...v1.0.0-alpha.47) (2026-09-07)
 
 **Note:** Version bump only for package @appshell/webpack-plugin
