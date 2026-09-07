@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.55](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.54...v1.0.0-alpha.55) (2026-09-07)
+
+### Bug Fixes
+
+- **ci:** record the bare digest, which is what the manifest step reads ([ff74d4d](https://github.com/appshellhq/appshell/commit/ff74d4d866383db1ab77a3813b361077415c05e9))
+
 # [1.0.0-alpha.54](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.53...v1.0.0-alpha.54) (2026-09-07)
 
 **Note:** Version bump only for package appshell
