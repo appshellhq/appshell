@@ -13,6 +13,7 @@ import {
   resolveContext,
   Schema,
   SharedConfig,
+  SharedObject,
   utils,
   validators,
 } from '@appshell/config';
@@ -422,6 +423,22 @@ export default class AppshellPlugin {
      * these can disagree; when they do the registry reports the address as unpublished,
      * which the catch below turns into something actionable.
      */
+    /*
+     * What this build actually declares as shared, keyed by share scope.
+     *
+     * Sent so the registry can say whether it diverges from the published version. An
+     * overlay serves a build the registry has never seen, so its shared dependency
+     * report otherwise describes the published manifest while the browser runs this —
+     * and module federation settles a disagreement by loading whichever copy wins,
+     * which surfaces as a second React far from the change that caused it.
+     */
+    const shareScope = template.module?.shareScope ?? 'default';
+    // The array form names dependencies without version constraints, so it says nothing
+    // about compatibility — the registry skips it for the same reason.
+    const declared = template.module?.shared;
+    const shared: Record<string, SharedObject> | undefined =
+      declared && !Array.isArray(declared) ? { [shareScope]: declared as SharedObject } : undefined;
+
     const remotes = Object.entries(template.remotes ?? {}).reduce<
       Record<string, OverlayRemotePatch>
     >((acc, [federationKey, remote]) => {
@@ -446,7 +463,26 @@ export default class AppshellPlugin {
     }
 
     try {
-      const overlay = await openOverlay(registry, application, remotes, token);
+      const overlay = await openOverlay(registry, application, remotes, token, shared);
+
+      // Loud, because nothing downstream can notice. The registry's shared dependency
+      // report describes the published manifest, and module federation resolves a
+      // disagreement by loading whichever copy wins — so the failure arrives as a second
+      // React or a hook error a long way from the line that caused it.
+      overlay.divergence?.forEach(
+        ({ packageName, shareScope: scope, published, local, singleton }) => {
+          const range = `${published ?? 'not shared'} -> ${local ?? 'not shared'}`;
+          const asSingleton =
+            singleton.published === singleton.local
+              ? ''
+              : `, singleton ${singleton.published} -> ${singleton.local}`;
+
+          logger.warn(
+            `This build shares ${packageName} (${scope}) differently from the published ` +
+              `version: ${range}${asSingleton}. Publish it before anything relies on the change.`,
+          );
+        },
+      );
 
       const next = overlay.created
         ? `. Confirm it in a browser: ${overlay.confirmUrl}`

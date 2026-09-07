@@ -17,6 +17,8 @@ export type PublishResult = {
   /** `scope/name@version`. The scope comes from the token, not the caller. */
   id: string;
   created: boolean;
+  /** Empty unless a shared block was sent. See `openOverlay`. */
+  divergence: SharedDivergence[];
 };
 
 const authorization = (token?: string) =>
@@ -136,6 +138,16 @@ export type OverlayRemotePatch = {
   metadata?: Metadata;
 };
 
+/** One shared dependency where a local build and the published version disagree. */
+export type SharedDivergence = {
+  packageId: string;
+  shareScope: string;
+  packageName: string;
+  published?: string;
+  local?: string;
+  singleton: { published: boolean; local: boolean };
+};
+
 export type OpenedOverlay = {
   id: string;
   confirmUrl: string;
@@ -148,6 +160,11 @@ export type OpenedOverlay = {
    * already confirmed — nothing needs sending back to the confirmation page.
    */
   created: boolean;
+  /**
+   * What this build declares that the published version does not. Empty unless a shared
+   * block was sent — see `openOverlay`.
+   */
+  divergence: SharedDivergence[];
 };
 
 /**
@@ -171,6 +188,7 @@ export const openOverlay = async (
   application: string,
   remotes: Record<string, OverlayRemotePatch>,
   token?: string,
+  shared?: Record<string, unknown>,
 ): Promise<OpenedOverlay> => {
   const [scopeId, name] = application.split('/');
 
@@ -181,7 +199,7 @@ export const openOverlay = async (
   try {
     const { data } = await axios.post<OpenedOverlay>(
       `${registry.replace(/\/$/, '')}/v1/applications/${scopeId}/${name}/overlays`,
-      { remotes },
+      { remotes, ...(shared ? { shared } : {}) },
       { headers: authorization(token) },
     );
 

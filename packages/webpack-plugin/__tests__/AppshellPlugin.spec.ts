@@ -472,6 +472,7 @@ describe('AppshellPlugin', () => {
           'default/demo',
           expect.any(Object),
           undefined,
+          expect.any(Object),
         );
       });
 
@@ -505,6 +506,50 @@ describe('AppshellPlugin', () => {
         // changing it as much as the code. Without this an overlay serves their bundle
         // beside the published route and displayName.
         expect(patch.metadata).toEqual(expect.objectContaining({ route: '/foo' }));
+      });
+
+      it("sends this build's shared block, keyed by share scope", async () => {
+        mocked.openOverlay.mockResolvedValue({ created: false, divergence: [] } as never);
+        const plugin = serving();
+
+        plugin.apply(compiler as any);
+        await compiler.compile();
+
+        // An overlay serves a build the registry has never seen, so its shared dependency
+        // report otherwise describes the published manifest while the browser runs this.
+        const [, , , , shared] = mocked.openOverlay.mock.calls[0];
+
+        expect(shared).toEqual({
+          '@sharedscope': expect.objectContaining({
+            package1: { requiredVersion: '0.1.0', singleton: true },
+          }),
+        });
+      });
+
+      it('warns loudly when the registry says this build diverges', async () => {
+        mocked.openOverlay.mockResolvedValue({
+          created: false,
+          divergence: [
+            {
+              packageId: 'default/demo@1.0.0',
+              shareScope: 'default',
+              packageName: 'react',
+              published: '^18.0.0',
+              local: '^17.0.0',
+              singleton: { published: true, local: true },
+            },
+          ],
+        } as never);
+        const plugin = serving();
+
+        plugin.apply(compiler as any);
+        await compiler.compile();
+
+        // Nothing downstream can notice: module federation settles a disagreement by
+        // loading whichever copy wins, far from the change that caused it.
+        expect(logger.warn).toHaveBeenCalledWith(
+          expect.stringMatching(/shares react .*\^18\.0\.0 -> \^17\.0\.0/),
+        );
       });
 
       it('never fails the build when the registry cannot be reached', async () => {
