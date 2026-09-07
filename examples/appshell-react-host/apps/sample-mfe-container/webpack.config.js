@@ -41,6 +41,20 @@ module.exports = (env, { mode }) => {
     },
     output: {
       publicPath: 'auto',
+      /*
+       * Content-hashed so a chunk's name identifies its bytes.
+       *
+       * Without this webpack emits numeric ids — `41.js` in one build and `41.js` in the
+       * next, holding different code — so nothing downstream can cache safely: a browser
+       * could pair a fresh entry point with a stale chunk after a deploy and fail a long
+       * way from the cause.
+       *
+       * remoteEntry.js is deliberately not hashed. It is the address the published
+       * manifest names, so it must stay stable across builds; ModuleFederationPlugin sets
+       * that filename separately from these.
+       */
+      filename: '[name].[contenthash].js',
+      chunkFilename: '[name].[contenthash].js',
       uniqueName: `sample-mfe-container`,
     },
     resolve: {

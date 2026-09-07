@@ -1,43 +1,58 @@
-### BASE
-FROM node:22-alpine AS base
-LABEL maintainer "Robert Hamilton <rh@navaris.com>"
+# syntax=docker/dockerfile:1.7
+# =============================================================================
+# Appshell example micro-frontends
+#
+# One parameterised build for every app in the workspace, after the pattern in
+# navaris/platform-services: adding a micro-frontend requires no Dockerfile change.
+#
+#   docker build --build-arg APP_DIR=sample-mfe-ping -t ghcr.io/appshellhq/sample-mfe-ping .
+#
+# The output is static — remoteEntry.js and its chunks — so unlike a Next.js service
+# there is no server in the build. nginx-unprivileged supplies one: non-root by
+# construction, writing only under /tmp, which is what lets the deployment keep
+# readOnlyRootFilesystem.
+# =============================================================================
 
-# Set the working directory
+FROM node:22-alpine AS base
 WORKDIR /appshell
 
-### DEPENDENCIES
-FROM base AS dependencies
-RUN apk add --update python3 make g++ && rm -rf /var/cache/apk/*
-
-# Install dependencies first for better layer caching
+# ---------------------------------------------------------------------------
+# deps — install once for the whole workspace
+#
+# Manifests are discovered rather than listed. The previous Dockerfile copied each
+# app's package.json by name, so a fourth micro-frontend would have built against a
+# lock file that never mentioned it — an omission nothing would have reported.
+# ---------------------------------------------------------------------------
+FROM base AS deps
+RUN apk add --no-cache python3 make g++
 COPY package.json package-lock.json ./
-COPY apps/sample-mfe-container/package.json apps/sample-mfe-container/
-COPY apps/sample-mfe-ping/package.json apps/sample-mfe-ping/
-COPY apps/sample-mfe-pong/package.json apps/sample-mfe-pong/
-COPY packages/components/package.json packages/components/
+RUN --mount=type=bind,source=apps,target=/src/apps,readonly \
+    --mount=type=bind,source=packages,target=/src/packages,readonly \
+    find /src/apps /src/packages -mindepth 2 -maxdepth 2 -type f -name package.json | sort | \
+      while read -r manifest; do \
+        rel="${manifest#/src/}"; \
+        mkdir -p "$(dirname "$rel")"; \
+        cp "$manifest" "$rel"; \
+      done
 RUN npm ci
 
-# Copy remaining source
+# ---------------------------------------------------------------------------
+# build — the shared component library, then the one app being imaged
+# ---------------------------------------------------------------------------
+FROM deps AS build
+ARG APP_DIR
+RUN test -n "$APP_DIR" || (echo "APP_DIR is required, e.g. --build-arg APP_DIR=sample-mfe-ping" && false)
 COPY . .
+RUN npm run build --workspace packages/components
+RUN npm run build --workspace "apps/${APP_DIR}"
 
-### BUILD
-FROM dependencies as build
-RUN npm run build
+# ---------------------------------------------------------------------------
+# runtime — nginx serving that app's dist, and nothing else
+# ---------------------------------------------------------------------------
+FROM nginxinc/nginx-unprivileged:1.27-alpine AS runtime
+ARG APP_DIR
+COPY nginx.conf /etc/nginx/nginx.conf
+COPY --from=build /appshell/apps/${APP_DIR}/dist /usr/share/nginx/html
 
-### DEVELOPMENT
-FROM build AS development
-
-# Environment
-ENV APPSHELL_REGISTRY=${APPSHELL_REGISTRY:-'http://host.docker.internal:7150'}
-ENV CONTAINER_COMMAND=${CONTAINER_COMMAND:-'npm run serve'}
-
-ENV SAMPLE_MFE_CONTAINER_PORT=${SAMPLE_MFE_CONTAINER_PORT:-3000}
-ENV SAMPLE_MFE_PING_PORT=${SAMPLE_MFE_PING_PORT:-3001}
-ENV SAMPLE_MFE_PONG_PORT=${SAMPLE_MFE_PONG_PORT:-3002}
-
-# Expose application ports
-EXPOSE ${SAMPLE_MFE_CONTAINER_PORT}
-EXPOSE ${SAMPLE_MFE_PING_PORT}
-EXPOSE ${SAMPLE_MFE_PONG_PORT}
-
-CMD ["sh", "-c", "${CONTAINER_COMMAND}"]
+# Matches the port every other frontend on the platform listens on.
+EXPOSE 3000
