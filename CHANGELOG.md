@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.47](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.46...v1.0.0-alpha.47) (2026-09-07)
+
+### Features
+
+- **example:** show who is looking at the page ([4d3ea9a](https://github.com/appshellhq/appshell/commit/4d3ea9aed2bdb2f81215aaad3f92a1b283c9ee76))
+
 # [1.0.0-alpha.46](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.45...v1.0.0-alpha.46) (2026-09-06)
 
 ### Features
