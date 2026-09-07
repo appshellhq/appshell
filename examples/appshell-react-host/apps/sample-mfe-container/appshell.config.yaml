@@ -1,7 +1,7 @@
 remotes:
   ContainerModule/Container:
     url: ${SAMPLE_MFE_CONTAINER_URL}
-    filename: ${REMOTE_ENTRY_PATH}
+    filename: remoteEntry.js
     metadata:
       route: /
       displayName: Host App

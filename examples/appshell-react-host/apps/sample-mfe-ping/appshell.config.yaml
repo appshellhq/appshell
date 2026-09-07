@@ -1,7 +1,7 @@
 remotes:
   PingModule/Ping:
     url: ${SAMPLE_MFE_PING_URL}
-    filename: ${REMOTE_ENTRY_PATH}
+    filename: remoteEntry.js
     metadata:
       route: /ping
       displayName: Ping Micro-Frontend

@@ -110,7 +110,11 @@ module.exports = (env, { mode }) => {
         exposes: {
           './Container': './src/Container',
         },
-        filename: process.env.REMOTE_ENTRY_PATH,
+        // A convention rather than configuration: every published manifest names
+        // remoteEntry.js, so a build that produced anything else would serve a remote
+        // the registry points at with a 404. It was a variable, and a build that missed
+        // it silently emitted PingModule.<hash>.js instead.
+        filename: 'remoteEntry.js',
         // One preset rather than a hand-written list per package: the four configs here
         // previously disagreed about @appshell/react, which is silent until a package
         // calls useRemote() and finds no provider.

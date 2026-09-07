@@ -1,0 +1,14 @@
+# Build context hygiene.
+#
+# Without this, `COPY . .` carries whatever a developer happened to have on disk into
+# the image — a previous build's dist, a local .env, node_modules from another
+# architecture. The image then serves artifacts nobody built in CI, which is the kind
+# of difference that only shows up as "works on my machine" much later.
+node_modules
+**/node_modules
+dist
+**/dist
+.env
+**/.env
+*.log
+.git
