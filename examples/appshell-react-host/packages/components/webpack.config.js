@@ -44,6 +44,12 @@ module.exports = (env, { mode }) => {
       'react/jsx-runtime': 'react/jsx-runtime',
       'react/jsx-dev-runtime': 'react/jsx-dev-runtime',
       'react-dom': 'reactDOM',
+      // Externalised for the same reason React is, and one more: the store behind
+      // `readVars` is a module-level Map, so a bundled copy would be a second
+      // instance — a component reading vars would look in a map the loader never
+      // wrote to. `getIdentity` happens to be safe either way because it reads a
+      // global, which is exactly what would make this easy to get wrong later.
+      '@appshell/runtime': '@appshell/runtime',
     },
   };
 };

@@ -24,6 +24,20 @@ exports[`should match snapshot 1`] = `
         </span>
       </div>
       <div
+        class="flex items-baseline gap-sm text-small"
+      >
+        <span
+          class="rounded-sm bg-surface-sunken px-sm text-on-surface-sunken"
+        >
+          anonymous
+        </span>
+        <span
+          class="opacity-80"
+        >
+          not signed in
+        </span>
+      </div>
+      <div
         class="grid grid-flow-col gap-lg"
       >
         <a

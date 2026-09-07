@@ -1,5 +1,5 @@
 import { RemoteSlot } from '@appshell/react';
-import { PackageBlock } from 'react-appshell-host-components';
+import { PackageBlock, Viewer } from 'react-appshell-host-components';
 import pkg from '../package.json';
 import AppshellLogo from './assets/appshell-logo.svg';
 import ReactLogo from './assets/react-logo.svg';
@@ -34,6 +34,15 @@ const Container = () => (
     */}
     <header className="flex min-h-screen flex-col items-center justify-center bg-surface font-sans text-[calc(10px+2vmin)] text-on-surface">
       <PackageBlock name={pkg.name} version={pkg.version} />
+
+      {/*
+        Who is looking at this page, when an application is served behind a login.
+        Rendered unconditionally: an application may be public, and "anonymous" is a
+        state worth showing rather than a blank. The identity arrives from the gateway
+        via the registry and carries no token — it is for display, and anything that
+        matters is re-checked server-side.
+      */}
+      <Viewer />
 
       <div className="grid grid-flow-col gap-lg">
         <a className={LINK} href="https://reactjs.org" target="_blank" rel="noopener noreferrer">
