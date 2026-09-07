@@ -125,6 +125,15 @@ export const activate = async (
 export type OverlayRemotePatch = {
   remoteEntryUrl: string;
   manifestUrl?: string;
+  /**
+   * The remote's `metadata` as this build declares it.
+   *
+   * Sent because a developer iterating on `appshell.config.yaml` is editing metadata as
+   * much as code; without it an overlay serves their new bundle beside the published
+   * route, displayName and icon. The registry replaces rather than merges, so a key
+   * removed from the yaml disappears rather than standing.
+   */
+  metadata?: Metadata;
 };
 
 export type OpenedOverlay = {

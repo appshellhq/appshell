@@ -491,6 +491,22 @@ describe('AppshellPlugin', () => {
         expect(Object.values(remotes)[0].remoteEntryUrl).toMatch(/^http:\/\/localhost:3001\//);
       });
 
+      it("sends this build's metadata, so the yaml under development is what renders", async () => {
+        mocked.openOverlay.mockResolvedValue({ created: false } as never);
+        const plugin = serving();
+
+        plugin.apply(compiler as any);
+        await compiler.compile();
+
+        const [, , remotes] = mocked.openOverlay.mock.calls[0];
+        const patch = Object.values(remotes)[0] as { metadata?: Record<string, unknown> };
+
+        // Config metadata is authored, and a developer editing appshell.config.yaml is
+        // changing it as much as the code. Without this an overlay serves their bundle
+        // beside the published route and displayName.
+        expect(patch.metadata).toEqual(expect.objectContaining({ route: '/foo' }));
+      });
+
       it('never fails the build when the registry cannot be reached', async () => {
         mocked.openOverlay.mockRejectedValue(new Error('connect ECONNREFUSED'));
         const plugin = serving();

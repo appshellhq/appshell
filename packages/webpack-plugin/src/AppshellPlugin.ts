@@ -430,7 +430,12 @@ export default class AppshellPlugin {
 
       return {
         ...acc,
-        [`${scopeId}/${name}/${component}`]: { remoteEntryUrl: `${origin}/${filename}` },
+        [`${scopeId}/${name}/${component}`]: {
+          remoteEntryUrl: `${origin}/${filename}`,
+          // Metadata travels with the code it describes: this build's yaml, not the
+          // published version's. The registry replaces rather than merges it.
+          ...(remote.metadata ? { metadata: remote.metadata } : {}),
+        },
       };
     }, {});
 
