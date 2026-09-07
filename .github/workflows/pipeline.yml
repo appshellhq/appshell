@@ -180,7 +180,9 @@ jobs:
       - name: Record the digest
         run: |
           mkdir -p /tmp/digests
-          touch "/tmp/digests/${{ matrix.app }}@${digest#sha256:}"
+          # The bare digest, nothing else: the manifest step below reads these filenames
+          # as digests. Only this app's land here — download-artifact filters by pattern.
+          touch "/tmp/digests/${digest#sha256:}"
         env:
           digest: ${{ steps.build.outputs.digest }}
 
