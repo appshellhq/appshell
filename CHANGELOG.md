@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.50](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.49...v1.0.0-alpha.50) (2026-09-07)
+
+### Features
+
+- **webpack-plugin:** warn when a local build shares differently ([ba7a35b](https://github.com/appshellhq/appshell/commit/ba7a35b75c1c649b9ac0669e5b9907127834b46b))
+
 # [1.0.0-alpha.49](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.48...v1.0.0-alpha.49) (2026-09-07)
 
 ### Features
