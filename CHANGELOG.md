@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.49](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.48...v1.0.0-alpha.49) (2026-09-07)
+
+### Features
+
+- **webpack-plugin:** send this build's metadata with the overlay ([a4d28ea](https://github.com/appshellhq/appshell/commit/a4d28eaa5187d71f6046f6ecd3c65ff7c2b7514e))
+
 # [1.0.0-alpha.48](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.47...v1.0.0-alpha.48) (2026-09-07)
 
 ### Features
