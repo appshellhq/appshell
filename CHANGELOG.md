@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.52](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.51...v1.0.0-alpha.52) (2026-09-07)
+
+### Features
+
+- **config:** declare remote overrides on AppshellOverrides ([3b3a9f6](https://github.com/appshellhq/appshell/commit/3b3a9f6743bbff19a0d203844b593839005f1d48))
+
 # [1.0.0-alpha.51](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.50...v1.0.0-alpha.51) (2026-09-07)
 
 **Note:** Version bump only for package appshell
