@@ -89,8 +89,27 @@ export type AppshellTemplate<TMetadata = Metadata> = {
 };
 
 /** Appshell manifest types */
+/** The parts of a remote an application may point somewhere else. */
+export type RemoteOverride = {
+  remoteEntryUrl?: string;
+  manifestUrl?: string;
+};
+
 export type AppshellOverrides = {
   vars: Record<string, Record<string, string | number | undefined>>;
+  /**
+   * Where an application loads a remote from, keyed by registry address.
+   *
+   * A package is published once; an application is deployed many times, per environment.
+   * The origin a bundle is served from is a property of a deployment, so it belongs to
+   * whoever deploys rather than being frozen into an immutable artifact at publish — which
+   * is also what makes adopting someone else's package and serving it yourself a spec edit
+   * rather than a republish.
+   *
+   * `filename` stays in the manifest: `remoteEntry.js` is genuinely build output. Only the
+   * origin varies by environment.
+   */
+  remotes?: Record<string, RemoteOverride>;
 };
 
 /**
