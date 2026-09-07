@@ -106,6 +106,130 @@ jobs:
       - name: Test
         run: npm test
 
+  # Discovers the micro-frontends rather than listing them, after the pattern in
+  # navaris/platform-services: adding one needs no workflow change. Scans `apps/` only —
+  # `packages/components` is a library and must not become an image.
+  example_images_matrix:
+    name: Discover example apps
+    needs: example
+    if: ${{ github.ref == 'refs/heads/main' || contains(github.ref, 'refs/heads/feat') || contains(github.ref, 'refs/heads/fix') }}
+    runs-on: ubuntu-latest
+    outputs:
+      builds: ${{ steps.scan.outputs.builds }}
+      apps: ${{ steps.scan.outputs.apps }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: scan
+        working-directory: examples/appshell-react-host
+        run: |
+          apps=$(find apps -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort | jq -R . | jq -sc .)
+          echo "apps=$apps" >> "$GITHUB_OUTPUT"
+
+          # app x platform, so each architecture builds natively rather than under QEMU.
+          builds=$(echo "$apps" | jq -c '[.[] as $a | ["linux/amd64","linux/arm64"][] as $p | {app:$a, platform:$p}]')
+          echo "builds={\"include\":$builds}" >> "$GITHUB_OUTPUT"
+
+          echo "Apps: $apps"
+
+  # One image per micro-frontend. They version and deploy independently, which is the
+  # thing the example exists to demonstrate — a single image carrying all three would
+  # undercut that at the infrastructure layer while the registry claims it above.
+  example_images:
+    name: Image ${{ matrix.app }} (${{ matrix.platform }})
+    needs: example_images_matrix
+    runs-on: ${{ matrix.platform == 'linux/arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.example_images_matrix.outputs.builds) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/${{ matrix.app }}
+          tags: |
+            type=sha,format=short
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      # Per-architecture digests now; the manifest that ties them together is the next
+      # job. Pushing by digest keeps two concurrent matrix legs from overwriting one
+      # another's tag.
+      - id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: examples/appshell-react-host
+          file: examples/appshell-react-host/Dockerfile
+          build-args: APP_DIR=${{ matrix.app }}
+          platforms: ${{ matrix.platform }}
+          labels: ${{ steps.meta.outputs.labels }}
+          outputs: type=image,name=ghcr.io/${{ github.repository_owner }}/${{ matrix.app }},push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=gha,scope=${{ matrix.app }}-${{ matrix.platform }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.app }}-${{ matrix.platform }}
+
+      - name: Record the digest
+        run: |
+          mkdir -p /tmp/digests
+          touch "/tmp/digests/${{ matrix.app }}@${digest#sha256:}"
+        env:
+          digest: ${{ steps.build.outputs.digest }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ matrix.app }}-${{ strategy.job-index }}
+          path: /tmp/digests/*
+          retention-days: 1
+
+  # Stitches each app's per-architecture digests into one multi-arch tag.
+  example_images_manifest:
+    name: Manifest ${{ matrix.app }}
+    needs: [example_images_matrix, example_images]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        app: ${{ fromJson(needs.example_images_matrix.outputs.apps) }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: /tmp/digests
+          pattern: digests-${{ matrix.app }}-*
+          merge-multiple: true
+
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/${{ matrix.app }}
+          tags: |
+            type=sha,format=short
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Create and push the manifest
+        working-directory: /tmp/digests
+        run: |
+          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf 'ghcr.io/${{ github.repository_owner }}/${{ matrix.app }}@sha256:%s ' *)
+
   publish_npm_packages:
     needs: build
     if: ${{ github.ref == 'refs/heads/main' || contains(github.ref, 'refs/heads/feat') || contains(github.ref, 'refs/heads/fix') }}
