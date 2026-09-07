@@ -6,6 +6,8 @@ import {
   AppshellTemplate,
   manifestFrom,
   ModuleFederationPluginOptions,
+  openOverlay,
+  OverlayRemotePatch,
   persistedContext,
   publish,
   resolveContext,
@@ -29,7 +31,7 @@ import {
   WebpackPluginInstance,
   sources as webpackSources,
 } from 'webpack';
-import { isServing, writeDevHint } from './devHint';
+import { devServerOrigin, isServing, writeDevHint } from './devHint';
 
 type AppshellPluginOptions = {
   config?: string;
@@ -361,6 +363,104 @@ export default class AppshellPlugin {
    * federation name — the registry requires a lowercase name and has no other source
    * for a version. The scope is taken from the caller's token, so it is stripped here.
    */
+  /**
+   * Points this package's remotes at the running dev server, for this developer only.
+   *
+   * Deliberately incapable of failing a build. A dev server that will not start because a
+   * registry is unreachable, a token expired, or a package was never published is worse
+   * than one serving code the browser cannot yet compose — the developer can still see
+   * their own output, and the message says what to do about the rest.
+   */
+  private static async redirectToDevServer({
+    logger,
+    registry,
+    application,
+    token,
+    template,
+    devServer,
+    context,
+  }: {
+    logger: ReturnType<Compiler['getInfrastructureLogger']>;
+    registry?: string;
+    application?: string;
+    token?: string;
+    template: AppshellTemplate;
+    devServer: Compiler['options']['devServer'];
+    context: string;
+  }): Promise<void> {
+    if (!registry) {
+      logger.warn(
+        'Not redirecting to this dev server: no registry configured. Run `appshell config set registry <url>`.',
+      );
+
+      return;
+    }
+
+    if (!application) {
+      logger.warn(
+        'Not redirecting to this dev server: no application to overlay. Run `appshell config set application <scope/name>`.',
+      );
+
+      return;
+    }
+
+    const origin = devServerOrigin(devServer);
+
+    if (!origin) {
+      logger.warn('Not redirecting to this dev server: its origin could not be determined.');
+
+      return;
+    }
+
+    const { scopeId } = resolveContext();
+    const { name } = AppshellPlugin.identify(context);
+
+    /*
+     * An overlay names remotes the way the registry addresses them — `scope/package/Component`
+     * — rather than by the federation key this package builds with. The scope comes from
+     * local configuration and the registry derives its own from the caller's token, so
+     * these can disagree; when they do the registry reports the address as unpublished,
+     * which the catch below turns into something actionable.
+     */
+    const remotes = Object.entries(template.remotes ?? {}).reduce<
+      Record<string, OverlayRemotePatch>
+    >((acc, [federationKey, remote]) => {
+      const component = federationKey.split('/').slice(1).join('/');
+      const filename = `${remote.filename ?? template.module?.filename ?? ''}`.replace(/^\//, '');
+
+      return {
+        ...acc,
+        [`${scopeId}/${name}/${component}`]: { remoteEntryUrl: `${origin}/${filename}` },
+      };
+    }, {});
+
+    if (!Object.keys(remotes).length) {
+      logger.warn('Not redirecting to this dev server: this package exposes no remotes.');
+
+      return;
+    }
+
+    try {
+      const overlay = await openOverlay(registry, application, remotes, token);
+
+      const next = overlay.created
+        ? `. Confirm it in a browser: ${overlay.confirmUrl}`
+        : ' (extended the overlay this browser already holds)';
+
+      logger.info(
+        `Redirecting ${Object.keys(remotes).join(', ')} to ${origin} in ${application}${next}`,
+      );
+    } catch (error) {
+      const message = (error as Error)?.message ?? String(error);
+
+      logger.warn(
+        message.includes('does not publish')
+          ? `${message} Publish this package once with \`appshell publish\` and activate it in ${application}, then an overlay can redirect it here.`
+          : `Not redirecting to this dev server: ${message}`,
+      );
+    }
+  }
+
   static identify(context: string) {
     const packageFile = path.resolve(context, 'package.json');
 
@@ -444,9 +544,21 @@ export default class AppshellPlugin {
     const { token } = context;
 
     const requested = this.options.publish ?? truthy(process.env.APPSHELL_PUBLISH_ON_BUILD);
-    // A dev loop publishes by default, so nobody has to toggle it off before committing.
-    const shouldPublish = requested ?? isDevelopment;
-    const force = this.options.force ?? isDevelopment;
+    /*
+     * Publishing is a release action, and a file watcher is not a release.
+     *
+     * A published version is immutable and content-addressed. Force-overwriting one on
+     * every rebuild makes the digest describe whoever built last, and two developers
+     * sharing a registry silently overwrite each other — the activation retry this plugin
+     * used to need in development existed to paper over exactly that collision.
+     *
+     * So a dev server opens an overlay instead: the same code, served from here, for this
+     * developer's browser only, leaving the published artifact alone. Publishing stays
+     * explicit — `appshell publish`, or CI asking for it — which is what a release does.
+     */
+    const shouldPublish = requested ?? false;
+    const force = this.options.force ?? false;
+    const shouldOverlay = !shouldPublish && isDevelopment && isServing();
 
     // Asking to publish with no registry anywhere is a configuration error; a dev-mode
     // default with no registry is not — it degrades to just writing the template.
@@ -538,6 +650,20 @@ export default class AppshellPlugin {
         writeDevHint(outputDir, compiler.options.devServer, `${template.module.filename ?? ''}`);
       }
 
+      if (shouldOverlay) {
+        await AppshellPlugin.redirectToDevServer({
+          logger,
+          registry,
+          application,
+          token,
+          template,
+          devServer: compiler.options.devServer,
+          context: compiler.context,
+        });
+
+        return;
+      }
+
       if (!shouldPublish) {
         return;
       }
@@ -565,9 +691,10 @@ export default class AppshellPlugin {
         });
 
         if (application) {
-          // Concurrent app startups can race on application revisions.
-          // Retry activation a few times in dev to make one-command startup stable.
-          await activateWithRetry(registry, application, id, token, isDevelopment ? 4 : 1);
+          // One attempt. The extra development retries this used to take existed because
+          // dev builds published concurrently and raced on application revisions; a dev
+          // server opens an overlay now, so that collision does not originate here.
+          await activateWithRetry(registry, application, id, token, 1);
         }
 
         compilation

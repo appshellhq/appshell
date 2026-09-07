@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { activate, persistedContext, publish, resolveContext } from '@appshell/config';
+import { activate, openOverlay, persistedContext, publish, resolveContext } from '@appshell/config';
 import fs from 'fs';
 import { values } from 'lodash';
 import { rimrafSync } from 'rimraf';
@@ -14,6 +14,7 @@ import webpackConfig from './assets/webpack.config';
 jest.mock('@appshell/config', () => ({
   ...jest.requireActual('@appshell/config'),
   activate: jest.fn(),
+  openOverlay: jest.fn(),
   publish: jest.fn(),
   resolveContext: jest.fn(),
   persistedContext: jest.fn(),
@@ -21,6 +22,7 @@ jest.mock('@appshell/config', () => ({
 
 const mocked = {
   activate: activate as jest.MockedFunction<typeof activate>,
+  openOverlay: openOverlay as jest.MockedFunction<typeof openOverlay>,
   publish: publish as jest.MockedFunction<typeof publish>,
   resolveContext: resolveContext as jest.MockedFunction<typeof resolveContext>,
   persistedContext: persistedContext as jest.MockedFunction<typeof persistedContext>,
@@ -386,7 +388,7 @@ describe('AppshellPlugin', () => {
       expect(mocked.publish).not.toHaveBeenCalled();
     });
 
-    it('should publish by default in development mode', async () => {
+    it('should not publish in development mode', async () => {
       jest.spyOn(fs, 'writeFileSync').mockImplementation();
       mocked.resolveContext.mockReturnValue({ scopeId: 'default', registry });
       compiler.options.mode = 'development';
@@ -395,9 +397,8 @@ describe('AppshellPlugin', () => {
       plugin.apply(compiler as any);
       await compiler.compile();
 
-      expect(mocked.publish).toHaveBeenCalledWith(
-        expect.objectContaining({ registry, force: true }),
-      );
+      // A published version is immutable; a file watcher must not overwrite one.
+      expect(mocked.publish).not.toHaveBeenCalled();
     });
 
     it('should opt out when APPSHELL_PUBLISH_ON_BUILD is a falsey string with whitespace', async () => {
@@ -424,7 +425,7 @@ describe('AppshellPlugin', () => {
       expect(mocked.publish).toHaveBeenCalledWith(expect.objectContaining({ registry }));
     });
 
-    it('should skip publish in development when no registry is configured', async () => {
+    it('should do nothing in a development build that is not serving', async () => {
       jest.spyOn(fs, 'writeFileSync').mockImplementation();
       compiler.options.mode = 'development';
       const plugin = new AppshellPlugin({ config });
@@ -432,9 +433,100 @@ describe('AppshellPlugin', () => {
       plugin.apply(compiler as any);
       await compiler.compile();
 
+      // Nothing to publish and no dev server to redirect to, so nothing to say.
       expect(mocked.publish).not.toHaveBeenCalled();
+      expect(mocked.openOverlay).not.toHaveBeenCalled();
       expect(errors).toHaveLength(0);
-      expect(logger.warn).toHaveBeenCalledWith(expect.stringMatching(/no registry configured/i));
+    });
+
+    describe('serving in development', () => {
+      const serving = (context: Record<string, unknown> = {}) => {
+        jest.spyOn(fs, 'writeFileSync').mockImplementation();
+        process.env.WEBPACK_SERVE = 'true';
+        compiler.options.mode = 'development';
+        compiler.options.devServer = { port: 3001 };
+        mocked.resolveContext.mockReturnValue({
+          scopeId: 'default',
+          registry,
+          application: 'default/demo',
+          ...context,
+        } as never);
+
+        return new AppshellPlugin({ config });
+      };
+
+      afterEach(() => {
+        delete process.env.WEBPACK_SERVE;
+      });
+
+      it('opens an overlay instead of publishing', async () => {
+        mocked.openOverlay.mockResolvedValue({ created: true, confirmUrl: '/c' } as never);
+        const plugin = serving();
+
+        plugin.apply(compiler as any);
+        await compiler.compile();
+
+        expect(mocked.publish).not.toHaveBeenCalled();
+        expect(mocked.openOverlay).toHaveBeenCalledWith(
+          registry,
+          'default/demo',
+          expect.any(Object),
+          undefined,
+        );
+      });
+
+      it('addresses remotes the way the registry does, not by federation key', async () => {
+        mocked.openOverlay.mockResolvedValue({ created: false } as never);
+        const plugin = serving();
+
+        plugin.apply(compiler as any);
+        await compiler.compile();
+
+        const [, , remotes] = mocked.openOverlay.mock.calls[0];
+
+        // `scope/package/Component`, and pointing at this dev server.
+        expect(Object.keys(remotes)).toEqual(
+          expect.arrayContaining(['default/webpack-plugin/Foo', 'default/webpack-plugin/Bar']),
+        );
+        expect(Object.values(remotes)[0].remoteEntryUrl).toMatch(/^http:\/\/localhost:3001\//);
+      });
+
+      it('never fails the build when the registry cannot be reached', async () => {
+        mocked.openOverlay.mockRejectedValue(new Error('connect ECONNREFUSED'));
+        const plugin = serving();
+
+        plugin.apply(compiler as any);
+        await compiler.compile();
+
+        // A dev server that will not start because a registry is down is worse than one
+        // serving code the browser cannot yet compose.
+        expect(errors).toHaveLength(0);
+        expect(logger.warn).toHaveBeenCalledWith(expect.stringMatching(/ECONNREFUSED/));
+      });
+
+      it('says how to fix an unpublished package rather than repeating the registry', async () => {
+        mocked.openOverlay.mockRejectedValue(
+          new Error('default/demo does not publish default/webpack-plugin/Foo.'),
+        );
+        const plugin = serving();
+
+        plugin.apply(compiler as any);
+        await compiler.compile();
+
+        expect(errors).toHaveLength(0);
+        expect(logger.warn).toHaveBeenCalledWith(expect.stringMatching(/appshell publish/));
+      });
+
+      it('warns rather than overlaying when there is no application to overlay', async () => {
+        const plugin = serving({ application: undefined });
+
+        plugin.apply(compiler as any);
+        await compiler.compile();
+
+        expect(mocked.openOverlay).not.toHaveBeenCalled();
+        expect(errors).toHaveLength(0);
+        expect(logger.warn).toHaveBeenCalledWith(expect.stringMatching(/no application/i));
+      });
     });
 
     it('should warn when an option overrides the persisted CLI context', async () => {
@@ -559,7 +651,7 @@ describe('AppshellPlugin', () => {
       plugin.apply(compiler as any);
       await compiler.compile();
 
-      expect(mocked.publish).toHaveBeenCalledWith(expect.objectContaining({ force: true }));
+      expect(mocked.publish).toHaveBeenCalledWith(expect.objectContaining({ force: false }));
     });
 
     it('should not request force in production mode', async () => {

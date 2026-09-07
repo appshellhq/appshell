@@ -120,3 +120,64 @@ export const activate = async (
     throw new Error(`Failed to activate ${packageId} in ${application}: ${describe(error)}`);
   }
 };
+
+/** What an overlay redirects a single remote to. */
+export type OverlayRemotePatch = {
+  remoteEntryUrl: string;
+  manifestUrl?: string;
+};
+
+export type OpenedOverlay = {
+  id: string;
+  confirmUrl: string;
+  url: string;
+  remotes: string[];
+  expiresAt: string;
+  /**
+   * False when an overlay was already open for this developer and this one extended it.
+   * A browser carries a single overlay id, so an extended overlay is one some browser has
+   * already confirmed — nothing needs sending back to the confirmation page.
+   */
+  created: boolean;
+};
+
+/**
+ * Points some of an application's remotes at a developer's own machine, for that
+ * developer only.
+ *
+ * This is what a local dev loop does instead of republishing. A published version is
+ * immutable and content-addressed; overwriting one on every rebuild makes the digest
+ * describe whoever built last, and two developers sharing a registry overwrite each
+ * other. An overlay is per-developer, per-browser and expiring, so neither happens.
+ *
+ * Extending is the normal case rather than the exception: the registry merges remotes
+ * into whatever overlay this developer already holds, so serving two micro-frontends
+ * locally redirects both without minting a second overlay or asking for confirmation
+ * twice.
+ *
+ * @param application `scope/name`
+ */
+export const openOverlay = async (
+  registry: string,
+  application: string,
+  remotes: Record<string, OverlayRemotePatch>,
+  token?: string,
+): Promise<OpenedOverlay> => {
+  const [scopeId, name] = application.split('/');
+
+  if (!scopeId || !name) {
+    throw new Error(`Invalid application '${application}'. Expected 'scope/name'.`);
+  }
+
+  try {
+    const { data } = await axios.post<OpenedOverlay>(
+      `${registry.replace(/\/$/, '')}/v1/applications/${scopeId}/${name}/overlays`,
+      { remotes },
+      { headers: authorization(token) },
+    );
+
+    return data;
+  } catch (error) {
+    throw new Error(`Failed to open an overlay on ${application}: ${describe(error)}`);
+  }
+};

@@ -8,8 +8,8 @@ export { clearCredential, credentialsPath, resolveToken, saveCredential } from '
 export type { Credential } from './credentials';
 export { default as generateManifest, manifestFrom } from './generate.manifest';
 export { default as outdated } from './outdated';
-export { activate, publish } from './publish';
-export type { PublishOptions, PublishResult } from './publish';
+export { activate, openOverlay, publish } from './publish';
+export type { OpenedOverlay, OverlayRemotePatch, PublishOptions, PublishResult } from './publish';
 export { default as sync } from './sync';
 export type {
   AppshellComposition,
