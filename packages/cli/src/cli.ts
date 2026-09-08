@@ -191,14 +191,31 @@ const initConfigCommand: yargs.CommandModule<unknown, InitArgs> = {
   command: 'init',
   aliases: ['i'],
   describe: 'Initialize the configuration',
+  // registry, application and scopeId arrive as global options; these two did not. They
+  // still reached the handler — the CLI is strictCommands() rather than strict(), so
+  // yargs passes an undeclared option through — but nothing advertised them, and
+  // `config init --help` was the only place a caller would look.
+  //
+  // Deliberately without defaults: with one, yargs would always supply a value, the
+  // handler's `?? existing` would never fire, and re-running init would silently wipe a
+  // configured issuer.
   // eslint-disable-next-line @typescript-eslint/no-shadow
   builder: (yargs) =>
-    yargs.option('config', {
-      alias: 'c',
-      describe: 'Path to the cli config file',
-      default: configPathOf(),
-      type: 'string',
-    }) as yargs.Argv<InitArgs>,
+    yargs
+      .option('config', {
+        alias: 'c',
+        describe: 'Path to the cli config file',
+        default: configPathOf(),
+        type: 'string',
+      })
+      .option('authIssuer', {
+        describe: 'OIDC issuer the registry authenticates against',
+        type: 'string',
+      })
+      .option('clientId', {
+        describe: 'OIDC client the cli authenticates as',
+        type: 'string',
+      }) as yargs.Argv<InitArgs>,
   handler: initConfigHandler,
 };
 
