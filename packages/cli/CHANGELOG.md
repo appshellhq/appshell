@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.56](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.55...v1.0.0-alpha.56) (2026-09-08)
+
+### Bug Fixes
+
+- **cli:** make config init's auth options discoverable, and say what is missing ([972d1f8](https://github.com/appshellhq/appshell/commit/972d1f84f1f16051097ccfbc2a609b07af0052f6))
+
 # [1.0.0-alpha.55](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.54...v1.0.0-alpha.55) (2026-09-07)
 
 **Note:** Version bump only for package @appshell/cli
