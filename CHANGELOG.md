@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.64](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.63...v1.0.0-alpha.64) (2026-09-09)
+
+### Bug Fixes
+
+- **cli:** publishing a package no longer activates it ([10a75d3](https://github.com/appshellhq/appshell/commit/10a75d36f9058c5c6ef9d3ce013a7d36c821e7d7)), closes [#4](https://github.com/appshellhq/appshell/issues/4)
+
 # [1.0.0-alpha.63](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.62...v1.0.0-alpha.63) (2026-09-09)
 
 ### Bug Fixes
