@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.62](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.61...v1.0.0-alpha.62) (2026-09-09)
+
+### Bug Fixes
+
+- **config:** stop readConfig printing the config, credential included ([27af8c8](https://github.com/appshellhq/appshell/commit/27af8c8d9646e2eb5e8256042eb654bb49110c98))
+
 # [1.0.0-alpha.61](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.60...v1.0.0-alpha.61) (2026-09-09)
 
 ### Features
