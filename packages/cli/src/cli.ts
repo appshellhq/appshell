@@ -201,6 +201,17 @@ const initConfigCommand: yargs.CommandModule<unknown, InitArgs> = {
         default: configPathOf(),
         type: 'string',
       })
+      // Declared here without defaults so they shadow the global options, whose defaults
+      // would otherwise make argv always carry a value and init write it as though it had
+      // been chosen — scopeId's global default is the literal 'default'.
+      .option('scopeId', {
+        describe: 'Scope that owns unqualified packages and applications',
+        type: 'string',
+      })
+      .option('application', {
+        describe: "Application to operate against, as 'name' or 'scope/name'",
+        type: 'string',
+      })
       .option('authIssuer', {
         describe: 'OIDC issuer the registry authenticates against',
         type: 'string',

@@ -81,4 +81,22 @@ describe('declared visibility', () => {
 
     expect(config.publish).toHaveBeenCalledWith(expect.objectContaining({ visibility: undefined }));
   });
+
+  /*
+   * Publishing a package says nothing about which application should serve it, and there
+   * is no requirement that an application exist at all.
+   *
+   * It used to activate whenever `application` was configured — a setting that exists to
+   * address the `app` commands. The failure was the worst shape available: the package
+   * published, activation 404'd against an application nobody had created, and the
+   * command exited non-zero over work that had succeeded.
+   */
+  it('does not activate, even with an application configured', async () => {
+    template('public');
+
+    await handler({ ...publishArgs(), application: 'appshell/appshell-example' } as never);
+
+    expect(config.publish).toHaveBeenCalled();
+    expect(config.activate).not.toHaveBeenCalled();
+  });
 });

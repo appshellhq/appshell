@@ -1,6 +1,8 @@
 /* eslint-disable no-console */
 import fs from 'fs';
+import { isUndefined, omitBy } from 'lodash';
 import path from 'path';
+import { CliConfig } from '../../../../config/src/types';
 import { readConfig, writeConfig } from '../../../../config/src/utils';
 
 export type InitArgs = {
@@ -22,14 +24,29 @@ export default async (argv: InitArgs) => {
 
   const existing = readConfig(config);
 
-  const next = {
-    ...existing,
-    registry: registry ?? existing.registry ?? 'http://localhost:7150',
-    application: application ?? existing.application ?? 'default',
-    scopeId: scopeId ?? existing.scopeId ?? 'default',
-    authIssuer: authIssuer ?? existing.authIssuer ?? '',
-    clientId: clientId ?? existing.clientId ?? 'appshell-cli',
-  };
+  /*
+   * Only values that mean something are written.
+   *
+   * `application` and `scope-id` used to be seeded with the literal 'default'. Neither is
+   * a default anybody chose: there is no requirement that an application exist to publish
+   * a package, and 'default' stopped being a scope a principal can write into when scope
+   * started coming from the account. Writing them made a placeholder look like a decision,
+   * and `application` in particular was read by publish as consent to activate.
+   *
+   * registry and clientId keep defaults because theirs are real: a local registry listens
+   * on 7150, and the cli authenticates as appshell-cli.
+   */
+  const next = omitBy(
+    {
+      ...existing,
+      registry: registry ?? existing.registry ?? 'http://localhost:7150',
+      application: application ?? existing.application,
+      scopeId: scopeId ?? existing.scopeId,
+      authIssuer: authIssuer ?? existing.authIssuer,
+      clientId: clientId ?? existing.clientId ?? 'appshell-cli',
+    },
+    isUndefined,
+  ) as CliConfig;
 
   writeConfig(config, next);
 

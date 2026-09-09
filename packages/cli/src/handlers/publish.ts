@@ -1,21 +1,13 @@
 /* eslint-disable no-console */
-import {
-  activate,
-  AppshellManifest,
-  AppshellTemplate,
-  generateManifest,
-  publish,
-} from '@appshell/config';
+import { AppshellManifest, AppshellTemplate, generateManifest, publish } from '@appshell/config';
 import chalk from 'chalk';
 import chokidar from 'chokidar';
 import fs from 'fs';
 import { resolveToken } from '../util/credentials';
 import { identify } from '../util/identity';
-import { parseApplication } from '../util/registry';
 
 export type PublishArgs = {
   registry: string;
-  application?: string;
   scopeId: string;
   template: string;
   name?: string;
@@ -26,7 +18,7 @@ export type PublishArgs = {
 };
 
 const publishOnce = async (argv: PublishArgs) => {
-  const { registry, application, scopeId, template, force } = argv;
+  const { registry, template, force } = argv;
   // Whether a credential is required is the registry's policy, not ours: a
   // registry running AUTH_MODE=none needs none. A 401 says so precisely.
   const token = resolveToken(registry);
@@ -63,12 +55,16 @@ const publishOnce = async (argv: PublishArgs) => {
 
   console.log(chalk.green(`${created ? 'Published' : 'Already published'} ${id}`));
 
-  if (application) {
-    const { scopeId: envScope, name: envName } = parseApplication(application, scopeId);
-    await activate(registry, `${envScope}/${envName}`, id, token);
-    console.log(chalk.green(`Activated ${id} in ${envScope}/${envName}`));
-  }
-
+  /*
+   * Publishing does not activate. It used to, whenever an application happened to be
+   * configured — so a setting that exists to address `app` commands silently decided that
+   * publishing a package also changed what a running application serves.
+   *
+   * It failed in the worst shape available: the package published, activation 404'd
+   * against an application nobody had created, and the command exited non-zero over work
+   * that had in fact succeeded. Activation is `appshell app activate`, which says what it
+   * does and can fail on its own.
+   */
   return id;
 };
 

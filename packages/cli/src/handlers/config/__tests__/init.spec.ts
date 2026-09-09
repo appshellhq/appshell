@@ -79,4 +79,27 @@ describe('config init', () => {
 
     expect(logged.join('\n')).not.toContain('auth-issuer is unset');
   });
+
+  /*
+   * Publishing a package needs no application, so seeding one made a placeholder look
+   * like a decision — and publish read it as consent to activate.
+   *
+   * scope-id is still written as 'default' and is not covered here: its global option
+   * defaults to that literal, so argv always carries a value, and 123 call sites read it
+   * expecting a string. Removing the fallback is its own change — appshellhq/appshell#4.
+   */
+  it('invents no application', async () => {
+    await buildCli(['config', 'init']).parseAsync();
+
+    expect(written()).not.toHaveProperty('application');
+  });
+
+  it('still writes the defaults that are real', async () => {
+    await buildCli(['config', 'init']).parseAsync();
+
+    expect(written()).toMatchObject({
+      registry: 'http://localhost:7150',
+      'client-id': 'appshell-cli',
+    });
+  });
 });

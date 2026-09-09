@@ -26,11 +26,10 @@ describe('config init', () => {
 
     expect(existsSyncSpy).toHaveBeenCalledWith(args.config);
     expect(mkdirSyncSpy).toHaveBeenCalledWith(expect.any(String), { recursive: true });
+    // No application, no scope and no issuer: none of them has a default anybody chose,
+    // and writing one made a placeholder look like a decision. See the sibling spec.
     expect(writeConfigSpy).toHaveBeenCalledWith(args.config, {
       registry: 'http://localhost:7150',
-      application: 'default',
-      scopeId: 'default',
-      authIssuer: '',
       clientId: 'appshell-cli',
     });
   });
@@ -52,11 +51,11 @@ describe('config init', () => {
     await init(args);
 
     expect(mkdirSyncSpy).not.toHaveBeenCalled();
+    // What the file already held is kept; only what nothing supplies is left out.
     expect(writeConfigSpy).toHaveBeenCalledWith(args.config, {
       registry: 'https://registry.example.com',
       application: 'staging',
       scopeId: 'acme',
-      authIssuer: '',
       clientId: 'appshell-cli',
     });
   });
