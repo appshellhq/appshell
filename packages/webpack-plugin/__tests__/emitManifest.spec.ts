@@ -13,6 +13,7 @@ import AppshellPlugin from '../src/AppshellPlugin';
  */
 // Left unsubstituted on purpose: the manifest is only correct if the plugin resolves it.
 const CONFIG = [
+  'visibility: public',
   'remotes:',
   '  TestModule/Foo:',
   '    metadata:',
@@ -120,6 +121,20 @@ describe('the emitted manifest', () => {
     expect(remote.manifestUrl).toBeUndefined();
     expect(remote.remoteEntryUrl).toBeUndefined();
     expect(JSON.stringify(manifest())).not.toContain('http://');
+  });
+
+  /*
+   * Declared in the yaml, carried into the template for publish to read, and kept out of
+   * the manifest — which is hashed into the package digest. A package made public later
+   * must not thereby change what it is.
+   */
+  it('should carry visibility to the template and not the manifest', () => {
+    const template = JSON.parse(
+      fs.readFileSync(path.join(root, 'dist', 'appshell.template.json'), 'utf-8'),
+    );
+
+    expect(template.visibility).toBe('public');
+    expect(manifest()).not.toHaveProperty('visibility');
   });
 
   // Taken from the Module Federation config, which is what decides the emitted file.

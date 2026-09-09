@@ -1,3 +1,6 @@
+# Demo code from a public repo, so published public. The registry defaults to private.
+visibility: public
+
 remotes:
   PongModule/Pong:
     metadata:

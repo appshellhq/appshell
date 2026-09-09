@@ -33,6 +33,11 @@
           "type": "object"
         }
       }
+    },
+    "visibility": {
+      "type": "string",
+      "enum": ["public", "private"],
+      "description": "Visibility the registry publishes this package as; --visibility overrides it"
     }
   },
   "definitions": {

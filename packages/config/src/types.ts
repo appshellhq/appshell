@@ -82,6 +82,15 @@ export type AppshellConfigRemote<TMetadata = Metadata> = {
 
 export type AppshellConfig<TMetadata = Metadata> = {
   name?: string;
+  /**
+   * What the registry should publish this package as. `--visibility` overrides it.
+   *
+   * Declared here but deliberately absent from the manifest, as `name` already is: the
+   * manifest is hashed into the package digest, and visibility is not a property of the
+   * artifact. Keeping it out is what lets a package be made public later without its
+   * content changing identity.
+   */
+  visibility?: 'public' | 'private';
   remotes?: Record<string, AppshellConfigRemote<TMetadata>>;
   vars?: Record<string, unknown>;
   overrides?: AppshellOverrides;
@@ -90,6 +99,8 @@ export type AppshellConfig<TMetadata = Metadata> = {
 /* appshell.template.json */
 export type AppshellTemplate<TMetadata = Metadata> = {
   name?: string;
+  /** Carried from the yaml for publish to read; never mapped into the manifest. */
+  visibility?: 'public' | 'private';
   remotes?: Record<string, AppshellConfigRemote<TMetadata>>;
   module: ModuleFederationPluginOptions;
   vars?: Record<string, unknown>;
