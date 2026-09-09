@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.63](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.62...v1.0.0-alpha.63) (2026-09-09)
+
+### Bug Fixes
+
+- **cli:** let config set write ca-file ([af932de](https://github.com/appshellhq/appshell/commit/af932de341afbb257c4d6e63f3348e2dc66202a6))
+
 # [1.0.0-alpha.62](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.61...v1.0.0-alpha.62) (2026-09-09)
 
 ### Bug Fixes
