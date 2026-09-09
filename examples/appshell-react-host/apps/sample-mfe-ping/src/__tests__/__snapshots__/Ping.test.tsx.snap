@@ -36,14 +36,19 @@ exports[`should match snapshot 1`] = `
   "id": "2009efad",
   "manifestUrl": "http://localhost:3001/appshell.manifest.json",
   "remoteEntryUrl": "http://localhost:3001/remoteEntry.js",
-  "scope": "PingModule",
-  "module": "./Ping",
   "metadata": {
     "route": "/ping",
     "displayName": "Ping Micro-Frontend",
     "displayGroup": "main",
     "order": 10,
     "icon": "ViewList"
+  },
+  "loader": {
+    "apiVersion": "federation.appshell.org/v1",
+    "kind": "ModuleFederation",
+    "scope": "PingModule",
+    "module": "./Ping",
+    "filename": "remoteEntry.js"
   }
 }
       </textarea>

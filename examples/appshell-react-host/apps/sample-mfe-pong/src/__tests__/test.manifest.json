@@ -4,56 +4,76 @@
       "id": "33a5786e",
       "manifestUrl": "http://localhost:3000/appshell.manifest.json",
       "remoteEntryUrl": "http://localhost:3000/remoteEntry.js",
-      "scope": "ContainerModule",
-      "module": "./Container",
       "metadata": {
         "route": "/",
         "displayName": "Host App",
         "displayGroup": "main",
         "order": 0,
         "icon": "ViewList"
+      },
+      "loader": {
+        "apiVersion": "federation.appshell.org/v1",
+        "kind": "ModuleFederation",
+        "scope": "ContainerModule",
+        "module": "./Container",
+        "filename": "remoteEntry.js"
       }
     },
     "PingModule/Ping": {
       "id": "2009efad",
       "manifestUrl": "http://localhost:3001/appshell.manifest.json",
       "remoteEntryUrl": "http://localhost:3001/remoteEntry.js",
-      "scope": "PingModule",
-      "module": "./Ping",
       "metadata": {
         "route": "/ping",
         "displayName": "Ping Micro-Frontend",
         "displayGroup": "main",
         "order": 10,
         "icon": "ViewList"
+      },
+      "loader": {
+        "apiVersion": "federation.appshell.org/v1",
+        "kind": "ModuleFederation",
+        "scope": "PingModule",
+        "module": "./Ping",
+        "filename": "remoteEntry.js"
       }
     },
     "PongModule/Pong": {
       "id": "6b3cbfed",
       "manifestUrl": "http://localhost:3002/appshell.manifest.json",
       "remoteEntryUrl": "http://localhost:3002/remoteEntry.js",
-      "scope": "PongModule",
-      "module": "./Pong",
       "metadata": {
         "route": "/pong",
         "displayName": "Pong Micro-Frontend",
         "displayGroup": "main",
         "order": 20,
         "icon": "ViewList"
+      },
+      "loader": {
+        "apiVersion": "federation.appshell.org/v1",
+        "kind": "ModuleFederation",
+        "scope": "PongModule",
+        "module": "./Pong",
+        "filename": "remoteEntry.js"
       }
     },
     "PongModule/CoolComponent": {
       "id": "6554a942",
       "manifestUrl": "http://localhost:3002/appshell.manifest.json",
       "remoteEntryUrl": "http://localhost:3002/remoteEntry.js",
-      "scope": "PongModule",
-      "module": "./CoolComponent",
       "metadata": {
         "route": "/cool",
         "displayName": "Cool Shared Component",
         "displayGroup": "main",
         "order": 30,
         "icon": "ViewList"
+      },
+      "loader": {
+        "apiVersion": "federation.appshell.org/v1",
+        "kind": "ModuleFederation",
+        "scope": "PongModule",
+        "module": "./CoolComponent",
+        "filename": "remoteEntry.js"
       }
     }
   },

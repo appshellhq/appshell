@@ -36,14 +36,19 @@ exports[`should match snapshot 1`] = `
   "id": "6b3cbfed",
   "manifestUrl": "http://localhost:3002/appshell.manifest.json",
   "remoteEntryUrl": "http://localhost:3002/remoteEntry.js",
-  "scope": "PongModule",
-  "module": "./Pong",
   "metadata": {
     "route": "/pong",
     "displayName": "Pong Micro-Frontend",
     "displayGroup": "main",
     "order": 20,
     "icon": "ViewList"
+  },
+  "loader": {
+    "apiVersion": "federation.appshell.org/v1",
+    "kind": "ModuleFederation",
+    "scope": "PongModule",
+    "module": "./Pong",
+    "filename": "remoteEntry.js"
   }
 }
       </textarea>

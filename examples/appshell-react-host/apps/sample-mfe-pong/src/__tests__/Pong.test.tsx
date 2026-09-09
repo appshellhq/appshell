@@ -1,11 +1,11 @@
-import { RemoteProvider } from '@appshell/react';
+import { AppshellRemote, RemoteProvider } from '@appshell/react';
 import { render, screen } from '@testing-library/react';
 import Pong from '../Pong';
 import manifest from './test.manifest.json';
 
 const renderPong = () =>
   render(
-    <RemoteProvider remote={manifest.remotes['PongModule/Pong']}>
+    <RemoteProvider remote={manifest.remotes['PongModule/Pong'] as AppshellRemote}>
       <Pong />
     </RemoteProvider>,
   );
