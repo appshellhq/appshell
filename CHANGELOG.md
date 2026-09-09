@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.61](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.60...v1.0.0-alpha.61) (2026-09-09)
+
+### Features
+
+- **cli:** trust a private CA through config, not an environment variable ([6701781](https://github.com/appshellhq/appshell/commit/67017816474ca61c026ca2193e90dbb4928bd4f7))
+
 # [1.0.0-alpha.60](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.59...v1.0.0-alpha.60) (2026-09-09)
 
 **Note:** Version bump only for package appshell
