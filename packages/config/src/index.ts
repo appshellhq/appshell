@@ -11,6 +11,7 @@ export { default as outdated } from './outdated';
 export { activate, openOverlay, publish } from './publish';
 export type { OpenedOverlay, OverlayRemotePatch, PublishOptions, PublishResult } from './publish';
 export { default as sync } from './sync';
+export { caFile, httpsAgent } from './tls';
 export type {
   AppshellComposition,
   AppshellConfig,

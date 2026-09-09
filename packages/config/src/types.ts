@@ -56,6 +56,12 @@ export type ComparisonTarget = {
 
 export type CliConfig = Record<string, string> & {
   apiKey: string;
+  /**
+   * PEM bundle to trust in addition to Node's built-ins, for a registry behind a private
+   * CA. Optional, and absent from `config init` output: an empty path is not a default
+   * worth writing, and its absence means "use Node's defaults".
+   */
+  caFile?: string;
   registry: string;
   application: string;
   scopeId: string;
