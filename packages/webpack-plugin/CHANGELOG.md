@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.57](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.56...v1.0.0-alpha.57) (2026-09-09)
+
+### Bug Fixes
+
+- **webpack-plugin:** derive the overlay filename from the Module Federation config ([26878c9](https://github.com/appshellhq/appshell/commit/26878c9eaf50c0d8254af41a3f69055614855758))
+
+### Features
+
+- **config:** publish a manifest that names no origin ([dde5e82](https://github.com/appshellhq/appshell/commit/dde5e82e511cf107504aea4d0b9e3051a3ec532e))
+
 # [1.0.0-alpha.56](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.55...v1.0.0-alpha.56) (2026-09-08)
 
 **Note:** Version bump only for package @appshell/webpack-plugin
