@@ -21,15 +21,8 @@ import * as theme from './handlers/theme';
 import { ThemeGetArgs, ThemeInitArgs, ThemeListArgs, ThemePublishArgs } from './handlers/theme';
 import { GlobalArgs } from './util/args';
 
-const loadConfig = (cPath: string) => {
-  const originalDebug = console.debug;
-
-  console.debug = () => {};
-  const c = readConfig(cPath);
-  console.debug = originalDebug;
-
-  return c;
-};
+// readConfig is quiet now, so there is nothing left to suppress here.
+const loadConfig = (cPath: string) => readConfig(cPath);
 const configPathOf = () =>
   process.env.APPSHELL_CONFIG || path.join(os.homedir(), '.appshell', 'config');
 

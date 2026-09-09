@@ -9,19 +9,22 @@ import { CliConfig } from '../types';
 
 const readYaml = <T>(file: string) => yaml.parse(fs.readFileSync(file, 'utf-8')) as T;
 
+/*
+ * Silent on purpose. It used to debug-log the file it read and the config twice over,
+ * which every caller then had to suppress — `loadConfig` in the cli replaced console.debug
+ * around each call to do it. A logger nobody may hear is not a logger, and the first call
+ * site that forgot the ritual printed the whole config on every command.
+ *
+ * The config carries `apiKey`, so what it printed was a credential.
+ */
 export const readConfig = (configPath: string) => {
-  console.debug(`Reading config from ${configPath}`);
   if (fs.existsSync(configPath)) {
     const config = readYaml<CliConfig>(configPath) ?? ({} as CliConfig);
-
-    console.debug(`Raw config: ${JSON.stringify(config, null, 2)}`);
 
     const sanitizedConfig = Object.entries(config).reduce((acc, [key, curr]) => {
       acc[camelCase(key)] = curr;
       return acc;
     }, {} as Record<string, string>) as CliConfig;
-
-    console.debug(`Sanitized config: ${JSON.stringify(sanitizedConfig, null, 2)}`);
 
     return sanitizedConfig;
   }
@@ -31,16 +34,14 @@ export const readConfig = (configPath: string) => {
 
 export const writeConfig = (configPath: string, config: CliConfig) => {
   console.debug(`Writing config to ${configPath}`);
-  console.debug(`Raw config: ${JSON.stringify(config, null, 2)}`);
 
   const sanitizedConfig = Object.entries(config).reduce((acc, [key, curr]) => {
     acc[kebabCase(key)] = curr;
     return acc;
   }, {} as Record<string, string>) as CliConfig;
 
+  // Not logged, for the same reason as reading it: the config carries a credential.
   const configFileContent = yaml.stringify(sanitizedConfig);
-
-  console.debug(`Sanitized config: ${JSON.stringify(sanitizedConfig, null, 2)}`);
 
   fs.writeFileSync(configPath, configFileContent);
 };

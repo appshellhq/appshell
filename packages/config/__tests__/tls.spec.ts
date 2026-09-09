@@ -79,4 +79,21 @@ describe('ca-file', () => {
 
     expect(() => httpsAgent()).toThrow(/ca-file does not exist.*missing\.pem/);
   });
+
+  /*
+   * readConfig is called while building the https agent, which happens when the axios
+   * module is imported — before any command runs and before yargs can silence anything.
+   *
+   * It used to debug-log the path and then the config twice, and every caller suppressed
+   * that by replacing console.debug around the call. The first call site that did not
+   * printed the whole config, `apiKey` included, ahead of every command's real output.
+   */
+  it('reads the config without logging it', () => {
+    const debug = jest.spyOn(console, 'debug').mockImplementation(() => {});
+    configured(pem());
+
+    caFile();
+
+    expect(debug).not.toHaveBeenCalled();
+  });
 });
