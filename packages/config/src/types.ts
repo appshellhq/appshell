@@ -54,6 +54,25 @@ export type ComparisonTarget = {
   dependencies: Record<string, string | undefined>;
 };
 
+/**
+ * Every key `appshell config set` accepts, kept adjacent to the type it must agree with.
+ *
+ * It used to live in the set handler, and adding `caFile` to CliConfig without touching it
+ * produced a setting the cli could read and refuse to write.
+ */
+export const CLI_SETTINGS = [
+  'registry',
+  'application',
+  'scopeId',
+  'authIssuer',
+  'clientId',
+  'apiKey',
+  'apiKeyHeader',
+  'caFile',
+] as const;
+
+export type CliSetting = (typeof CLI_SETTINGS)[number];
+
 export type CliConfig = Record<string, string> & {
   apiKey: string;
   /**

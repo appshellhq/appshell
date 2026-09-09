@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import { camelCase } from 'change-case';
+import { CLI_SETTINGS } from '../../../../config/src/types';
 import { readConfig, writeConfig } from '../../../../config/src/utils';
 
 export type SetConfigArgs = {
@@ -8,15 +9,7 @@ export type SetConfigArgs = {
   value: string;
 };
 
-const settable = [
-  'registry',
-  'application',
-  'scopeId',
-  'authIssuer',
-  'clientId',
-  'apiKey',
-  'apiKeyHeader',
-];
+const settable: readonly string[] = CLI_SETTINGS;
 
 export default async (argv: SetConfigArgs) => {
   const { config, value } = argv;
