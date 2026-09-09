@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.67](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.66...v1.0.0-alpha.67) (2026-09-09)
+
+### Bug Fixes
+
+- **cli:** find the manifest template instead of guessing at it ([252dfde](https://github.com/appshellhq/appshell/commit/252dfde1fd58f713c800909aea96a000a89b80c8))
+
 # [1.0.0-alpha.66](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.65...v1.0.0-alpha.66) (2026-09-09)
 
 **Note:** Version bump only for package appshell
