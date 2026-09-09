@@ -59,13 +59,13 @@ export const publish = async ({
   force,
 }: PublishOptions): Promise<PublishResult> => {
   /*
-   * A deployment coordinate that never resolved cannot be published.
+   * A remote describes the artifact, so nothing on one may still be a placeholder.
    *
-   * Vars may legitimately arrive unresolved — a `${VAR}` under `vars` is a declaration, and
-   * the application supplies it. A remote url is the opposite: nobody downstream can supply
-   * it, because only the build knows where its own artifact is served. Publishing one
-   * unresolved stores an immutable manifest that nothing can ever load, and the failure
-   * surfaces much later as a browser fetching a URL with a variable name in the path.
+   * Vars may legitimately arrive unresolved — a `${VAR}` under `vars` is a declaration and
+   * the application supplies it. A remote is the opposite: every field on it is something
+   * the build knows about itself, and there is no later layer that could fill one in.
+   * Publishing one unresolved stores an immutable manifest nothing can load, and the
+   * failure surfaces much later as a browser fetching a variable name.
    *
    * Checked here rather than when the manifest is built, so a build without a complete
    * environment still emits its assets. Only publishing is refused.
@@ -78,8 +78,8 @@ export const publish = async ({
 
   if (unresolved.length) {
     throw new Error(
-      `Cannot publish ${name}@${version}: these deployment coordinates were never ` +
-        `resolved — ${unresolved.join(', ')}. Set the variables they name, or write a literal.`,
+      `Cannot publish ${name}@${version}: these remote fields were never resolved — ` +
+        `${unresolved.join(', ')}. Set the variables they name, or write a literal.`,
     );
   }
 

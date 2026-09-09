@@ -4,14 +4,18 @@ import handler from '../src/handlers/outdated';
 import * as util from '../src/util/fetch';
 import outdatedResults from './assets/outdated.results.json';
 import packageSpec from './assets/package.json';
-import snapshot from './assets/snapshot.json';
+import sharedModulesFixture from './assets/shared-modules.json';
 
 jest.mock('../src/util/fetch');
 
-const sharedModules = Object.entries(snapshot.modules).reduce((acc, [name, options]) => {
-  acc[name] = options.shared as SharedObject;
-  return acc;
-}, {} as Record<string, SharedObject>);
+/*
+ * Shaped like what `fetchSharedModules` returns, because that is where this comes from.
+ *
+ * It used to be derived from a published-manifest snapshot, back when `outdated` compared
+ * against a file on disk. It reads shared dependencies from the registry now, so a
+ * snapshot was a fixture for a mechanism that no longer exists.
+ */
+const sharedModules = sharedModulesFixture as unknown as Record<string, SharedObject>;
 
 describe('cli outdated', () => {
   const apiKey = 'test-api-key';

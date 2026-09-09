@@ -2,7 +2,6 @@
   "remotes": {
     "TestModule/Foo": {
       "id": "4278464b",
-      "url": "http://remote-module.com/remoteEntry.js",
       "scope": "TestModule",
       "module": "./Foo",
       "metadata": {
@@ -15,7 +14,6 @@
     },
     "TestModule/Bar": {
       "id": "42783598",
-      "url": "http://remote-module.com/remoteEntry.js",
       "scope": "TestModule",
       "module": "./Bar",
       "metadata": {
@@ -28,7 +26,6 @@
     },
     "BizModule/Biz": {
       "id": "373793ed",
-      "url": "http://localhost:4040/remoteEntry.js",
       "scope": "BizModule",
       "module": "./Biz",
       "metadata": {

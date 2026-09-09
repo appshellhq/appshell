@@ -5,9 +5,9 @@ import configmap from '../configmap';
 import {
   AppshellConfigRemote,
   AppshellManifest,
-  AppshellRemote,
   AppshellTemplate,
   ConfigMap,
+  PublishedRemote,
 } from '../types';
 
 const mapper = createMapper({
@@ -28,13 +28,18 @@ const mapAppshellEntrypoint = (
 ) => {
   const moduleName = key.replace(/\/.+/, '');
   const moduleKey = key.replace(moduleName, '.');
-  const { id, url, filename } = remote;
+  const { id } = remote;
   const { shareScope } = source.module;
+  // From the Module Federation config, which is what emits the file, rather than from a
+  // yaml field restating it. MF's own default when unset is remoteEntry.js.
+  const filename = source.module.filename ?? 'remoteEntry.js';
 
+  // No manifestUrl or remoteEntryUrl. Both are origins, and an origin is a property of
+  // wherever this gets deployed rather than of the artifact — the registry composes them
+  // from the package's address and its own serving plane.
   return {
     id,
-    manifestUrl: `${url}/appshell.manifest.json`,
-    remoteEntryUrl: `${url}/${filename}`,
+    filename,
     scope: moduleName,
     module: moduleKey,
     shareScope,
@@ -46,7 +51,7 @@ const mapRemotes = (source: AppshellTemplate) =>
   entries(source.remotes).reduce((acc, [key, remote]) => {
     acc[key] = mapAppshellEntrypoint(source, key, remote);
     return acc;
-  }, {} as Record<string, AppshellRemote>);
+  }, {} as Record<string, PublishedRemote>);
 
 createMap<AppshellTemplate, AppshellManifest>(
   mapper,

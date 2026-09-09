@@ -24,10 +24,22 @@ describe('mapping configurations to domain objects', () => {
     expect(appshellManifest).toMatchSnapshot();
   });
 
-  it('should replace url placeholders with environment variables', () => {
-    expect(
-      values(appshellManifest.remotes).some((remote) => remote.manifestUrl.includes(APPS_TEST_URL)),
-    ).toBeTruthy();
+  /*
+   * The mapped manifest describes the artifact and nothing about where it is served.
+   * It used to build manifestUrl and remoteEntryUrl from a `url` in the yaml, which froze
+   * the building environment into an immutable version; the registry composes both from
+   * the package's address and its own serving plane instead.
+   */
+  it('should carry no origin', () => {
+    const remotes = values(appshellManifest.remotes);
+
+    expect(remotes.every((remote) => !('manifestUrl' in remote))).toBe(true);
+    expect(remotes.every((remote) => !('remoteEntryUrl' in remote))).toBe(true);
+    expect(JSON.stringify(appshellManifest)).not.toContain(APPS_TEST_URL);
+  });
+
+  it('should name the entry file the build emits', () => {
+    expect(values(appshellManifest.remotes).every((remote) => remote.filename)).toBeTruthy();
   });
 
   it('should create the scope value from the remote key', () => {

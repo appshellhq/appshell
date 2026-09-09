@@ -66,13 +66,15 @@ describe('generate', () => {
       expect(expectedRemotes).toEqual(actualRemotes);
     });
 
-    it('should apply environment variables to configuration', async () => {
+    // Where a bundle is served from is the deployment's to say, so nothing the build
+    // writes may name an origin — see the mapper.
+    it('should generate remotes that name no origin', async () => {
       const config = await generate(configTemplate);
+      const remotes = values(config?.remotes);
 
-      const actualUrls = values(config?.remotes).flatMap((remote) => remote.manifestUrl);
-
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      expect(actualUrls.some((url) => url.includes(process.env.APPS_TEST_URL!))).toBeTruthy();
+      expect(remotes.length).toBeGreaterThan(0);
+      expect(remotes.every((remote) => !('manifestUrl' in remote))).toBe(true);
+      expect(remotes.every((remote) => !('remoteEntryUrl' in remote))).toBe(true);
     });
 
     it('should capture metadata', async () => {

@@ -1,7 +1,5 @@
 remotes:
   TestModule/Foo:
-    url: ${APPS_TEST_URL}
-    filename: remoteEntry.js
     metadata:
       route: /foo
       displayName: Foo App
@@ -10,8 +8,6 @@ remotes:
       icon: ViewList
 
   TestModule/Bar:
-    url: ${APPS_TEST_URL}
-    filename: remoteEntry.js
     metadata:
       route: /bar
       displayName: Bar App
@@ -20,8 +16,6 @@ remotes:
       icon: ViewList
 
   BizModule/Biz:
-    url: http://localhost:4040
-    filename: remoteEntry.js
     metadata:
       route: /biz
       displayName: Biz App

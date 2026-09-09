@@ -652,7 +652,6 @@ describe('AppshellPlugin', () => {
 
         /* eslint-disable no-template-curly-in-string -- the placeholder is the subject */
         expect(template.vars.TestModule.RUNTIME_ENV).toBe('${RUNTIME_ENV}');
-        expect(template.remotes['TestModule/Foo'].url).toBe('${APPS_TEST_URL}');
         /* eslint-enable no-template-curly-in-string */
       });
 

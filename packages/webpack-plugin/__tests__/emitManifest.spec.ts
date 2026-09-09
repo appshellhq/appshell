@@ -15,8 +15,8 @@ import AppshellPlugin from '../src/AppshellPlugin';
 const CONFIG = [
   'remotes:',
   '  TestModule/Foo:',
-  '    url: ${APPS_TEST_URL}',
-  '    filename: remoteEntry.js',
+  '    metadata:',
+  '      route: /foo',
   'vars:',
   '  SUPPORT_URL: ${SUPPORT_URL}',
   '',
@@ -106,18 +106,25 @@ describe('the emitted manifest', () => {
     expect(Object.keys(manifest().remotes)).toEqual(['TestModule/Foo']);
   });
 
-  it('should have substituted the template placeholders', () => {
-    const json = JSON.stringify(manifest());
+  /*
+   * The manifest describes the artifact and says nothing about where it is served.
+   *
+   * It used to carry `manifestUrl` and `remoteEntryUrl`, built from a `url` in the yaml,
+   * which froze whichever environment ran the build into an immutable version — and made
+   * the artifact's digest depend on where it was built. The registry composes both from
+   * the package's address and its own serving plane.
+   */
+  it('should state no origin', () => {
+    const remote = manifest().remotes['TestModule/Foo'];
 
-    expect(json).not.toContain('${APPS_TEST_URL}');
-    expect(json).toContain('http://localhost:4001');
+    expect(remote.manifestUrl).toBeUndefined();
+    expect(remote.remoteEntryUrl).toBeUndefined();
+    expect(JSON.stringify(manifest())).not.toContain('http://');
   });
 
-  // It points at itself, so the URL a consumer is handed is the one now being served.
-  it('should point manifestUrl at the path it is served from', () => {
-    expect(manifest().remotes['TestModule/Foo'].manifestUrl).toBe(
-      'http://localhost:4001/appshell.manifest.json',
-    );
+  // Taken from the Module Federation config, which is what decides the emitted file.
+  it('should name the entry file the build emits', () => {
+    expect(manifest().remotes['TestModule/Foo'].filename).toBe('remoteEntry.js');
   });
 
   /*
@@ -149,6 +156,5 @@ describe('the emitted manifest', () => {
     );
 
     expect(template.vars.TestModule.SUPPORT_URL).toBe('${SUPPORT_URL}');
-    expect(template.remotes['TestModule/Foo'].url).toBe('${APPS_TEST_URL}');
   });
 });

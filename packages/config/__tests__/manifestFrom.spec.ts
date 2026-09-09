@@ -5,21 +5,20 @@ import { publish } from '../src/publish';
 import { AppshellTemplate } from '../src/types';
 
 /*
- * Publish resolves deployment coordinates and leaves configuration alone, because they are
- * unlike things sharing one syntax.
+ * A manifest describes the artifact, and nothing about the environment that built it.
  *
- * `remotes.*.url` is a property of the artifact: only whoever built it knows where it is
- * served, and freezing that into an immutable version is what the version is for. A var is
- * configuration the running package reads, and resolving it here baked the build
- * environment into that same immutable version — right in exactly one environment, wrong
- * everywhere else, and unfixable afterwards.
+ * Neither half is resolved here now. A var is configuration the running package reads, and
+ * the application supplies it — substituting it at publish baked one environment into an
+ * immutable version. An origin turned out to be the same mistake wearing different clothes:
+ * a package is published once and deployed many times, so where a bundle is served from
+ * belongs to whoever deploys it. The registry composes it from the package's address.
  */
 const templateOf = (): AppshellTemplate =>
   ({
     name: 'App',
     module: { name: 'App' },
     remotes: {
-      'App/Thing': { url: '${APP_URL}', filename: 'remoteEntry.js', id: 'x' },
+      'App/Thing': { id: 'x' },
     },
     vars: { App: { SUPPORT_URL: '${SUPPORT_URL}', TIMEOUT_MS: 5000 } },
   } as unknown as AppshellTemplate);
@@ -30,15 +29,21 @@ const buildIn = (env: Record<string, string>) => {
   return manifestFrom(templateOf());
 };
 
+const remoteOf = (m: ReturnType<typeof manifestFrom>) => m.remotes['App/Thing'];
+
 const digest = (value: unknown) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 
 describe('manifestFrom', () => {
-  it('should resolve a remote url, which only the build knows', () => {
-    const manifest = buildIn({ APP_URL: 'https://cdn.example.com' });
+  it('should state no origin', () => {
+    const remote = remoteOf(buildIn({ APP_URL: 'https://cdn.example.com' }));
 
-    expect(manifest.remotes['App/Thing'].remoteEntryUrl).toBe(
-      'https://cdn.example.com/remoteEntry.js',
-    );
+    expect(remote).not.toHaveProperty('remoteEntryUrl');
+    expect(remote).not.toHaveProperty('manifestUrl');
+  });
+
+  // Defaulted from the Module Federation config, which is what emits the file.
+  it('should name the entry file the build emits', () => {
+    expect(remoteOf(buildIn({})).filename).toBe('remoteEntry.js');
   });
 
   // The placeholder is the declaration: this package reads this name and cannot value it.
@@ -59,9 +64,13 @@ describe('manifestFrom', () => {
    * was built — an artifact identity that depended on the build environment.
    */
   it('should publish identical content from different environments', () => {
-    const ci = buildIn({ APP_URL: 'https://cdn.example.com', SUPPORT_URL: 'https://support.ci' });
+    // The origins differ too, not just the vars: neither reaches the manifest any more.
+    const ci = buildIn({
+      APP_URL: 'https://cdn.ci.example.com',
+      SUPPORT_URL: 'https://support.ci',
+    });
     const prod = buildIn({
-      APP_URL: 'https://cdn.example.com',
+      APP_URL: 'https://cdn.prod.example.com',
       SUPPORT_URL: 'https://support.prod',
     });
 
@@ -93,23 +102,23 @@ describe('publish', () => {
     });
 
   it('should refuse a deployment coordinate that never resolved', async () => {
-    await expect(
-      publishing({ 'App/Thing': { remoteEntryUrl: '${APP_URL}/remoteEntry.js' } }),
-    ).rejects.toThrow(/never resolved.*App\/Thing\.remoteEntryUrl/s);
+    await expect(publishing({ 'App/Thing': { filename: '${ENTRY_FILE}' } })).rejects.toThrow(
+      /never resolved.*App\/Thing\.filename/s,
+    );
   });
 
   // Because the alternative is an immutable manifest nothing can load, discovered later as
   // a browser fetching a URL with a variable name in the path.
   it('should name the variable rather than leave it to be found at runtime', async () => {
-    await expect(
-      publishing({ 'App/Thing': { remoteEntryUrl: '${APP_URL}/remoteEntry.js' } }),
-    ).rejects.toThrow(/\$\{APP_URL}/);
+    await expect(publishing({ 'App/Thing': { filename: '${ENTRY_FILE}' } })).rejects.toThrow(
+      /\$\{ENTRY_FILE}/,
+    );
   });
 
   it('should not refuse a resolved one', async () => {
     // Reaches the network and fails there, which is past the guard — the point of the case.
-    await expect(
-      publishing({ 'App/Thing': { remoteEntryUrl: 'https://cdn.example.com/remoteEntry.js' } }),
-    ).rejects.toThrow(/Failed to publish/);
+    await expect(publishing({ 'App/Thing': { filename: 'remoteEntry.js' } })).rejects.toThrow(
+      /Failed to publish/,
+    );
   });
 });

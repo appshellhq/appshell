@@ -1,0 +1,68 @@
+{
+  "ContainerModule": {
+    "react": {
+      "singleton": true,
+      "requiredVersion": "18.2.0"
+    },
+    "react-dom": {
+      "singleton": true,
+      "requiredVersion": "18.2.0"
+    },
+    "react-refresh": {
+      "singleton": true,
+      "requiredVersion": "^0.14.0"
+    },
+    "styled-components": {
+      "singleton": true,
+      "requiredVersion": "6.0.0-rc.3"
+    },
+    "@appshell/react": {
+      "singleton": true,
+      "requiredVersion": "^0.3.0"
+    }
+  },
+  "PongModule": {
+    "react": {
+      "singleton": true,
+      "requiredVersion": "18.2.0"
+    },
+    "react-dom": {
+      "singleton": true,
+      "requiredVersion": "18.2.0"
+    },
+    "react-refresh": {
+      "singleton": true,
+      "requiredVersion": "^0.14.0"
+    },
+    "styled-components": {
+      "singleton": true,
+      "requiredVersion": "6.0.0-rc.3"
+    },
+    "@appshell/react": {
+      "singleton": true,
+      "requiredVersion": "^0.3.0"
+    }
+  },
+  "PingModule": {
+    "react": {
+      "singleton": true,
+      "requiredVersion": "18.2.0"
+    },
+    "react-dom": {
+      "singleton": true,
+      "requiredVersion": "18.2.0"
+    },
+    "react-refresh": {
+      "singleton": true,
+      "requiredVersion": "^0.14.0"
+    },
+    "styled-components": {
+      "singleton": true,
+      "requiredVersion": "6.0.0-rc.3"
+    },
+    "@appshell/react": {
+      "singleton": true,
+      "requiredVersion": "^0.3.0"
+    }
+  }
+}

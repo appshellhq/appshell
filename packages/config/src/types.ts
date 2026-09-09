@@ -64,10 +64,19 @@ export type CliConfig = Record<string, string> & {
 };
 
 /* appshell.config.yaml types */
+/**
+ * Neither `url` nor `filename`.
+ *
+ * `url` is an origin, and an origin belongs to a deployment: a package is published once
+ * and deployed many times, so a url here would freeze one environment's answer into an
+ * immutable version and make the artifact's digest depend on where it was built.
+ *
+ * `filename` was a hand-written copy of the Module Federation `filename`, which is what
+ * actually decides the file webpack emits. Two statements of one fact, and only one of
+ * them is enforced by anything.
+ */
 export type AppshellConfigRemote<TMetadata = Metadata> = {
   id: string;
-  url: string;
-  filename: string;
   metadata: TMetadata;
 };
 
@@ -127,12 +136,30 @@ export type AppshellTokenUsage = {
 };
 
 export type AppshellManifest<TMetadata = Metadata> = {
-  remotes: Record<string, AppshellRemote<TMetadata>>;
+  remotes: Record<string, PublishedRemote<TMetadata>>;
   modules: Record<string, ModuleFederationPluginOptions>;
   vars: Record<string, Record<string, string | number | undefined>>;
   /** Keyed by federation scope, so a merged manifest still says which package needs what. */
   tokens?: Record<string, AppshellTokenUsage>;
   overrides?: AppshellOverrides;
+};
+
+/**
+ * A remote as a package publishes it: what the build knows about itself, and nothing
+ * about where it ends up.
+ *
+ * Distinct from `AppshellRemote`, which is the same remote after the registry has
+ * resolved it for the browser. They were one type, which is why the origin ended up in
+ * the artifact: the browser genuinely needs a url, so the published form appeared to as
+ * well. The registry supplies it at composition, from the address and its serving plane.
+ */
+export type PublishedRemote<TMetadata = Metadata> = {
+  id: string;
+  filename: string;
+  scope: string;
+  module: string;
+  shareScope?: string;
+  metadata: TMetadata;
 };
 
 /** An `AppshellRemote` the registry already resolved, so the browser needs no manifest fetch. */

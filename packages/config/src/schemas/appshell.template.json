@@ -44,24 +44,13 @@
           "description": "ID of the remote app",
           "type": "string"
         },
-        "url": {
-          "description": "Url of the remote app",
-          "type": "string"
-        },
-        "filename": {
-          "description": "Path to the module federation entrypoint",
-          "type": "string"
-        },
         "metadata": {
           "description": "Metadata associated with the remote app",
           "type": "object",
           "additionalProperties": true
         }
       },
-      "required": [
-        "url",
-        "filename"
-      ],
+      "required": [],
       "additionalProperties": false
     }
   },

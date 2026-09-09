@@ -11,7 +11,6 @@ exports[`utils load consuming the configuration should read and parse the config
   },
   "remotes": {
     "BizModule/Biz": {
-      "filename": "remoteEntry.js",
       "metadata": {
         "displayGroup": "auxiliary",
         "displayName": "Biz App",
@@ -19,10 +18,8 @@ exports[`utils load consuming the configuration should read and parse the config
         "order": 30,
         "route": "/biz",
       },
-      "url": "http://localhost:4040",
     },
     "TestModule/Bar": {
-      "filename": "remoteEntry.js",
       "metadata": {
         "displayGroup": "main",
         "displayName": "Bar App",
@@ -30,10 +27,8 @@ exports[`utils load consuming the configuration should read and parse the config
         "order": 20,
         "route": "/bar",
       },
-      "url": "\${APPS_TEST_URL}",
     },
     "TestModule/Foo": {
-      "filename": "remoteEntry.js",
       "metadata": {
         "displayGroup": "main",
         "displayName": "Foo App",
@@ -41,7 +36,6 @@ exports[`utils load consuming the configuration should read and parse the config
         "order": 10,
         "route": "/foo",
       },
-      "url": "\${APPS_TEST_URL}",
     },
   },
 }
@@ -58,7 +52,6 @@ exports[`utils load consuming the configuration should read and parse the config
   },
   "remotes": {
     "BizModule/Biz": {
-      "filename": "remoteEntry.js",
       "metadata": {
         "displayGroup": "auxiliary",
         "displayName": "Biz App",
@@ -66,10 +59,8 @@ exports[`utils load consuming the configuration should read and parse the config
         "order": 30,
         "route": "/biz",
       },
-      "url": "http://localhost:4040",
     },
     "TestModule/Bar": {
-      "filename": "remoteEntry.js",
       "metadata": {
         "displayGroup": "main",
         "displayName": "Bar App",
@@ -77,10 +68,8 @@ exports[`utils load consuming the configuration should read and parse the config
         "order": 20,
         "route": "/bar",
       },
-      "url": "\${APPS_TEST_URL}",
     },
     "TestModule/Foo": {
-      "filename": "remoteEntry.js",
       "metadata": {
         "displayGroup": "main",
         "displayName": "Foo App",
@@ -88,7 +77,6 @@ exports[`utils load consuming the configuration should read and parse the config
         "order": 10,
         "route": "/foo",
       },
-      "url": "\${APPS_TEST_URL}",
     },
   },
 }
