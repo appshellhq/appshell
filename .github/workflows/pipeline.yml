@@ -51,9 +51,11 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      # cli and react-shell emit no declarations, so nothing else runs tsc over them:
-      # webpack transpiles without checking, ts-jest has diagnostics off, and eslint
-      # applies rules rather than types. Without this a type error in either ships.
+      # Every package, not just the two that emit no declarations. The rest are
+      # typechecked again by build:types during Build, so this does not decide whether a
+      # type error ships — it decides whether `npm run typecheck` can be believed. It
+      # covered cli and react-shell alone, so it passed over errors Build then failed on,
+      # and reported "ran typecheck for 2 projects" while sounding like it ran everything.
       - name: Typecheck
         run: npm run typecheck
 

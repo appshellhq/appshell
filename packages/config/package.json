@@ -18,7 +18,8 @@
     "build:types": "tsc --emitDeclarationOnly",
     "clean": "rm -rf dist",
     "start": "webpack --watch --mode development && npm run build:types",
-    "stats": "webpack --json > stats.json"
+    "stats": "webpack --json > stats.json",
+    "typecheck": "tsc --noEmit"
   },
   "files": [
     "dist"
