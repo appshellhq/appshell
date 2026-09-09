@@ -19,7 +19,7 @@
     "clean": "rm -rf dist",
     "start": "webpack --watch --mode development && npm run build:types",
     "stats": "webpack --json > stats.json",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit -p tsconfig.typecheck.json"
   },
   "files": [
     "dist"
