@@ -73,9 +73,16 @@ const Container = () => (
         whoever writes the slot does, which is what the `fallback` prop is for. Sizing it
         correctly also stops the page jumping when the remote arrives.
       */}
+      {/*
+        The scope in these addresses is provisional. A package cannot legitimately know
+        which scope its siblings were published into — that is assigned by whoever
+        publishes, so hardcoding it means this artifact only works for one publisher and
+        adopting it requires editing its source. Being replaced by declared remotes the
+        application binds; see appshellhq/appshell#5.
+      */}
       <div className="grid grid-flow-col gap-lg">
-        <RemoteSlot remote="default/sample-mfe-ping/Ping" fallback={<CardSkeleton />} />
-        <RemoteSlot remote="default/sample-mfe-pong/Pong" fallback={<CardSkeleton />} />
+        <RemoteSlot remote="appshell/sample-mfe-ping/Ping" fallback={<CardSkeleton />} />
+        <RemoteSlot remote="appshell/sample-mfe-pong/Pong" fallback={<CardSkeleton />} />
       </div>
     </header>
   </div>
