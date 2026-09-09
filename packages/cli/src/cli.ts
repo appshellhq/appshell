@@ -133,9 +133,11 @@ const generateManifestCommand: yargs.CommandModule<unknown, GenerateManifestArgs
   // eslint-disable-next-line @typescript-eslint/no-shadow
   builder: (yargs) =>
     yargs
+      // No default: the plugin emits the template into webpack's output directory, which
+      // the cli cannot know, and a default leaves the handler unable to tell a path
+      // someone supplied from one nobody chose. Absent, it is resolved by looking.
       .option('template', {
         alias: 't',
-        default: 'appshell.template.json',
         type: 'string',
         description: 'Path to the appshell config template to process',
       })
@@ -299,7 +301,7 @@ const logoutCommand: yargs.CommandModule<unknown, { registry: string }> = {
  * literally is what lets the two line up without an assertion.
  */
 type PublishOptions = GlobalArgs & {
-  template: string;
+  template?: string;
   name?: string;
   'package-version'?: string;
   visibility?: 'public' | 'private';
@@ -313,9 +315,11 @@ const publishCommand: yargs.CommandModule<GlobalArgs, PublishOptions> = {
   // eslint-disable-next-line @typescript-eslint/no-shadow
   builder: (yargs) =>
     yargs
+      // No default: the plugin emits the template into webpack's output directory, which
+      // the cli cannot know, and a default leaves the handler unable to tell a path
+      // someone supplied from one nobody chose. Absent, it is resolved by looking.
       .option('template', {
         alias: 't',
-        default: 'appshell.template.json',
         type: 'string',
         description: 'Path to the appshell config template to process',
       })

@@ -5,11 +5,12 @@ import chokidar from 'chokidar';
 import fs from 'fs';
 import { resolveToken } from '../util/credentials';
 import { identify } from '../util/identity';
+import { resolveTemplate } from '../util/template';
 
 export type PublishArgs = {
   registry: string;
   scopeId: string;
-  template: string;
+  template?: string;
   name?: string;
   packageVersion?: string;
   visibility?: 'public' | 'private';
@@ -18,14 +19,11 @@ export type PublishArgs = {
 };
 
 const publishOnce = async (argv: PublishArgs) => {
-  const { registry, template, force } = argv;
+  const { registry, force } = argv;
+  const template = resolveTemplate(argv.template);
   // Whether a credential is required is the registry's policy, not ours: a
   // registry running AUTH_MODE=none needs none. A 401 says so precisely.
   const token = resolveToken(registry);
-
-  if (!fs.existsSync(template)) {
-    throw new Error(`Manifest template not found. ${template}`);
-  }
 
   const manifest = (await generateManifest(template)) as AppshellManifest | undefined;
   if (!manifest) {
@@ -84,9 +82,13 @@ export default async (argv: PublishArgs) => {
 
   await run();
 
-  console.log(chalk.blue(`Watching ${argv.template} for changes. Ctrl-C to stop.`));
+  // The resolved path, not the raw argument: watching an unresolved default would watch
+  // a file that does not exist and report success while never firing.
+  const watched = resolveTemplate(argv.template);
+
+  console.log(chalk.blue(`Watching ${watched} for changes. Ctrl-C to stop.`));
   chokidar
-    .watch(argv.template, { ignoreInitial: true, awaitWriteFinish: true })
+    .watch(watched, { ignoreInitial: true, awaitWriteFinish: true })
     .on('change', run)
     .on('add', run);
 

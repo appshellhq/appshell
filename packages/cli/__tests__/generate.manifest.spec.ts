@@ -46,33 +46,31 @@ describe('generate.manifest', () => {
     expect(mkdirSyncSpy).toHaveBeenCalled();
   });
 
-  it('should notify if config does not exist', async () => {
+  // A path someone supplied and got wrong is reported, never searched around: they said
+  // where it was, and resolving elsewhere would hide the mistake.
+  it('should say so when the template it was given is not there', async () => {
     jest.spyOn(fs, 'existsSync').mockReturnValue(false);
-    const consoleSpy = jest.spyOn(console, 'log').mockImplementationOnce(jest.fn());
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(jest.fn());
 
-    await generateManifestHandler({
-      template,
-      outDir,
-      outFile,
-    });
+    await generateManifestHandler({ template, outDir, outFile });
 
-    expect(consoleSpy).toHaveBeenLastCalledWith(
-      `template not found '${template}'. skipping manifest generation.`,
+    expect(consoleSpy).toHaveBeenCalledWith(
+      'Error generating manifest',
+      expect.stringContaining(`Manifest template not found: ${template}`),
     );
   });
 
-  it('should notify if config is not provided', async () => {
-    const consoleSpy = jest.spyOn(console, 'log').mockImplementationOnce(jest.fn());
+  it('should say what to do when nothing supplies a template', async () => {
+    // Neither the conventional path nor anything the search turns up.
+    jest.spyOn(fs, 'existsSync').mockReturnValue(false);
+    jest.spyOn(fs, 'readdirSync').mockReturnValue([]);
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(jest.fn());
 
-    await generateManifestHandler({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      template: undefined as any,
-      outDir,
-      outFile,
-    });
+    await generateManifestHandler({ template: undefined, outDir, outFile });
 
-    expect(consoleSpy).toHaveBeenLastCalledWith(
-      `template not found 'undefined'. skipping manifest generation.`,
+    expect(consoleSpy).toHaveBeenCalledWith(
+      'Error generating manifest',
+      expect.stringContaining('Build the package first, or pass --template'),
     );
   });
 
