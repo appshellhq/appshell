@@ -1,3 +1,4 @@
+import type { RemoteLoader } from '@appshell/runtime';
 import {
   getInstance,
   init,
@@ -23,7 +24,7 @@ const ensureInitialized = () => {
   init({ name: HOST_NAME, remotes: [] });
 };
 
-export default async <TComponent>(
+const loadModuleFederation = async <TComponent>(
   scope: string,
   module: string,
   remoteEntryUrl: string,
@@ -64,3 +65,33 @@ export default async <TComponent>(
 
   return Module.default;
 };
+
+/**
+ * Dispatches on the loader's kind rather than assuming federation.
+ *
+ * There is one kind today. Naming it is what lets a second — single-spa, import maps —
+ * arrive without reinterpreting manifests already published, and what stops federation's
+ * vocabulary reading as though it were appshell's.
+ */
+export const load = async <TComponent>(remote: {
+  loader: RemoteLoader;
+  remoteEntryUrl: string;
+}) => {
+  const { loader } = remote;
+
+  if (loader.kind !== 'ModuleFederation') {
+    // Unreachable while one kind exists, and the reason the field is a discriminant: a
+    // manifest published under a kind this host cannot load should say so, rather than
+    // failing somewhere inside a loader that assumed otherwise.
+    throw new Error(`No loader for kind '${(loader as { kind: string }).kind}'.`);
+  }
+
+  return loadModuleFederation<TComponent>(
+    loader.scope,
+    loader.module,
+    remote.remoteEntryUrl,
+    loader.shareScope,
+  );
+};
+
+export default load;

@@ -1,4 +1,4 @@
-import type { AppshellIndex, AppshellRemote, Metadata } from '@appshell/runtime';
+import type { AppshellIndex, AppshellRemote, Metadata, RemoteLoader } from '@appshell/runtime';
 import { JSONSchema4, JSONSchema6, JSONSchema7 } from 'json-schema';
 
 /*
@@ -6,7 +6,13 @@ import { JSONSchema4, JSONSchema6, JSONSchema7 } from 'json-schema';
  * should not install build tooling to get it. Re-exported so nothing importing them from
  * here had to change.
  */
-export type { AppshellIndex, AppshellRemote, Metadata } from '@appshell/runtime';
+export type {
+  AppshellIndex,
+  AppshellRemote,
+  Metadata,
+  ModuleFederationLoader,
+  RemoteLoader,
+} from '@appshell/runtime';
 
 export type Schema = JSONSchema4 | JSONSchema6 | JSONSchema7;
 
@@ -191,10 +197,7 @@ export type AppshellManifest<TMetadata = Metadata> = {
  */
 export type PublishedRemote<TMetadata = Metadata> = {
   id: string;
-  filename: string;
-  scope: string;
-  module: string;
-  shareScope?: string;
+  loader: RemoteLoader;
   metadata: TMetadata;
 };
 

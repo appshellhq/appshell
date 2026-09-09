@@ -139,7 +139,7 @@ describe('the emitted manifest', () => {
 
   // Taken from the Module Federation config, which is what decides the emitted file.
   it('should name the entry file the build emits', () => {
-    expect(manifest().remotes['TestModule/Foo'].filename).toBe('remoteEntry.js');
+    expect(manifest().remotes['TestModule/Foo'].loader.filename).toBe('remoteEntry.js');
   });
 
   /*

@@ -17,7 +17,7 @@ export const inlineResolver =
 
     return {
       remote,
-      vars: composition.vars[remote.scope] ?? {},
+      vars: composition.vars[remote.loader.scope] ?? {},
     };
   };
 
@@ -35,7 +35,7 @@ export const registryResolver =
 
     return {
       remote,
-      vars: composition.vars[remote.scope] ?? {},
+      vars: composition.vars[remote.loader.scope] ?? {},
     };
   };
 

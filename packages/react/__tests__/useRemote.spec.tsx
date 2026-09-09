@@ -7,8 +7,13 @@ import useRemote from '../src/hooks/useRemote';
 
 const remote: AppshellRemote = {
   id: 'ping',
-  scope: 'PingModule',
-  module: './Ping',
+  loader: {
+    apiVersion: 'federation.appshell.org/v1' as const,
+    kind: 'ModuleFederation' as const,
+    scope: 'PingModule',
+    module: './Ping',
+    filename: 'remoteEntry.js',
+  },
   manifestUrl: 'http://test.com/appshell.manifest.json',
   remoteEntryUrl: 'http://test.com/remoteEntry.js',
   metadata: { title: 'Ping' },

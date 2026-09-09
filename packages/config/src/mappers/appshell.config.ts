@@ -37,14 +37,21 @@ const mapAppshellEntrypoint = (
   // No manifestUrl or remoteEntryUrl. Both are origins, and an origin is a property of
   // wherever this gets deployed rather than of the artifact — the registry composes them
   // from the package's address and its own serving plane.
+  //
+  // The federation fields sit under a kind rather than at the top level, so they are
+  // labelled as one framework's vocabulary rather than looking generic.
   return {
     id,
-    filename,
-    scope: moduleName,
-    module: moduleKey,
-    shareScope,
+    loader: {
+      apiVersion: 'federation.appshell.org/v1',
+      kind: 'ModuleFederation',
+      scope: moduleName,
+      module: moduleKey,
+      shareScope,
+      filename,
+    },
     metadata: remote.metadata,
-  };
+  } satisfies PublishedRemote;
 };
 
 const mapRemotes = (source: AppshellTemplate) =>

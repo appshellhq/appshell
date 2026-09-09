@@ -10,6 +10,21 @@ jest.mock('@module-federation/enhanced/runtime', () => ({
 type ComponentType = () => string;
 const TestComponent: ComponentType = () => 'test component';
 
+/** A composed remote, which is what the loader now takes: it dispatches on loader.kind. */
+const federated = (scope: string, module: string) => ({
+  id: 'x',
+  manifestUrl: 'http://test.com/appshell.manifest.json',
+  remoteEntryUrl: 'http://test.com/remoteEntry.js',
+  loader: {
+    apiVersion: 'federation.appshell.org/v1' as const,
+    kind: 'ModuleFederation' as const,
+    scope,
+    module,
+    filename: 'remoteEntry.js',
+  },
+  metadata: {},
+});
+
 describe('loadAppshellComponent', () => {
   beforeEach(() => {
     jest.resetModules();
@@ -21,9 +36,7 @@ describe('loadAppshellComponent', () => {
     const loadAppshellComponent = (await import('../src/loadAppshellComponent')).default;
 
     const Component = await loadAppshellComponent<ComponentType>(
-      'TestModule',
-      './TestComponent',
-      'http://test.com/remoteEntry.js',
+      federated('TestModule', './TestComponent'),
     );
 
     expect(Component).toBe(TestComponent);
@@ -38,8 +51,8 @@ describe('loadAppshellComponent', () => {
     (runtime.loadRemote as jest.Mock).mockResolvedValue({ default: TestComponent });
     const loadAppshellComponent = (await import('../src/loadAppshellComponent')).default;
 
-    await loadAppshellComponent('TestModule', './TestComponent', 'http://test.com/remoteEntry.js');
-    await loadAppshellComponent('TestModule', './TestComponent', 'http://test.com/remoteEntry.js');
+    await loadAppshellComponent(federated('TestModule', './TestComponent'));
+    await loadAppshellComponent(federated('TestModule', './TestComponent'));
 
     expect(runtime.init).toHaveBeenCalledTimes(1);
     expect(runtime.registerRemotes).toHaveBeenCalledTimes(1);
@@ -50,9 +63,9 @@ describe('loadAppshellComponent', () => {
     (runtime.loadRemote as jest.Mock).mockResolvedValue(null);
     const loadAppshellComponent = (await import('../src/loadAppshellComponent')).default;
 
-    await expect(
-      loadAppshellComponent('TestModule', './TestComponent', 'http://test.com/remoteEntry.js'),
-    ).rejects.toThrow(/Failed to find module container/i);
+    await expect(loadAppshellComponent(federated('TestModule', './TestComponent'))).rejects.toThrow(
+      /Failed to find module container/i,
+    );
   });
 
   it('should not call init when a host federation instance already exists', async () => {
@@ -61,7 +74,7 @@ describe('loadAppshellComponent', () => {
     (runtime.loadRemote as jest.Mock).mockResolvedValue({ default: TestComponent });
     const loadAppshellComponent = (await import('../src/loadAppshellComponent')).default;
 
-    await loadAppshellComponent('TestModule', './TestComponent', 'http://test.com/remoteEntry.js');
+    await loadAppshellComponent(federated('TestModule', './TestComponent'));
 
     expect(runtime.init).not.toHaveBeenCalled();
   });

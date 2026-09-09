@@ -42,8 +42,15 @@ exports[`mapping configurations to domain objects should match snapshot 1`] = `
   },
   "remotes": {
     "BizModule/Biz": {
-      "filename": "remoteEntry.js",
       "id": "BizModule/Biz",
+      "loader": {
+        "apiVersion": "federation.appshell.org/v1",
+        "filename": "remoteEntry.js",
+        "kind": "ModuleFederation",
+        "module": "./Biz",
+        "scope": "BizModule",
+        "shareScope": "@sharedscope",
+      },
       "metadata": {
         "displayGroup": "auxiliary",
         "displayName": "Biz App",
@@ -51,13 +58,17 @@ exports[`mapping configurations to domain objects should match snapshot 1`] = `
         "order": 30,
         "route": "/biz",
       },
-      "module": "./Biz",
-      "scope": "BizModule",
-      "shareScope": "@sharedscope",
     },
     "TestModule/Bar": {
-      "filename": "remoteEntry.js",
       "id": "TestModule/Bar",
+      "loader": {
+        "apiVersion": "federation.appshell.org/v1",
+        "filename": "remoteEntry.js",
+        "kind": "ModuleFederation",
+        "module": "./Bar",
+        "scope": "TestModule",
+        "shareScope": "@sharedscope",
+      },
       "metadata": {
         "displayGroup": "main",
         "displayName": "Bar App",
@@ -65,13 +76,17 @@ exports[`mapping configurations to domain objects should match snapshot 1`] = `
         "order": 20,
         "route": "/bar",
       },
-      "module": "./Bar",
-      "scope": "TestModule",
-      "shareScope": "@sharedscope",
     },
     "TestModule/Foo": {
-      "filename": "remoteEntry.js",
       "id": "TestModule/Foo",
+      "loader": {
+        "apiVersion": "federation.appshell.org/v1",
+        "filename": "remoteEntry.js",
+        "kind": "ModuleFederation",
+        "module": "./Foo",
+        "scope": "TestModule",
+        "shareScope": "@sharedscope",
+      },
       "metadata": {
         "displayGroup": "main",
         "displayName": "Foo App",
@@ -79,9 +94,6 @@ exports[`mapping configurations to domain objects should match snapshot 1`] = `
         "order": 10,
         "route": "/foo",
       },
-      "module": "./Foo",
-      "scope": "TestModule",
-      "shareScope": "@sharedscope",
     },
   },
   "tokens": undefined,

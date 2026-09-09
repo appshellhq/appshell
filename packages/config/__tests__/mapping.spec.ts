@@ -39,12 +39,12 @@ describe('mapping configurations to domain objects', () => {
   });
 
   it('should name the entry file the build emits', () => {
-    expect(values(appshellManifest.remotes).every((remote) => remote.filename)).toBeTruthy();
+    expect(values(appshellManifest.remotes).every((remote) => remote.loader.filename)).toBeTruthy();
   });
 
   it('should create the scope value from the remote key', () => {
     expect(
-      entries(appshellManifest.remotes).every(([key, remote]) => key.includes(remote.scope)),
+      entries(appshellManifest.remotes).every(([key, remote]) => key.includes(remote.loader.scope)),
     ).toBeTruthy();
   });
 
@@ -54,12 +54,14 @@ describe('mapping configurations to domain objects', () => {
         const moduleName = key.replace(/\/.+/, '');
         const moduleKey = key.replace(moduleName, '.');
 
-        return moduleKey === remote.module;
+        return moduleKey === remote.loader.module;
       }),
     ).toBeTruthy();
   });
 
   it('should map shareScope to manifest remote', () => {
-    expect(values(appshellManifest.remotes).every((remote) => remote.shareScope)).toBeTruthy();
+    expect(
+      values(appshellManifest.remotes).every((remote) => remote.loader.shareScope),
+    ).toBeTruthy();
   });
 });

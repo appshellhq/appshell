@@ -21,8 +21,7 @@ export default (options: RemoteLoaderOptions = {}) => {
     options.composition ?? (typeof window === 'undefined' ? undefined : window.__appshell_config__);
 
   const resolve =
-    options.resolver ??
-    chainResolvers(inlineResolver(composition), registryResolver(composition));
+    options.resolver ?? chainResolvers(inlineResolver(composition), registryResolver(composition));
 
   return async <TComponent>(key: string) => {
     const failed = (err: unknown) =>
@@ -45,14 +44,12 @@ export default (options: RemoteLoaderOptions = {}) => {
       // Before the remote loads, so a package that validates its vars while its modules
       // evaluate still finds them. `@appshell/runtime` is a shared singleton, so this is
       // the same store the package reads through `getVars()`.
-      setVars(remote.scope, vars);
+      // Vars are keyed by federation scope, which is itself one framework's vocabulary —
+      // noted rather than fixed here, since application specs address overrides.vars the
+      // same way.
+      setVars(remote.loader.scope, vars);
 
-      const Component = await loadAppshellComponent<TComponent>(
-        remote.scope,
-        remote.module,
-        remote.remoteEntryUrl,
-        remote.shareScope,
-      );
+      const Component = await loadAppshellComponent<TComponent>(remote);
 
       return [Component, remote] as const;
     } catch (err) {

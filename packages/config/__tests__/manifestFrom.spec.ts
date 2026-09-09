@@ -43,7 +43,7 @@ describe('manifestFrom', () => {
 
   // Defaulted from the Module Federation config, which is what emits the file.
   it('should name the entry file the build emits', () => {
-    expect(remoteOf(buildIn({})).filename).toBe('remoteEntry.js');
+    expect(remoteOf(buildIn({})).loader.filename).toBe('remoteEntry.js');
   });
 
   // The placeholder is the declaration: this package reads this name and cannot value it.
