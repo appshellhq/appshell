@@ -443,7 +443,9 @@ export default class AppshellPlugin {
       Record<string, OverlayRemotePatch>
     >((acc, [federationKey, remote]) => {
       const component = federationKey.split('/').slice(1).join('/');
-      const filename = `${remote.filename ?? template.module?.filename ?? ''}`.replace(/^\//, '');
+      // From the Module Federation config, which is what emits the file. The yaml used to
+      // restate it and no longer does.
+      const filename = `${template.module?.filename ?? 'remoteEntry.js'}`.replace(/^\//, '');
 
       return {
         ...acc,
