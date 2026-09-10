@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.68](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.67...v1.0.0-alpha.68) (2026-09-10)
+
+### Features
+
+- **config:** say components and remotes, and mean what MF means ([e3430f4](https://github.com/appshellhq/appshell/commit/e3430f49b4e03e82464e99642ddcadc307aa9ebe)), closes [#5](https://github.com/appshellhq/appshell/issues/5)
+
 # [1.0.0-alpha.67](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.66...v1.0.0-alpha.67) (2026-09-09)
 
 **Note:** Version bump only for package @appshell/loader
