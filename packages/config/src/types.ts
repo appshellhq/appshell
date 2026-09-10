@@ -151,6 +151,11 @@ export type AppshellConfig<TMetadata = Metadata> = {
 /* appshell.template.json */
 export type AppshellTemplate<TMetadata = Metadata> = {
   name?: string;
+  /**
+   * Digest of everything the build emitted, computed during the compilation. On the
+   * template rather than in the yaml because only the build knows it.
+   */
+  bundle?: BundleDigest;
   /** Carried from the yaml for publish to read; never mapped into the manifest. */
   visibility?: 'public' | 'private';
   components?: Record<string, AppshellConfigRemote<TMetadata>>;
@@ -199,6 +204,25 @@ export type AppshellTokenUsage = {
   optional: string[];
 };
 
+/**
+ * A digest of the bytes a package emitted, so its identity covers its code.
+ *
+ * Without it a manifest describes a bundle it cannot vouch for. The addresses a package
+ * asks the registry for live in its source, not in anything it declares — so an edit that
+ * changed which remotes it loads left the manifest byte-identical, and republishing the
+ * changed build was a no-op rather than a version conflict. Two builds that differ
+ * anywhere are now different packages.
+ *
+ * Over every emitted asset rather than the entry alone. The entry does change whenever a
+ * chunk does — but only where chunk filenames carry a content hash, which is a convention
+ * a project may not follow and nothing here can enforce.
+ */
+export type BundleDigest = {
+  algorithm: 'sha384';
+  /** Base64, over each asset's name and bytes in sorted order. */
+  digest: string;
+};
+
 /** A shared-dependency contract, named as one framework's model among possible models. */
 export type SharedContract = {
   apiVersion: 'federation.appshell.org/v1';
@@ -222,6 +246,8 @@ export type AppshellManifest<TMetadata = Metadata> = {
    * type-generation flags sat inside the package digest.
    */
   shared?: SharedContract;
+  /** What this package's code hashes to; absent when built outside a compilation. */
+  bundle?: BundleDigest;
   vars: Record<string, Record<string, string | number | undefined>>;
   /** Keyed by federation scope, so a merged manifest still says which package needs what. */
   tokens?: Record<string, AppshellTokenUsage>;

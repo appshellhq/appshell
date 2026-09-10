@@ -18,6 +18,7 @@ import {
   validators,
 } from '@appshell/config';
 import { TOKEN_ROLES } from '@appshell/tokens';
+import { createHash } from 'crypto';
 import fs from 'fs';
 import hash_sum from 'hash-sum';
 import { entries, keys } from 'lodash';
@@ -651,6 +652,36 @@ export default class AppshellPlugin {
                 optional: observed.optional,
               },
             };
+          }
+
+          /*
+           * What this compilation emitted, hashed so the package's identity covers its
+           * code. PROCESS_ASSETS_STAGE_REPORT is the last stage, so minification and
+           * hashing have run and these are the bytes a browser will fetch.
+           *
+           * Every asset, not just the entry: the entry changes when a chunk does only
+           * where chunk filenames carry a content hash, which a project need not do.
+           *
+           * Names as well as bytes, in sorted order, so renaming a chunk is a change —
+           * and the manifest is excluded, since it is derived from this and about to
+           * contain it. The template is not an asset — afterEmit writes it to disk — so it
+           * cannot appear here.
+           */
+          const hashable = Object.keys(assets)
+            .filter((name) => name !== MANIFEST_ASSET)
+            .sort();
+
+          // A compilation that emitted nothing gets no digest rather than the hash of an
+          // empty input, which every such build would share — a value that looks like a
+          // pin and distinguishes nothing.
+          if (hashable.length) {
+            const digest = createHash('sha384');
+
+            hashable.forEach((name) => {
+              digest.update(name).update(new Uint8Array(assets[name].buffer()));
+            });
+
+            template.bundle = { algorithm: 'sha384', digest: digest.digest('base64') };
           }
 
           // Emitted here, after the scan, so the file a browser can fetch and the

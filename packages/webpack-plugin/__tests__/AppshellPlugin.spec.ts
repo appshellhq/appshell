@@ -119,6 +119,15 @@ class MockCompiler {
   }
 }
 
+/*
+ * Both views a webpack Source offers. The plugin hashes bytes, so a double with only
+ * source() would have let it pass here and throw against a real compilation.
+ */
+const asset = (content: string) => ({
+  source: () => content,
+  buffer: () => Buffer.from(content),
+});
+
 describe('AppshellPlugin', () => {
   const packageName = 'webpack-plugin';
   const config = `packages/${packageName}/__tests__/assets/appshell.config.yaml`;
@@ -658,7 +667,7 @@ describe('AppshellPlugin', () => {
       it('should write the scanned token usage onto the template', async () => {
         const written = jest.spyOn(fs, 'writeFileSync').mockImplementation();
         compiler.compilation.assets = {
-          'main.css': { source: () => '.a{color:var(--appshell-primary)}' },
+          'main.css': asset('.a{color:var(--appshell-primary)}'),
         } as never;
         new AppshellPlugin({ config, publish: false }).apply(compiler as any);
         await compiler.compile();
@@ -673,7 +682,7 @@ describe('AppshellPlugin', () => {
       it('should carry that same usage into the emitted manifest', async () => {
         jest.spyOn(fs, 'writeFileSync').mockImplementation();
         compiler.compilation.assets = {
-          'main.css': { source: () => '.a{color:var(--appshell-primary)}' },
+          'main.css': asset('.a{color:var(--appshell-primary)}'),
         } as never;
         new AppshellPlugin({ config, publish: false }).apply(compiler as any);
         await compiler.compile();

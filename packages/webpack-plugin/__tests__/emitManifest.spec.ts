@@ -137,6 +137,74 @@ describe('the emitted manifest', () => {
     expect(manifest()).not.toHaveProperty('visibility');
   });
 
+  /*
+   * The entry is the one mutable name a package publishes — chunks are content-addressed,
+   * so their names move with their content, while the entry keeps a stable name so
+   * manifests do not 404. That is what let a bundle change under a published manifest.
+   *
+   * Hashing it puts the code inside the package digest transitively: the entry names every
+   * chunk, so it changes whenever any of them does.
+   */
+  it('should pin the code it was built from', () => {
+    expect(manifest().bundle).toMatchObject({
+      algorithm: 'sha384',
+      digest: expect.stringMatching(/^[A-Za-z0-9+/]+=*$/),
+    });
+  });
+
+  /*
+   * The property the digest exists for. A source edit that changes behaviour need not
+   * change any declared field — the addresses a package asks the registry for live in its
+   * code — so the manifest was byte-identical across such a change and republishing it was
+   * a no-op rather than a conflict. Pinning the entry makes the two builds different
+   * packages, which is what an immutable version is supposed to mean.
+   */
+  /*
+   * The digest is inside the package digest, so a build that is not reproducible would
+   * make every republish of an unchanged version a conflict.
+   */
+  it('should be the same digest for the same source', async () => {
+    const own = project();
+    const read = () =>
+      JSON.parse(fs.readFileSync(path.join(own, 'dist', 'appshell.manifest.json'), 'utf-8'));
+
+    await compile(own, 'production');
+    const first = read().bundle.digest;
+
+    await compile(own, 'production');
+    const second = read().bundle.digest;
+
+    expect(second).toBe(first);
+
+    fs.rmSync(own, { recursive: true, force: true });
+  });
+
+  it('should change when the code changes, even though nothing declared does', async () => {
+    // Its own project: recompiling the shared one would leave every test after this
+    // reading a dist built from different source.
+    const own = project();
+    const read = () =>
+      JSON.parse(fs.readFileSync(path.join(own, 'dist', 'appshell.manifest.json'), 'utf-8'));
+
+    await compile(own, 'production');
+    const before = read();
+
+    fs.writeFileSync(
+      path.join(own, 'src', 'Entry1.js'),
+      "export default () => 'color: var(--appshell-primary)' + 'changed';\n",
+    );
+    await compile(own, 'production');
+    const after = read();
+
+    // Nothing a package declares mentions its behaviour, so the rest is unchanged.
+    expect(after.components['TestModule/Foo'].metadata).toEqual(
+      before.components['TestModule/Foo'].metadata,
+    );
+    expect(after.bundle.digest).not.toBe(before.bundle.digest);
+
+    fs.rmSync(own, { recursive: true, force: true });
+  });
+
   // Taken from the Module Federation config, which is what decides the emitted file.
   it('should name the entry file the build emits', () => {
     expect(manifest().components['TestModule/Foo'].loader.filename).toBe('remoteEntry.js');

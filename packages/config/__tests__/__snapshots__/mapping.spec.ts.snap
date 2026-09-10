@@ -2,6 +2,7 @@
 
 exports[`mapping configurations to domain objects should match snapshot 1`] = `
 {
+  "bundle": undefined,
   "components": {
     "BizModule/Biz": {
       "id": "BizModule/Biz",
