@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.69](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.68...v1.0.0-alpha.69) (2026-09-10)
+
+### Features
+
+- **config:** state the shared contract, not the plugin options it came from ([c77c914](https://github.com/appshellhq/appshell/commit/c77c914966a8c119218f03102fc42ac0208f8023))
+
 # [1.0.0-alpha.68](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.67...v1.0.0-alpha.68) (2026-09-10)
 
 ### Features
