@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.71](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.70...v1.0.0-alpha.71) (2026-09-10)
+
+### Features
+
+- **webpack-plugin:** pin the code a manifest describes ([664425b](https://github.com/appshellhq/appshell/commit/664425b6dc22c414f27e9cfaaf6ab309be448278))
+
 # [1.0.0-alpha.70](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.69...v1.0.0-alpha.70) (2026-09-10)
 
 **Note:** Version bump only for package @appshell/webpack-plugin
