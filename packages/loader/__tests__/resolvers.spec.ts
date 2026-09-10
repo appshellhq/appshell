@@ -9,7 +9,7 @@ const MANIFEST_URL = 'http://test.com/appshell.manifest.json';
 const KEY = 'TestModule/TestComponent';
 
 const manifest: AppshellManifest = {
-  remotes: {
+  components: {
     [KEY]: {
       id: 'test-component',
       loader: {
@@ -34,7 +34,7 @@ const composition: AppshellComposition = {
   root: KEY,
   rootProps: {},
   index: { [KEY]: MANIFEST_URL },
-  remotes: manifest.remotes,
+  remotes: manifest.components,
   vars: manifest.vars,
 };
 
@@ -47,7 +47,7 @@ describe('inlineResolver', () => {
     const resolution = await inlineResolver(composition)(KEY);
 
     expect(fetch).not.toHaveBeenCalled();
-    expect(resolution?.remote).toEqual(manifest.remotes[KEY]);
+    expect(resolution?.remote).toEqual(manifest.components[KEY]);
     expect(resolution?.vars).toEqual({ ENV_VAR_A: 'Original value for A' });
   });
 
@@ -59,7 +59,7 @@ describe('inlineResolver', () => {
 
 describe('registryResolver', () => {
   it('fetches a remote activated after the page was served', async () => {
-    const added = { ...manifest.remotes[KEY], scope: 'LateModule', module: './Late' };
+    const added = { ...manifest.components[KEY], scope: 'LateModule', module: './Late' };
     fetch.mockResponseOnce(JSON.stringify(added));
 
     const resolution = await registryResolver(composition, 'http://registry')('LateModule/Late');

@@ -1,4 +1,4 @@
-remotes:
+components:
   TestModule/Foo:
     metadata:
       route: /foo

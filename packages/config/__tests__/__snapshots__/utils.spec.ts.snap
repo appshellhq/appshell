@@ -2,14 +2,7 @@
 
 exports[`utils load consuming the configuration should read and parse the configuration file 1`] = `
 {
-  "overrides": {
-    "vars": {
-      "BizModule": {
-        "ENV_VAR_A": "New value for ENV_VAR_A",
-      },
-    },
-  },
-  "remotes": {
+  "components": {
     "BizModule/Biz": {
       "metadata": {
         "displayGroup": "auxiliary",
@@ -35,6 +28,13 @@ exports[`utils load consuming the configuration should read and parse the config
         "icon": "ViewList",
         "order": 10,
         "route": "/foo",
+      },
+    },
+  },
+  "overrides": {
+    "vars": {
+      "BizModule": {
+        "ENV_VAR_A": "New value for ENV_VAR_A",
       },
     },
   },
@@ -43,14 +43,7 @@ exports[`utils load consuming the configuration should read and parse the config
 
 exports[`utils load consuming the configuration should read and parse the configuration file 2`] = `
 {
-  "overrides": {
-    "vars": {
-      "BizModule": {
-        "ENV_VAR_A": "New value for ENV_VAR_A",
-      },
-    },
-  },
-  "remotes": {
+  "components": {
     "BizModule/Biz": {
       "metadata": {
         "displayGroup": "auxiliary",
@@ -76,6 +69,13 @@ exports[`utils load consuming the configuration should read and parse the config
         "icon": "ViewList",
         "order": 10,
         "route": "/foo",
+      },
+    },
+  },
+  "overrides": {
+    "vars": {
+      "BizModule": {
+        "ENV_VAR_A": "New value for ENV_VAR_A",
       },
     },
   },

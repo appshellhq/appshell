@@ -31,7 +31,7 @@ describe('mapping configurations to domain objects', () => {
    * the package's address and its own serving plane instead.
    */
   it('should carry no origin', () => {
-    const remotes = values(appshellManifest.remotes);
+    const remotes = values(appshellManifest.components);
 
     expect(remotes.every((remote) => !('manifestUrl' in remote))).toBe(true);
     expect(remotes.every((remote) => !('remoteEntryUrl' in remote))).toBe(true);
@@ -39,18 +39,22 @@ describe('mapping configurations to domain objects', () => {
   });
 
   it('should name the entry file the build emits', () => {
-    expect(values(appshellManifest.remotes).every((remote) => remote.loader.filename)).toBeTruthy();
+    expect(
+      values(appshellManifest.components).every((remote) => remote.loader.filename),
+    ).toBeTruthy();
   });
 
   it('should create the scope value from the remote key', () => {
     expect(
-      entries(appshellManifest.remotes).every(([key, remote]) => key.includes(remote.loader.scope)),
+      entries(appshellManifest.components).every(([key, remote]) =>
+        key.includes(remote.loader.scope),
+      ),
     ).toBeTruthy();
   });
 
   it('should create the module value from the remote key', () => {
     expect(
-      entries(appshellManifest.remotes).every(([key, remote]) => {
+      entries(appshellManifest.components).every(([key, remote]) => {
         const moduleName = key.replace(/\/.+/, '');
         const moduleKey = key.replace(moduleName, '.');
 
@@ -61,7 +65,7 @@ describe('mapping configurations to domain objects', () => {
 
   it('should map shareScope to manifest remote', () => {
     expect(
-      values(appshellManifest.remotes).every((remote) => remote.loader.shareScope),
+      values(appshellManifest.components).every((remote) => remote.loader.shareScope),
     ).toBeTruthy();
   });
 });

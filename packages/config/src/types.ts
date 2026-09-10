@@ -122,7 +122,28 @@ export type AppshellConfig<TMetadata = Metadata> = {
    * content changing identity.
    */
   visibility?: 'public' | 'private';
-  remotes?: Record<string, AppshellConfigRemote<TMetadata>>;
+  /**
+   * What this package publishes, keyed by federation entrypoint.
+   *
+   * Appshell's own word rather than a framework's. It was `remotes`, which is MF's word
+   * for the opposite — what a package consumes — so the file read inverted to anyone who
+   * knew the framework. `exposes` would fix that and put MF's vocabulary at the top level
+   * of appshell's model, which is what the loader recipe exists to prevent.
+   */
+  components?: Record<string, AppshellConfigRemote<TMetadata>>;
+  /**
+   * What this package consumes, by the name it refers to them by.
+   *
+   * A flat list because a referenced remote is required by definition: unbound, the region
+   * renders an error. `RemoteSlot`'s `fallback` is a loading placeholder — it shows while
+   * the remote arrives, not when it is absent — so unlike a design token's `var()`
+   * fallback it describes no degraded-but-working state.
+   *
+   * The application binds each name to a registry address, so a package never states the
+   * scope its siblings were published into — which it cannot know, since scope is assigned
+   * by whoever publishes.
+   */
+  remotes?: string[];
   vars?: Record<string, unknown>;
   overrides?: AppshellOverrides;
 };
@@ -132,7 +153,8 @@ export type AppshellTemplate<TMetadata = Metadata> = {
   name?: string;
   /** Carried from the yaml for publish to read; never mapped into the manifest. */
   visibility?: 'public' | 'private';
-  remotes?: Record<string, AppshellConfigRemote<TMetadata>>;
+  components?: Record<string, AppshellConfigRemote<TMetadata>>;
+  remotes?: string[];
   module: ModuleFederationPluginOptions;
   vars?: Record<string, unknown>;
   tokens?: Record<string, AppshellTokenUsage>;
@@ -178,7 +200,10 @@ export type AppshellTokenUsage = {
 };
 
 export type AppshellManifest<TMetadata = Metadata> = {
-  remotes: Record<string, PublishedRemote<TMetadata>>;
+  /** What this package publishes, keyed by federation entrypoint. */
+  components: Record<string, PublishedRemote<TMetadata>>;
+  /** What it consumes, by local name; the application binds each to an address. */
+  remotes?: string[];
   modules: Record<string, ModuleFederationPluginOptions>;
   vars: Record<string, Record<string, string | number | undefined>>;
   /** Keyed by federation scope, so a merged manifest still says which package needs what. */

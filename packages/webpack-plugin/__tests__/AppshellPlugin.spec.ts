@@ -629,7 +629,7 @@ describe('AppshellPlugin', () => {
 
         const manifest = JSON.parse(compiler.asset('appshell.manifest.json') as string);
 
-        expect(Object.keys(manifest.remotes)).toEqual(
+        expect(Object.keys(manifest.components)).toEqual(
           expect.arrayContaining(['TestModule/Foo', 'TestModule/Bar']),
         );
       });

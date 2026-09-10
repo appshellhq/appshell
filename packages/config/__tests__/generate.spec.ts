@@ -60,8 +60,8 @@ describe('generate', () => {
 
     it('should contain all remotes', async () => {
       const config = await generate(configTemplate);
-      const expectedRemotes = keys(manifest.remotes);
-      const actualRemotes = keys(config?.remotes);
+      const expectedRemotes = keys(manifest.components);
+      const actualRemotes = keys(config?.components);
 
       expect(expectedRemotes).toEqual(actualRemotes);
     });
@@ -70,7 +70,7 @@ describe('generate', () => {
     // writes may name an origin — see the mapper.
     it('should generate remotes that name no origin', async () => {
       const config = await generate(configTemplate);
-      const remotes = values(config?.remotes);
+      const remotes = values(config?.components);
 
       expect(remotes.length).toBeGreaterThan(0);
       expect(remotes.every((remote) => !('manifestUrl' in remote))).toBe(true);
@@ -80,7 +80,7 @@ describe('generate', () => {
     it('should capture metadata', async () => {
       const config = await generate<TestMetadata>(configTemplate);
 
-      expect(values(config?.remotes).flatMap((remote) => remote.metadata)).toHaveLength(3);
+      expect(values(config?.components).flatMap((remote) => remote.metadata)).toHaveLength(3);
     });
   });
 });

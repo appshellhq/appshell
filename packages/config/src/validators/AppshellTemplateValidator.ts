@@ -7,17 +7,17 @@ import schema from '../schemas/appshell.template.json';
 import { AppshellTemplate, ConfigValidator } from '../types';
 
 const hasIDCollisions = (...documents: AppshellTemplate[]) => {
-  const allRemotes = compact(documents.flatMap((document) => values(document.remotes)));
-  const uniqueIds = uniqBy(allRemotes, (remote) => remote.id);
+  const allComponents = compact(documents.flatMap((document) => values(document.components)));
+  const uniqueIds = uniqBy(allComponents, (remote) => remote.id);
 
-  return uniqueIds.length !== allRemotes.length;
+  return uniqueIds.length !== allComponents.length;
 };
 
 const hasRemoteCollisions = (...documents: AppshellTemplate[]) => {
-  const allRemoteKeys = documents.flatMap((document) => keys(document.remotes));
-  const uniqueRemotes = uniq(allRemoteKeys);
+  const allComponentKeys = documents.flatMap((document) => keys(document.components));
+  const uniqueRemotes = uniq(allComponentKeys);
 
-  return uniqueRemotes.length !== allRemoteKeys.length;
+  return uniqueRemotes.length !== allComponentKeys.length;
 };
 
 const hasVarsCollisions = (...documents: AppshellTemplate[]) => {

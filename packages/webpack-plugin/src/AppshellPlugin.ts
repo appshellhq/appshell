@@ -218,7 +218,7 @@ export default class AppshellPlugin {
         : {},
     };
 
-    entries(template.remotes).forEach(([key, remote]) => {
+    entries(template.components).forEach(([key, remote]) => {
       remote.id = hash_sum(key);
     });
 
@@ -235,22 +235,22 @@ export default class AppshellPlugin {
     const pluginRemotes = keys(template.module.exposes).map(
       (key) => `${template.module.name}/${path.basename(key)}`,
     );
-    const configuredRemotes = keys(template.remotes);
+    const configuredComponents = keys(template.components);
 
-    if (!pluginRemotes.every((remote) => configuredRemotes.includes(remote))) {
+    if (!pluginRemotes.every((remote) => configuredComponents.includes(remote))) {
       throw new Error(
-        `Validation error: Missing entrypoint in appshell.config.yaml. Expected: ${pluginRemotes}, Found: ${configuredRemotes}`,
+        `Validation error: Missing entrypoint in appshell.config.yaml. Expected: ${pluginRemotes}, Found: ${configuredComponents}`,
       );
     }
 
     if (
-      !configuredRemotes
+      !configuredComponents
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         .filter((key) => key.startsWith(template.module.name!))
         .every((remote) => pluginRemotes.includes(remote))
     ) {
       throw new Error(
-        `Validation error: Missing exposed entrypoint in ModuleFederationPlugin. Expected: ${configuredRemotes}, Found: ${pluginRemotes}`,
+        `Validation error: Missing exposed entrypoint in ModuleFederationPlugin. Expected: ${configuredComponents}, Found: ${pluginRemotes}`,
       );
     }
 
@@ -439,7 +439,7 @@ export default class AppshellPlugin {
     const shared: Record<string, SharedObject> | undefined =
       declared && !Array.isArray(declared) ? { [shareScope]: declared as SharedObject } : undefined;
 
-    const remotes = Object.entries(template.remotes ?? {}).reduce<
+    const remotes = Object.entries(template.components ?? {}).reduce<
       Record<string, OverlayRemotePatch>
     >((acc, [federationKey, remote]) => {
       const component = federationKey.split('/').slice(1).join('/');

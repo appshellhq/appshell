@@ -59,7 +59,8 @@ export const publish = async ({
   force,
 }: PublishOptions): Promise<PublishResult> => {
   /*
-   * A remote describes the artifact, so nothing on one may still be a placeholder.
+   * An exposed entrypoint describes the artifact, so nothing on one may still be a
+   * placeholder.
    *
    * Vars may legitimately arrive unresolved — a `${VAR}` under `vars` is a declaration and
    * the application supplies it. A remote is the opposite: every field on it is something
@@ -70,7 +71,7 @@ export const publish = async ({
    * Checked here rather than when the manifest is built, so a build without a complete
    * environment still emits its assets. Only publishing is refused.
    */
-  const unresolved = Object.entries(manifest?.remotes ?? {}).flatMap(([key, remote]) =>
+  const unresolved = Object.entries(manifest?.components ?? {}).flatMap(([key, remote]) =>
     Object.entries(remote)
       .filter(([, value]) => typeof value === 'string' && /\$\{\w+}/.test(value))
       .map(([field, value]) => `${key}.${field} (${value})`),

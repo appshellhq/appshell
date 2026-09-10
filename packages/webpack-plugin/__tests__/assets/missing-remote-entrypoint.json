@@ -1,6 +1,6 @@
 {
   "name": "TestModule",
-  "remotes": {
+  "components": {
     "TestModule/Bar": {
       "id": "42783598",
       "metadata": {

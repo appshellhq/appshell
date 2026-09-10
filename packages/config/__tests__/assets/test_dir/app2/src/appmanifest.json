@@ -1,5 +1,5 @@
 {
-  "remotes": {
+  "components": {
     "BizModule/Biz": {
       "url": "http://localhost:4040/remoteEntry.js",
       "metadata": {

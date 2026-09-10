@@ -14,7 +14,7 @@ import AppshellPlugin from '../src/AppshellPlugin';
 // Left unsubstituted on purpose: the manifest is only correct if the plugin resolves it.
 const CONFIG = [
   'visibility: public',
-  'remotes:',
+  'components:',
   '  TestModule/Foo:',
   '    metadata:',
   '      route: /foo',
@@ -104,7 +104,7 @@ describe('the emitted manifest', () => {
 
   // What the probe actually asks: are these the remote keys this origin serves?
   it('should name the remotes the package publishes', () => {
-    expect(Object.keys(manifest().remotes)).toEqual(['TestModule/Foo']);
+    expect(Object.keys(manifest().components)).toEqual(['TestModule/Foo']);
   });
 
   /*
@@ -116,7 +116,7 @@ describe('the emitted manifest', () => {
    * the package's address and its own serving plane.
    */
   it('should state no origin', () => {
-    const remote = manifest().remotes['TestModule/Foo'];
+    const remote = manifest().components['TestModule/Foo'];
 
     expect(remote.manifestUrl).toBeUndefined();
     expect(remote.remoteEntryUrl).toBeUndefined();
@@ -139,7 +139,7 @@ describe('the emitted manifest', () => {
 
   // Taken from the Module Federation config, which is what decides the emitted file.
   it('should name the entry file the build emits', () => {
-    expect(manifest().remotes['TestModule/Foo'].loader.filename).toBe('remoteEntry.js');
+    expect(manifest().components['TestModule/Foo'].loader.filename).toBe('remoteEntry.js');
   });
 
   /*

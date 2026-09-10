@@ -1,5 +1,5 @@
 {
-  "remotes": {
+  "components": {
     "FooModule/Bing": {
       "id": "FooModule/Bing",
       "metadata": {

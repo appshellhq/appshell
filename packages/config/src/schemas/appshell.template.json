@@ -2,11 +2,7 @@
   "title": "AppshellTemplate",
   "type": "object",
   "properties": {
-    "name": {
-      "description": "Name of the module",
-      "type": "string"
-    },
-    "remotes": {
+    "components": {
       "description": "Collection of remote entrypoints",
       "type": "object",
       "additionalProperties": {
@@ -21,9 +17,9 @@
       "description": "Module federation configuration",
       "type": "object"
     },
-    "vars": {
-      "description": "Runtime environment configuration",
-      "type": "object"
+    "name": {
+      "description": "Name of the module",
+      "type": "string"
     },
     "overrides": {
       "description": "Overrides to apply",
@@ -33,6 +29,17 @@
           "type": "object"
         }
       }
+    },
+    "remotes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Names of remotes this package consumes; the application binds each to an address"
+    },
+    "vars": {
+      "description": "Runtime environment configuration",
+      "type": "object"
     },
     "visibility": {
       "type": "string",

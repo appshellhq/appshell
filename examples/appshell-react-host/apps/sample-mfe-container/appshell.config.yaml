@@ -1,7 +1,7 @@
 # Demo code from a public repo, so published public. The registry defaults to private.
 visibility: public
 
-remotes:
+components:
   ContainerModule/Container:
     metadata:
       route: /
@@ -9,6 +9,16 @@ remotes:
       displayGroup: main
       order: 0
       icon: ViewList
+
+# What this package consumes, by the name it refers to them by. The application binds each
+# to a registry address, so nothing here names the scope a sibling was published into —
+# which this package cannot know, since scope belongs to whoever publishes.
+#
+# Declared but not yet load-bearing: Container.tsx still addresses its siblings directly.
+# Resolving these names, and refusing activation when one is unbound, is appshellhq/appshell#5.
+remotes:
+  - ping
+  - pong
 
 # Configuration, not appearance. Colour reaches this package through the Application's
 # design tokens instead — see src/index.css.

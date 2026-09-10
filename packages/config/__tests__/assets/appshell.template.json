@@ -1,5 +1,5 @@
 {
-  "remotes": {
+  "components": {
     "TestModule/Foo": {
       "id": "TestModule/Foo",
       "metadata": {

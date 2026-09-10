@@ -17,7 +17,7 @@ const templateOf = (): AppshellTemplate =>
   ({
     name: 'App',
     module: { name: 'App' },
-    remotes: {
+    components: {
       'App/Thing': { id: 'x' },
     },
     vars: { App: { SUPPORT_URL: '${SUPPORT_URL}', TIMEOUT_MS: 5000 } },
@@ -29,7 +29,7 @@ const buildIn = (env: Record<string, string>) => {
   return manifestFrom(templateOf());
 };
 
-const remoteOf = (m: ReturnType<typeof manifestFrom>) => m.remotes['App/Thing'];
+const remoteOf = (m: ReturnType<typeof manifestFrom>) => m.components['App/Thing'];
 
 const digest = (value: unknown) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 
@@ -93,12 +93,12 @@ describe('manifestFrom', () => {
  * manifest is built, so a build without a complete environment still emits its assets.
  */
 describe('publish', () => {
-  const publishing = (remotes: Record<string, unknown>) =>
+  const publishing = (components: Record<string, unknown>) =>
     publish({
       registry: 'http://localhost:1',
       name: 'app',
       version: '1.0.0',
-      manifest: { remotes } as never,
+      manifest: { components } as never,
     });
 
   it('should refuse a deployment coordinate that never resolved', async () => {

@@ -54,8 +54,8 @@ const mapAppshellEntrypoint = (
   } satisfies PublishedRemote;
 };
 
-const mapRemotes = (source: AppshellTemplate) =>
-  entries(source.remotes).reduce((acc, [key, remote]) => {
+const mapComponents = (source: AppshellTemplate) =>
+  entries(source.components).reduce((acc, [key, remote]) => {
     acc[key] = mapAppshellEntrypoint(source, key, remote);
     return acc;
   }, {} as Record<string, PublishedRemote>);
@@ -65,10 +65,17 @@ createMap<AppshellTemplate, AppshellManifest>(
   'AppshellTemplate',
   'AppshellManifest',
   forMember(
-    (destination) => destination.remotes,
+    (destination) => destination.components,
     mapWithArguments((source) => ({
-      ...mapRemotes(source),
+      ...mapComponents(source),
     })),
+  ),
+  // Carried through as declared. What a package consumes is a list of local names; the
+  // application binds each to an address, because a package cannot know the scope its
+  // siblings were published into.
+  forMember(
+    (destination) => destination.remotes,
+    mapFrom((source) => source.remotes ?? []),
   ),
   forMember(
     (destination) => destination.modules,
