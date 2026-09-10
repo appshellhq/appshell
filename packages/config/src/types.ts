@@ -199,12 +199,29 @@ export type AppshellTokenUsage = {
   optional: string[];
 };
 
+/** A shared-dependency contract, named as one framework's model among possible models. */
+export type SharedContract = {
+  apiVersion: 'federation.appshell.org/v1';
+  kind: 'ModuleFederation';
+  /** Keyed by share scope, as Module Federation groups them. */
+  scopes: Record<string, SharedObject>;
+};
+
 export type AppshellManifest<TMetadata = Metadata> = {
   /** What this package publishes, keyed by federation entrypoint. */
   components: Record<string, PublishedRemote<TMetadata>>;
   /** What it consumes, by local name; the application binds each to an address. */
   remotes?: string[];
-  modules: Record<string, ModuleFederationPluginOptions>;
+  /**
+   * The shared-dependency contract this package was built against.
+   *
+   * Tagged like the loader recipe, and for the same reason: share scopes, singletons and
+   * version ranges are Module Federation's model of the problem, which single-spa and
+   * import maps solve differently. This replaced `modules`, which stored MF's plugin
+   * options verbatim — one reader took two fields from it, while its source paths and
+   * type-generation flags sat inside the package digest.
+   */
+  shared?: SharedContract;
   vars: Record<string, Record<string, string | number | undefined>>;
   /** Keyed by federation scope, so a merged manifest still says which package needs what. */
   tokens?: Record<string, AppshellTokenUsage>;

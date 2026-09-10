@@ -8,6 +8,7 @@ import {
   AppshellTemplate,
   ConfigMap,
   PublishedRemote,
+  SharedContract,
 } from '../types';
 
 const mapper = createMapper({
@@ -54,6 +55,27 @@ const mapAppshellEntrypoint = (
   } satisfies PublishedRemote;
 };
 
+/**
+ * What this package shares, lifted out of the Module Federation options.
+ *
+ * Only this and the loader recipe survive from `module`: everything else it holds is
+ * either build-internal — source paths, type-generation flags — or already stated per
+ * component, and all of it was inside the package digest.
+ */
+const sharedContractOf = (module: AppshellTemplate['module']): SharedContract | undefined => {
+  const { shared, shareScope } = module;
+
+  if (!shared || Array.isArray(shared)) {
+    return undefined;
+  }
+
+  return {
+    apiVersion: 'federation.appshell.org/v1',
+    kind: 'ModuleFederation',
+    scopes: { [shareScope ?? 'default']: shared },
+  };
+};
+
 const mapComponents = (source: AppshellTemplate) =>
   entries(source.components).reduce((acc, [key, remote]) => {
     acc[key] = mapAppshellEntrypoint(source, key, remote);
@@ -77,9 +99,12 @@ createMap<AppshellTemplate, AppshellManifest>(
     (destination) => destination.remotes,
     mapFrom((source) => source.remotes ?? []),
   ),
+  // The shared contract, rather than the plugin options it came from. The array form of
+  // `shared` declares names with no version constraint, so it says nothing about
+  // compatibility and is dropped — the registry has nothing to check against it.
   forMember(
-    (destination) => destination.modules,
-    mapFrom((source) => ({ [source.module.name || 'unknown']: source.module })),
+    (destination) => destination.shared,
+    mapFrom((source) => sharedContractOf(source.module)),
   ),
   forMember(
     (destination) => destination.vars,

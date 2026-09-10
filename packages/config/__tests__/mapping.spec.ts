@@ -69,3 +69,48 @@ describe('mapping configurations to domain objects', () => {
     ).toBeTruthy();
   });
 });
+
+/*
+ * The keying and the array-form skip used to live in the registry, reduced out of the
+ * Module Federation plugin options the manifest carried verbatim. The manifest states the
+ * contract directly now, so the logic that builds it lives here.
+ */
+describe('the shared contract', () => {
+  const manifestOf = (module: Record<string, unknown>) =>
+    toAppshellManifest({ components: {}, module } as unknown as AppshellTemplate, {});
+
+  it('keys what is shared by its share scope', () => {
+    const manifest = manifestOf({
+      name: 'M',
+      shareScope: 'legacy',
+      shared: { react: { requiredVersion: '^17.0.0' } },
+    });
+
+    expect(manifest.shared?.scopes).toEqual({ legacy: { react: { requiredVersion: '^17.0.0' } } });
+  });
+
+  it('defaults the scope when the build names none', () => {
+    const manifest = manifestOf({ name: 'M', shared: { react: { singleton: true } } });
+
+    expect(manifest.shared?.scopes).toEqual({ default: { react: { singleton: true } } });
+  });
+
+  it('says which framework the contract belongs to', () => {
+    const manifest = manifestOf({ name: 'M', shared: { react: { singleton: true } } });
+
+    expect(manifest.shared).toMatchObject({
+      apiVersion: 'federation.appshell.org/v1',
+      kind: 'ModuleFederation',
+    });
+  });
+
+  // Names with no version constraint say nothing about compatibility, so there is nothing
+  // for the registry to check and no contract to state.
+  it('states no contract for the array form', () => {
+    expect(manifestOf({ name: 'M', shared: ['react'] }).shared).toBeUndefined();
+  });
+
+  it('states no contract when a package shares nothing', () => {
+    expect(manifestOf({ name: 'M' }).shared).toBeUndefined();
+  });
+});
