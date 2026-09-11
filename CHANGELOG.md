@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.78](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.77...v1.0.0-alpha.78) (2026-09-11)
+
+### Bug Fixes
+
+- **plugin:** ask whether the hot reload address is dialable, not whether it is set ([64609ce](https://github.com/appshellhq/appshell/commit/64609ce3afe1a737a759d34d4ed420eb2c673c9d))
+
 # [1.0.0-alpha.77](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.76...v1.0.0-alpha.77) (2026-09-11)
 
 ### Bug Fixes
