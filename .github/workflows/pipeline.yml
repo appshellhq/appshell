@@ -236,6 +236,16 @@ jobs:
       apps: ${{ steps.scan.outputs.apps }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          # The branch head, not the commit that triggered this run. The example job
+          # pushes the version bump it built against, and that commit lands after the
+          # trigger — so checking out github.sha builds the tree from before the bump,
+          # and the image ships a lockfile a release behind. Measured: a run that
+          # published alpha.80 produced images built against alpha.78.
+          #
+          # Safe to take the head here because the example job is upstream of both of
+          # these, so its push has already landed.
+          ref: ${{ github.ref }}
       - id: scan
         working-directory: examples/appshell-react-host
         run: |
@@ -263,6 +273,16 @@ jobs:
       matrix: ${{ fromJson(needs.example_images_matrix.outputs.builds) }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          # The branch head, not the commit that triggered this run. The example job
+          # pushes the version bump it built against, and that commit lands after the
+          # trigger — so checking out github.sha builds the tree from before the bump,
+          # and the image ships a lockfile a release behind. Measured: a run that
+          # published alpha.80 produced images built against alpha.78.
+          #
+          # Safe to take the head here because the example job is upstream of both of
+          # these, so its push has already landed.
+          ref: ${{ github.ref }}
       - uses: docker/setup-buildx-action@v3
 
       - uses: docker/login-action@v3
