@@ -276,6 +276,16 @@ export type AppshellComposition<TMetadata = Metadata> = {
   overlay?: {
     id: string;
     remotes: string[];
+    /**
+     * Those of `remotes` the overlay introduced rather than redirected — components the
+     * application does not publish, running for this developer and nobody else.
+     *
+     * Separate from `remotes` because the two are not the same claim. A redirected
+     * component exists for everyone and this browser runs a different copy of it; an
+     * added one does not exist outside this overlay at all, so a feature built on top of
+     * one works here and is absent everywhere else.
+     */
+    added?: string[];
     shellFlavor: 'prod' | 'dev';
     theme?: string;
   };

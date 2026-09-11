@@ -28,6 +28,38 @@ describe('overlayBadgeMarkup', () => {
     );
   });
 
+  /*
+   * A redirected remote is a different copy of something everyone has. An added one is
+   * not in the application at all, so a feature resting on it works for this developer
+   * and is absent for everyone else — which is a different thing to be told, and the
+   * reason overlays are allowed to introduce remotes at all.
+   */
+  it('should count an introduced remote separately from a redirected one', () => {
+    const markup = overlayBadgeMarkup({
+      id: 'o1',
+      remotes: ['A/One', 'me/new-mfe/New'],
+      added: ['me/new-mfe/New'],
+    });
+
+    expect(markup).toContain('1 remote redirected');
+    expect(markup).toContain('1 not published');
+  });
+
+  it('should mark which listed remote is the unpublished one', () => {
+    const markup = overlayBadgeMarkup({
+      id: 'o1',
+      remotes: ['A/One', 'me/new-mfe/New'],
+      added: ['me/new-mfe/New'],
+    });
+
+    expect(markup).toMatch(/me\/new-mfe\/New[^<]*<em[^>]*>— not published/);
+    expect(markup).toMatch(/<li>A\/One<\/li>/);
+  });
+
+  it('should say nothing about additions when an overlay only redirected', () => {
+    expect(overlayBadgeMarkup({ id: 'o1', remotes: ['A/One'] })).not.toContain('not published');
+  });
+
   it('should name the development shell, which is a change the page cannot otherwise show', () => {
     expect(overlayBadgeMarkup({ id: 'o1', remotes: [], shellFlavor: 'dev' })).toContain(
       'development shell',
@@ -181,6 +213,17 @@ describe('every effect an overlay carries', () => {
     remotes: {
       only: { id: 'o1', remotes: ['PongModule/Pong'], shellFlavor: 'prod' },
       mentions: /1 remote redirected/,
+    },
+    // An introduced remote is in `remotes` as well, since that is everything the overlay
+    // touched. What makes it an addition is being named here too.
+    added: {
+      only: {
+        id: 'o1',
+        remotes: ['me/new-mfe/New'],
+        added: ['me/new-mfe/New'],
+        shellFlavor: 'prod',
+      },
+      mentions: /1 not published/,
     },
     shellFlavor: {
       only: { id: 'o1', remotes: [], shellFlavor: 'dev' },

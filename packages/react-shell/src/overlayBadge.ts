@@ -1,8 +1,9 @@
 import type { AppshellComposition } from '@appshell/config';
 
 /**
- * Marks a page a per-developer overlay has changed — redirected remotes, a development
- * shell, or a substituted theme.
+ * Marks a page a per-developer overlay has changed — redirected remotes, remotes it
+ * introduced that the application does not publish, a development shell, or a
+ * substituted theme.
  *
  * Deliberately plain DOM in its own element rather than a component inside the React
  * tree, for two reasons. It has to survive a crash in the composed app — the moment
@@ -60,7 +61,7 @@ export type OverlayEffect = Exclude<keyof OverlayEffects, OverlayIdentity>;
  * share no code, and each is checked against the shape it actually renders, so none can
  * drift quietly from the surface it guards.
  */
-export const OVERLAY_EFFECTS = ['remotes', 'shellFlavor', 'theme'] as const;
+export const OVERLAY_EFFECTS = ['remotes', 'added', 'shellFlavor', 'theme'] as const;
 
 /*
  * Adding a field to the composition's overlay now forces a decision here: name it as an
@@ -77,10 +78,21 @@ export const OVERLAY_EFFECTS_ARE_EXHAUSTIVE: EveryEffectIsListed = true;
  * function is handed.
  */
 export const overlayBadgeMarkup = (overlay: OverlayEffects): string => {
-  const { remotes = [], shellFlavor = 'prod', theme } = overlay;
+  const { remotes = [], added = [], shellFlavor = 'prod', theme } = overlay;
+  // `remotes` is everything the overlay touched, additions included, so redirects are
+  // what is left after taking them out.
+  const introduced = new Set(added);
+  const redirected = remotes.filter((key) => !introduced.has(key));
+
   const changes = [
     shellFlavor === 'dev' && 'development shell',
-    remotes.length && `${remotes.length} remote${remotes.length === 1 ? '' : 's'} redirected`,
+    redirected.length &&
+      `${redirected.length} remote${redirected.length === 1 ? '' : 's'} redirected`,
+    // Counted separately, and worded as existing rather than as being replaced. A
+    // redirected remote is a different copy of something everyone has; an added one is
+    // not in the application at all, so a feature resting on it works here and nowhere
+    // else — which is a different thing to have been told.
+    added.length && `${added.length} not published`,
     // Named, not just counted. A theme changes what the whole page looks like, so the
     // useful question is which one — otherwise the badge says something is different
     // while the difference is the very thing you are looking at.
@@ -90,7 +102,14 @@ export const overlayBadgeMarkup = (overlay: OverlayEffects): string => {
   const items = remotes
     // The keys come from the registry's own composition, but this string is written
     // straight into innerHTML, so it is escaped rather than trusted by provenance.
-    .map((key) => `<li>${escape(key)}</li>`)
+    .map(
+      (key) =>
+        `<li>${escape(key)}${
+          introduced.has(key)
+            ? ' <em style="font-style:normal;opacity:.8">— not published</em>'
+            : ''
+        }</li>`,
+    )
     .join('');
 
   return [
