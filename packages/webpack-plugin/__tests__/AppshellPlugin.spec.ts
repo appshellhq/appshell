@@ -468,6 +468,24 @@ describe('AppshellPlugin', () => {
         delete process.env.WEBPACK_SERVE;
       });
 
+      /*
+       * `created` says an overlay was already open on the registry for this developer.
+       * It says nothing about whether a browser confirmed it — that is a cookie the
+       * registry cannot see. The message used to claim "this browser already holds" it
+       * and withhold the url on that basis, so the case where it is hardest to find was
+       * the case it was hidden in: a second machine, a cleared cookie, or an overlay a
+       * previous run opened.
+       */
+      it.each([true, false])('names the confirm url when created is %s', async (created) => {
+        mocked.openOverlay.mockResolvedValue({ created, confirmUrl: '/c' } as never);
+        const plugin = serving();
+
+        plugin.apply(compiler as any);
+        await compiler.compile();
+
+        expect(logger.info).toHaveBeenCalledWith(expect.stringContaining('/c'));
+      });
+
       it('opens an overlay instead of publishing', async () => {
         mocked.openOverlay.mockResolvedValue({ created: true, confirmUrl: '/c' } as never);
         const plugin = serving();
