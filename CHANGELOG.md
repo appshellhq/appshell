@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.76](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.75...v1.0.0-alpha.76) (2026-09-11)
+
+### Bug Fixes
+
+- **cli:** read the manifest shape the registry actually sends ([5c06dea](https://github.com/appshellhq/appshell/commit/5c06dea4b3308d7611e61c5307c5e343d3b80251))
+- **plugin:** always print the overlay confirm url ([d6bfbdb](https://github.com/appshellhq/appshell/commit/d6bfbdb18cf0d5b1bd791712d28badaf7a571cfc))
+
 # [1.0.0-alpha.75](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.74...v1.0.0-alpha.75) (2026-09-11)
 
 **Note:** Version bump only for package appshell
