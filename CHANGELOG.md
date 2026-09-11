@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.74](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.73...v1.0.0-alpha.74) (2026-09-11)
+
+### Bug Fixes
+
+- **overlay:** send a manifest url, which an introduced remote cannot inherit ([b79a3e5](https://github.com/appshellhq/appshell/commit/b79a3e5133ea2824bd949a964125d694e35eb421)), closes [appshellhq/appshell-services#22](https://github.com/appshellhq/appshell-services/issues/22)
+
 # [1.0.0-alpha.73](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.72...v1.0.0-alpha.73) (2026-09-11)
 
 ### Features
