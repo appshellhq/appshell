@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.73](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.72...v1.0.0-alpha.73) (2026-09-11)
+
+### Features
+
+- **manifest:** stop hashing the bundle into the manifest ([48d2710](https://github.com/appshellhq/appshell/commit/48d2710cb8beb929b198bca3c7734ac38e3db669)), closes [appshellhq/appshell-services#21](https://github.com/appshellhq/appshell-services/issues/21)
+- **overlay:** send this build's loader with the overlay patch ([dae09b2](https://github.com/appshellhq/appshell/commit/dae09b26c651d2abfcf8ee3ff13246b32eaac893)), closes [appshellhq/appshell-services#22](https://github.com/appshellhq/appshell-services/issues/22)
+
 # [1.0.0-alpha.72](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.71...v1.0.0-alpha.72) (2026-09-10)
 
 **Note:** Version bump only for package @appshell/webpack-plugin
