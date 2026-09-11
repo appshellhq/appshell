@@ -144,31 +144,42 @@ jobs:
 
           echo "$targets"
 
-          # npm's replicas lag behind a publish, and the metadata arrives before the
-          # tarball does — measured at ten seconds for one and nearly two minutes for the
-          # other in the same release. A job that installs the moment a publish returns
-          # therefore fails on a package that demonstrably exists, so it waits for the one
-          # that is furthest behind rather than retrying the whole install blindly.
+          # npm's replicas lag behind a publish, and the metadata lands before the
+          # tarball — ten seconds for one package and nearly two minutes for another in
+          # the same release, measured. So the install is retried rather than run once.
+          #
+          # Retrying the install, rather than waiting on a list of packages first: the
+          # first version of this waited on two packages chosen because they had lagged
+          # before, and the run failed on @appshell/tokens, which is pulled in
+          # transitively and was not on the list. The install is the only thing that knows
+          # the whole dependency set, so it is what gets retried.
+          # `|| return 1` rather than relying on errexit: a function called as an `if`
+          # condition runs with errexit suppressed, so without this a failure on the root
+          # manifest would carry on to the workspaces and then report the status of
+          # whichever ran last — success, over a half-updated tree.
+          install() {
+            while read -r dir specs; do
+              [ -z "$dir" ] && continue
+
+              if [ "$dir" = "." ]; then
+                npm install --package-lock-only --save $specs || return 1
+              else
+                npm install --package-lock-only --save -w "$dir" $specs || return 1
+              fi
+            done <<< "$targets"
+          }
+
           for attempt in $(seq 1 30); do
-            if npm view "@appshell/config@$VERSION" dist.tarball >/dev/null 2>&1 \
-              && curl -sfIo /dev/null "$(npm view "@appshell/runtime@$VERSION" dist.tarball)"; then
-              break
+            if install; then
+              exit 0
             fi
 
-            echo "Waiting for $VERSION to be installable (attempt $attempt)"
+            echo "Not installable yet; npm is still replicating $VERSION (attempt $attempt)"
             sleep 10
           done
 
-          # --package-lock-only: `npm ci` below resolves the tree; this only pins.
-          while read -r dir specs; do
-            [ -z "$dir" ] && continue
-
-            if [ "$dir" = "." ]; then
-              npm install --package-lock-only --save $specs
-            else
-              npm install --package-lock-only --save -w "$dir" $specs
-            fi
-          done <<< "$targets"
+          echo "::error::$VERSION did not become installable within five minutes."
+          exit 1
 
       # `.env` is git-ignored; sample.env carries the same keys and is what a developer is
       # told to copy.
