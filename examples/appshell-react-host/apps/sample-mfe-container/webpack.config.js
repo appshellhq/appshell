@@ -20,6 +20,19 @@ module.exports = (env, { mode }) => {
       // Browser extensions (e.g. MetaMask's injected inpage.js) throw unrelated runtime
       // errors on the page; only surface our own compile errors/warnings, not those.
       client: {
+        /*
+         * Pinned to an address a browser can dial.
+         *
+         * The server binds every interface, and webpack-dev-server bakes that bind
+         * address into the client it serves — `hostname=0.0.0.0`, measured. Nothing can
+         * open a socket to 0.0.0.0, so hot reload failed silently: the bundle rendered
+         * and edits never arrived, with no error anywhere to say why.
+         *
+         * Worth pinning rather than leaving to the default because a remote is loaded
+         * into a shell on another origin, so there is no page-relative address to fall
+         * back to either.
+         */
+        webSocketURL: `ws://localhost:${process.env.SAMPLE_MFE_CONTAINER_PORT}/ws`,
         overlay: {
           errors: true,
           warnings: true,

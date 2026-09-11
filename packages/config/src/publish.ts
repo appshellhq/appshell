@@ -202,6 +202,11 @@ export const openOverlay = async (
   remotes: Record<string, OverlayRemotePatch>,
   token?: string,
   shared?: Record<string, unknown>,
+  /**
+   * Which shell bundle to serve. Omitted means "leave whatever this overlay already has",
+   * so a caller with no opinion cannot take away a choice another one made.
+   */
+  shellFlavor?: 'prod' | 'dev',
 ): Promise<OpenedOverlay> => {
   const [scopeId, name] = application.split('/');
 
@@ -212,7 +217,7 @@ export const openOverlay = async (
   try {
     const { data } = await axios.post<OpenedOverlay>(
       `${registry.replace(/\/$/, '')}/v1/applications/${scopeId}/${name}/overlays`,
-      { remotes, ...(shared ? { shared } : {}) },
+      { remotes, ...(shared ? { shared } : {}), ...(shellFlavor ? { shellFlavor } : {}) },
       { headers: authorization(token) },
     );
 

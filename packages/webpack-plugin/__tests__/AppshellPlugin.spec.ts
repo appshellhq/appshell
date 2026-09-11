@@ -486,6 +486,60 @@ describe('AppshellPlugin', () => {
         expect(logger.info).toHaveBeenCalledWith(expect.stringContaining('/c'));
       });
 
+      /*
+       * Hot reload failing is invisible from the page: the redirected bundle renders and
+       * simply stops updating. The dev-server client falls back to the *shell's* hostname
+       * when this is unset, so it opens its socket against a host that serves none.
+       */
+      it('warns when the hot reload socket is not pinned to this dev server', async () => {
+        mocked.openOverlay.mockResolvedValue({ created: false } as never);
+        const plugin = serving();
+
+        plugin.apply(compiler as any);
+        await compiler.compile();
+
+        expect(logger.warn).toHaveBeenCalledWith(expect.stringMatching(/client\.webSocketURL/));
+      });
+
+      it('stays quiet when the hot reload socket is pinned', async () => {
+        mocked.openOverlay.mockResolvedValue({ created: false } as never);
+        const plugin = serving();
+
+        // After `serving()`, which resets devServer to its own defaults.
+        compiler.options.devServer = {
+          ...compiler.options.devServer,
+          client: { webSocketURL: 'ws://localhost:3001/ws' },
+        };
+
+        plugin.apply(compiler as any);
+        await compiler.compile();
+
+        expect(logger.warn).not.toHaveBeenCalledWith(expect.stringMatching(/client\.webSocketURL/));
+      });
+
+      /*
+       * A dev server exists for hot reload, and hot reload cannot work under the
+       * production shell: React wires Fast Refresh only when the DevTools hook is present
+       * as react-dom evaluates, and the production shell installs none. Asking for it
+       * here means a developer never has to know that to get a working loop.
+       */
+      it('asks for the development shell, which is the one hot reload works in', async () => {
+        mocked.openOverlay.mockResolvedValue({ created: false } as never);
+        const plugin = serving();
+
+        plugin.apply(compiler as any);
+        await compiler.compile();
+
+        expect(mocked.openOverlay).toHaveBeenCalledWith(
+          registry,
+          'default/demo',
+          expect.any(Object),
+          undefined,
+          expect.any(Object),
+          'dev',
+        );
+      });
+
       it('opens an overlay instead of publishing', async () => {
         mocked.openOverlay.mockResolvedValue({ created: true, confirmUrl: '/c' } as never);
         const plugin = serving();
@@ -500,6 +554,7 @@ describe('AppshellPlugin', () => {
           expect.any(Object),
           undefined,
           expect.any(Object),
+          'dev',
         );
       });
 

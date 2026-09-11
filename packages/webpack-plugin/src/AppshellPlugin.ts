@@ -33,7 +33,7 @@ import {
   WebpackPluginInstance,
   sources as webpackSources,
 } from 'webpack';
-import { devServerOrigin, isServing, writeDevHint } from './devHint';
+import { devServerOrigin, hotSocketIsPinned, isServing, writeDevHint } from './devHint';
 
 type AppshellPluginOptions = {
   config?: string;
@@ -414,6 +414,21 @@ export default class AppshellPlugin {
       return;
     }
 
+    /*
+     * Said once per serve build rather than left to be discovered. Hot reload failing is
+     * invisible from the page — the redirected bundle renders correctly and only stops
+     * updating — so without this the first sign is a developer wondering why an edit did
+     * nothing.
+     */
+    if (!hotSocketIsPinned(devServer)) {
+      logger.warn(
+        'Hot reload will not reach this dev server: devServer.client.webSocketURL is unset, ' +
+          'so its client is told to connect to whichever address the server bound — ' +
+          '0.0.0.0 when it listens on every interface, which nothing can dial. ' +
+          `Set client.webSocketURL to '${origin.replace(/^http/, 'ws')}/ws'.`,
+      );
+    }
+
     const { scopeId } = resolveContext();
     const { name } = AppshellPlugin.identify(context);
 
@@ -475,7 +490,13 @@ export default class AppshellPlugin {
     }
 
     try {
-      const overlay = await openOverlay(registry, application, remotes, token, shared);
+      /*
+       * The development shell, because this is a dev server and hot reload is the reason
+       * it exists. React wires Fast Refresh only when `__REACT_DEVTOOLS_GLOBAL_HOOK__` is
+       * present as `react-dom` evaluates, and the production shell installs none — so
+       * under it a hot update arrives, reports success and changes nothing on the page.
+       */
+      const overlay = await openOverlay(registry, application, remotes, token, shared, 'dev');
 
       // Loud, because nothing downstream can notice. The registry's shared dependency
       // report describes the published manifest, and module federation resolves a

@@ -25,7 +25,7 @@ type DevServerOptions = { [index: string]: unknown } | false | undefined;
 const UNUSABLE_HOSTS = new Set(['0.0.0.0', '::', 'local-ip', 'local-ipv4', 'local-ipv6', '']);
 
 const portOf = (devServer: Record<string, unknown>): number | undefined => {
-  const {port} = devServer;
+  const { port } = devServer;
 
   if (typeof port === 'number' && Number.isInteger(port) && port > 0) return port;
   if (typeof port === 'string' && /^\d+$/.test(port)) return Number(port);
@@ -43,6 +43,30 @@ const isHttps = (devServer: Record<string, unknown>): boolean => {
   if (server?.type) return server.type === 'https' || server.type === 'spdy';
 
   return Boolean(devServer.https);
+};
+
+/**
+ * Whether this dev server's hot-reload client has an address it can actually dial.
+ *
+ * Left unset, webpack-dev-server bakes its own **bind** address into the client it
+ * serves. A server listening on every interface therefore tells its client to connect to
+ * `0.0.0.0`, which nothing can open a socket to — measured, not inferred. Hot reload then
+ * fails silently: the bundle renders and edits never arrive, with no error to say why.
+ *
+ * It matters more here than it would elsewhere. A remote is loaded into a shell on
+ * another origin, so there is no page-relative address to fall back to — and a silent
+ * failure is the worst available outcome for the one feature a dev server exists for.
+ */
+export const hotSocketIsPinned = (devServer: DevServerOptions): boolean => {
+  if (!devServer || typeof devServer !== 'object') return false;
+
+  const { client } = devServer as Record<string, unknown>;
+
+  if (!client || typeof client !== 'object') return false;
+
+  const url = (client as Record<string, unknown>).webSocketURL;
+
+  return typeof url === 'string' ? Boolean(url) : Boolean(url && typeof url === 'object');
 };
 
 export const devServerOrigin = (devServer: DevServerOptions): string | undefined => {
