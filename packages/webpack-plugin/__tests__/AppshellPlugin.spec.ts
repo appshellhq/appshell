@@ -507,6 +507,25 @@ describe('AppshellPlugin', () => {
        * the last publish happened to have, and a component not published yet is refused
        * outright — there being no published loader for it to inherit.
        */
+      /*
+       * A redirect inherits the published manifestUrl; an introduced component has no
+       * published anything to inherit from, and the composition indexes remotes by it —
+       * so without this the address is in `remotes` and missing from `index`.
+       */
+      it('sends a manifest url, which an introduced remote has nothing to inherit', async () => {
+        mocked.openOverlay.mockResolvedValue({ created: false } as never);
+        const plugin = serving();
+
+        plugin.apply(compiler as any);
+        await compiler.compile();
+
+        const [, , remotes] = mocked.openOverlay.mock.calls[0];
+
+        expect(remotes['default/webpack-plugin/Foo'].manifestUrl).toBe(
+          'http://localhost:3001/appshell.manifest.json',
+        );
+      });
+
       it("sends this build's loader, so the overlay describes the code it points at", async () => {
         mocked.openOverlay.mockResolvedValue({ created: false } as never);
         const plugin = serving();

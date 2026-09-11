@@ -452,6 +452,11 @@ export default class AppshellPlugin {
         ...acc,
         [`${scopeId}/${name}/${component}`]: {
           remoteEntryUrl: `${origin}/${loader.filename.replace(/^\//, '')}`,
+          // Served from the same dev server, as a compilation asset. A redirect would
+          // inherit the published one, but an introduced component has no published
+          // anything — and the composition indexes remotes by it, so without this the
+          // address appears in `remotes` and is missing from `index`.
+          manifestUrl: `${origin}/${MANIFEST_ASSET}`,
           // How to load this build, not the published one. It is what lets a redirect
           // survive a container rename, and what lets a component the registry has never
           // seen be introduced at all rather than rejected.
