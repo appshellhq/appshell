@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.77](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.76...v1.0.0-alpha.77) (2026-09-11)
+
+### Bug Fixes
+
+- **dev:** give hot reload an address it can dial, and a shell it works in ([d8c25f9](https://github.com/appshellhq/appshell/commit/d8c25f90f9550e90fd76d91fce52f0887715cfd3))
+
 # [1.0.0-alpha.76](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.75...v1.0.0-alpha.76) (2026-09-11)
 
 **Note:** Version bump only for package @appshell/config
