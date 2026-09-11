@@ -389,7 +389,19 @@ export class RegistryClient {
   /** What the registry actually has published for a package, not what a local build says. */
   packageManifest(scopeId: string, name: string) {
     return this.send<{
-      remotes: Record<string, { remoteEntryUrl: string; manifestUrl: string }>;
+      /**
+       * What the package exposes, keyed by federation key — `PongModule/Pong`, not the
+       * `scope/package/component` address a composition uses.
+       *
+       * This was typed as `remotes` carrying urls, which is the shape the registry
+       * stopped sending two renames ago: `remotes` now lists what a package *consumes*,
+       * and urls left the manifest when origins became a property of a deployment.
+       * `send` casts rather than validates, so nothing failed — the one reader silently
+       * resolved nothing and printed `unknown package` for every remote.
+       */
+      components?: Record<string, unknown>;
+      /** What this package consumes, by name. */
+      remotes?: string[];
       /** Declared, not valued: a `${VAR}` here is a name the application must supply. */
       vars?: Record<string, Record<string, string | number>>;
     }>(

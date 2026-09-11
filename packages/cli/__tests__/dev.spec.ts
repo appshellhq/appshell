@@ -1,4 +1,10 @@
-import { describeOverlay, effectLines, hintedOrigin, OverlayEffects } from '../src/handlers/dev';
+import {
+  describeOverlay,
+  effectLines,
+  hintedOrigin,
+  OverlayEffects,
+  remotesOf,
+} from '../src/handlers/dev';
 import { DevHint } from '../src/util/devHint';
 import { OVERLAY_EFFECTS, OverlayEffect } from '../src/util/registry';
 
@@ -133,5 +139,73 @@ describe('every effect an overlay carries', () => {
   // changed what the entire page looks like.
   it('should say so only when there is genuinely nothing', () => {
     expect(describeOverlay({ remotes: [], shellFlavor: 'prod' })).toBe('no changes');
+  });
+});
+
+/*
+ * `dev start` built its overlay from the published manifest and had no test over that
+ * path at all, so it failed for every package with "publishes no remotes" and nothing
+ * noticed. Two renames ago the exposed set became `components` and `remotes` became what
+ * a package consumes; urls left the manifest entirely when an origin became a property of
+ * a deployment. The registry client's type still described the old shape, and `send`
+ * casts rather than validates, so the compiler had nothing to object to.
+ */
+describe('remotesOf', () => {
+  const MANIFEST = {
+    components: {
+      'PingModule/Ping': {
+        id: 'abc',
+        loader: {
+          apiVersion: 'federation.appshell.org/v1',
+          kind: 'ModuleFederation',
+          scope: 'PingModule',
+          module: './Ping',
+          filename: 'remoteEntry.js',
+        },
+        metadata: { route: '/ping' },
+      },
+    },
+    // What the package consumes. Reading this as the exposed set is the bug.
+    remotes: [],
+  };
+
+  const clientFor = (manifest: unknown) =>
+    ({ packageManifest: jest.fn().mockResolvedValue(manifest) } as never);
+
+  const argv = { url: 'http://localhost:3001', package: 'sample-mfe-ping' } as never;
+
+  it('should read the exposed set from components, not from remotes', async () => {
+    const remotes = await remotesOf(argv, clientFor(MANIFEST), 'appshell');
+
+    expect(Object.keys(remotes)).toEqual(['appshell/sample-mfe-ping/Ping']);
+  });
+
+  it('should refuse a package whose consumed list is the only thing populated', async () => {
+    await expect(
+      remotesOf(argv, clientFor({ components: {}, remotes: ['pong'] }), 'appshell'),
+    ).rejects.toThrow(/publishes no components/);
+  });
+
+  /*
+   * A published manifest carries no urls — the registry composes them from where a
+   * package is deployed — so these are built from the dev server's origin. Rewriting the
+   * host of a url that is not there is `new URL(undefined)`.
+   */
+  it('should build urls from the origin rather than from the manifest', async () => {
+    const remotes = await remotesOf(argv, clientFor(MANIFEST), 'appshell');
+
+    expect(remotes['appshell/sample-mfe-ping/Ping']).toMatchObject({
+      remoteEntryUrl: 'http://localhost:3001/remoteEntry.js',
+      manifestUrl: 'http://localhost:3001/appshell.manifest.json',
+    });
+  });
+
+  it('should carry the loader, so the overlay describes the code it points at', async () => {
+    const remotes = await remotesOf(argv, clientFor(MANIFEST), 'appshell');
+
+    expect(remotes['appshell/sample-mfe-ping/Ping'].loader).toMatchObject({
+      scope: 'PingModule',
+      module: './Ping',
+    });
   });
 });

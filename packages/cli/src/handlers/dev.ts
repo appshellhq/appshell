@@ -130,7 +130,7 @@ export const hintedOrigin = async (
  * registry is the only thing that knows what is actually activated there, and it
  * answers without this package having been built in the current working tree at all.
  */
-const remotesOf = async (
+export const remotesOf = async (
   argv: DevStartArgs,
   client: RegistryClient,
   scopeId: string,
@@ -146,20 +146,26 @@ const remotesOf = async (
   if (!source) return {};
 
   const pkg = argv.package ?? identify(process.cwd()).name;
-  const { remotes } = await client.packageManifest(scopeId, pkg);
+  /*
+   * `components`, not `remotes`. The manifest renamed the exposed set two renames ago
+   * and `remotes` became what a package *consumes* — so this read an empty array and
+   * every `dev start` failed with "publishes no remotes". The client's type still
+   * described the old shape, and `send` casts rather than validates, so nothing said so.
+   */
+  const { components } = await client.packageManifest(scopeId, pkg);
 
-  if (!remotes || !Object.keys(remotes).length) {
-    throw new Error(`${scopeId}/${pkg} publishes no remotes.`);
+  if (!components || !Object.keys(components).length) {
+    throw new Error(`${scopeId}/${pkg} publishes no components.`);
   }
 
   const wanted = argv.remote?.length ? new Set(argv.remote) : undefined;
-  const missing = [...(wanted ?? [])].filter((key) => !remotes[key]);
+  const missing = [...(wanted ?? [])].filter((key) => !components[key]);
 
   if (missing.length) {
     throw new Error(`${scopeId}/${pkg} does not publish ${missing.join(', ')}.`);
   }
 
-  const selected = Object.entries(remotes).filter(([key]) => !wanted || wanted.has(key));
+  const selected = Object.entries(components).filter(([key]) => !wanted || wanted.has(key));
   const origin =
     typeof source === 'string'
       ? source
@@ -177,16 +183,28 @@ const remotesOf = async (
    */
   const address = (key: string) => `${scopeId}/${pkg}/${key.split('/').slice(1).join('/')}`;
 
-  return selected.reduce<Record<string, OverlayRemoteBody>>(
-    (acc, [key, remote]) => ({
+  /*
+   * Built from the origin rather than rewritten from the manifest. A published manifest
+   * carries no urls at all — an origin is a property of wherever a package is deployed,
+   * so the registry composes them — and this used to rewrite the host of urls that had
+   * stopped being there, which is `new URL(undefined)` the moment anything reached it.
+   *
+   * The loader travels too, so the overlay describes the code it points at rather than
+   * whatever container name the last publish happened to use.
+   */
+  return selected.reduce<Record<string, OverlayRemoteBody>>((acc, [key, component]) => {
+    const loader = (component as { loader?: { filename?: string } })?.loader;
+    const filename = `${loader?.filename ?? 'remoteEntry.js'}`.replace(/^\//, '');
+
+    return {
       ...acc,
       [address(key)]: {
-        remoteEntryUrl: withOrigin(remote.remoteEntryUrl, origin),
-        manifestUrl: withOrigin(remote.manifestUrl, origin),
+        remoteEntryUrl: `${origin}/${filename}`,
+        manifestUrl: `${origin}/appshell.manifest.json`,
+        ...(loader ? { loader } : {}),
       },
-    }),
-    {},
-  );
+    };
+  }, {});
 };
 
 const OPENERS: Record<string, string> = { darwin: 'open', win32: 'start' };
@@ -402,18 +420,34 @@ const appsByRemoteKey = async (
     }),
   );
 
+  /*
+   * Keyed by the address an overlay uses — `scope/package/Component` — not by the
+   * federation key the manifest carries. Reading `remotes` and keying by federation key
+   * matched nothing twice over, so every remote resolved to `unknown package`.
+   */
   return manifests.reduce<Record<string, string>>((acc, [pkg, manifest]) => {
-    Object.keys(manifest?.remotes ?? {}).forEach((key) => {
-      acc[key] = pkg;
+    Object.keys(manifest?.components ?? {}).forEach((federationKey) => {
+      const component = federationKey.split('/').slice(1).join('/');
+      acc[`${scopeId}/${pkg}/${component}`] = pkg;
     });
 
     return acc;
   }, {});
 };
 
+/**
+ * A remote whose owning package the registry could not name — it was activated and then
+ * unpublished, or an overlay introduced it and it has never been published at all.
+ *
+ * A sentinel rather than a string that reads like a name, because it used to be
+ * `'unknown package'` and the listing built `appshell dev stop --pkg unknown package`
+ * from it: a command that cannot run, offered as though it could.
+ */
+const UNOWNED = Symbol.for('appshell.unowned');
+
 const groupByPackage = (remotes: string[], owners: Record<string, string>) =>
-  remotes.reduce<Record<string, string[]>>((acc, key) => {
-    const pkg = owners[key] ?? 'unknown package';
+  remotes.reduce<Record<string | symbol, string[]>>((acc, key) => {
+    const pkg = owners[key] ?? UNOWNED;
 
     return { ...acc, [pkg]: [...(acc[pkg] ?? []), key] };
   }, {});
@@ -450,10 +484,21 @@ export const status = async (argv: DevStatusArgs) => {
   overlays.forEach((overlay) => {
     console.log(`  ${chalk.cyan(overlay.id)}  ${describeOverlay(overlay)}`);
 
-    Object.entries(groupByPackage(overlay.remotes, owners)).forEach(([pkg, keys]) => {
-      console.log(`    ${pkg} ${chalk.dim(keys.join(', '))}`);
+    const grouped = groupByPackage(overlay.remotes, owners);
+
+    Object.keys(grouped).forEach((pkg) => {
+      console.log(`    ${pkg} ${chalk.dim(grouped[pkg].join(', '))}`);
       console.log(chalk.dim(`      stop:  appshell dev stop --pkg ${pkg}`));
     });
+
+    // Named for what is true of them rather than grouped under a package name, and
+    // offered the only command that actually works on them: closing the whole overlay.
+    const unowned = grouped[UNOWNED] ?? [];
+
+    if (unowned.length) {
+      console.log(`    ${chalk.yellow('not published')} ${chalk.dim(unowned.join(', '))}`);
+      console.log(chalk.dim(`      stop:  appshell dev stop ${overlay.id}`));
+    }
 
     console.log(
       chalk.dim(
