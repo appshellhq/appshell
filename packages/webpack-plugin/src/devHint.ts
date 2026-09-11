@@ -46,18 +46,20 @@ const isHttps = (devServer: Record<string, unknown>): boolean => {
 };
 
 /**
- * Whether this dev server's hot-reload client has an address it can actually dial.
+ * Whether this dev server's hot-reload client has an address a browser can actually dial.
  *
- * Left unset, webpack-dev-server bakes its own **bind** address into the client it
- * serves. A server listening on every interface therefore tells its client to connect to
- * `0.0.0.0`, which nothing can open a socket to — measured, not inferred. Hot reload then
- * fails silently: the bundle renders and edits never arrive, with no error to say why.
+ * webpack-dev-server normalizes `client.webSocketURL` into an object before a plugin ever
+ * sees it, filling the hostname from whatever the server **bound**. So a server listening
+ * on every interface hands its client `0.0.0.0`, which nothing can open a socket to, and
+ * asking whether the option is *set* cannot tell that apart from a deliberate choice —
+ * it is always set. The dialable address is the property that matters, so that is what is
+ * checked, against the same host list `devServerOrigin` already rejects for the same
+ * reason one line down.
  *
- * It matters more here than it would elsewhere. A remote is loaded into a shell on
- * another origin, so there is no page-relative address to fall back to — and a silent
- * failure is the worst available outcome for the one feature a dev server exists for.
+ * The cost of getting this wrong is silence: the bundle renders, the server reports a
+ * successful recompile, and edits never arrive.
  */
-export const hotSocketIsPinned = (devServer: DevServerOptions): boolean => {
+export const hotSocketIsDialable = (devServer: DevServerOptions): boolean => {
   if (!devServer || typeof devServer !== 'object') return false;
 
   const { client } = devServer as Record<string, unknown>;
@@ -66,7 +68,18 @@ export const hotSocketIsPinned = (devServer: DevServerOptions): boolean => {
 
   const url = (client as Record<string, unknown>).webSocketURL;
 
-  return typeof url === 'string' ? Boolean(url) : Boolean(url && typeof url === 'object');
+  const hostname =
+    typeof url === 'string'
+      ? ((): string => {
+          try {
+            return new URL(url).hostname;
+          } catch {
+            return '';
+          }
+        })()
+      : ((url as Record<string, unknown>)?.hostname as string) ?? '';
+
+  return Boolean(hostname) && !UNUSABLE_HOSTS.has(hostname);
 };
 
 export const devServerOrigin = (devServer: DevServerOptions): string | undefined => {

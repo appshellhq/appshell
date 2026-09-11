@@ -33,7 +33,7 @@ import {
   WebpackPluginInstance,
   sources as webpackSources,
 } from 'webpack';
-import { devServerOrigin, hotSocketIsPinned, isServing, writeDevHint } from './devHint';
+import { devServerOrigin, hotSocketIsDialable, isServing, writeDevHint } from './devHint';
 
 type AppshellPluginOptions = {
   config?: string;
@@ -420,12 +420,12 @@ export default class AppshellPlugin {
      * updating — so without this the first sign is a developer wondering why an edit did
      * nothing.
      */
-    if (!hotSocketIsPinned(devServer)) {
+    if (!hotSocketIsDialable(devServer)) {
       logger.warn(
-        'Hot reload will not reach this dev server: devServer.client.webSocketURL is unset, ' +
-          'so its client is told to connect to whichever address the server bound — ' +
-          '0.0.0.0 when it listens on every interface, which nothing can dial. ' +
-          `Set client.webSocketURL to '${origin.replace(/^http/, 'ws')}/ws'.`,
+        'Hot reload will not reach this dev server: its client is told to connect to ' +
+          'whichever address the server bound, which is not one a browser can dial when ' +
+          'it listens on every interface. Updates will arrive and change nothing. ' +
+          `Set devServer.client.webSocketURL to '${origin.replace(/^http/, 'ws')}/ws'.`,
       );
     }
 

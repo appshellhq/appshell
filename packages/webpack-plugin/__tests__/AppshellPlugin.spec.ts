@@ -491,14 +491,26 @@ describe('AppshellPlugin', () => {
        * simply stops updating. The dev-server client falls back to the *shell's* hostname
        * when this is unset, so it opens its socket against a host that serves none.
        */
-      it('warns when the hot reload socket is not pinned to this dev server', async () => {
+      it.each([
+        ['the option is absent', undefined],
+        // What dev-server actually hands a plugin when nobody configured one: a
+        // normalized object carrying whatever the server bound. Asserting on the absent
+        // case alone passed while the real one went unwarned.
+        ['it normalized to the bind address', { hostname: '0.0.0.0', port: 3001 }],
+        ['it normalized to an unspecified v6 bind', { hostname: '::', port: 3001 }],
+      ])('warns when hot reload has no dialable address because %s', async (_, webSocketURL) => {
         mocked.openOverlay.mockResolvedValue({ created: false } as never);
         const plugin = serving();
+
+        compiler.options.devServer = {
+          ...compiler.options.devServer,
+          client: webSocketURL ? { webSocketURL } : {},
+        };
 
         plugin.apply(compiler as any);
         await compiler.compile();
 
-        expect(logger.warn).toHaveBeenCalledWith(expect.stringMatching(/client\.webSocketURL/));
+        expect(logger.warn).toHaveBeenCalledWith(expect.stringMatching(/webSocketURL/));
       });
 
       it('stays quiet when the hot reload socket is pinned', async () => {
