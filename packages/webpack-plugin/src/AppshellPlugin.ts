@@ -4,6 +4,7 @@ import {
   activate,
   AppshellConfig,
   AppshellTemplate,
+  loaderOf,
   manifestFrom,
   ModuleFederationPluginOptions,
   openOverlay,
@@ -443,14 +444,18 @@ export default class AppshellPlugin {
       Record<string, OverlayRemotePatch>
     >((acc, [federationKey, remote]) => {
       const component = federationKey.split('/').slice(1).join('/');
-      // From the Module Federation config, which is what emits the file. The yaml used to
-      // restate it and no longer does.
-      const filename = `${template.module?.filename ?? 'remoteEntry.js'}`.replace(/^\//, '');
+      // The same derivation the published manifest uses, so an overlay and a publish
+      // cannot describe this build's surface differently.
+      const loader = loaderOf(template.module ?? {}, federationKey);
 
       return {
         ...acc,
         [`${scopeId}/${name}/${component}`]: {
-          remoteEntryUrl: `${origin}/${filename}`,
+          remoteEntryUrl: `${origin}/${loader.filename.replace(/^\//, '')}`,
+          // How to load this build, not the published one. It is what lets a redirect
+          // survive a container rename, and what lets a component the registry has never
+          // seen be introduced at all rather than rejected.
+          loader,
           // Metadata travels with the code it describes: this build's yaml, not the
           // published version's. The registry replaces rather than merges it.
           ...(remote.metadata ? { metadata: remote.metadata } : {}),

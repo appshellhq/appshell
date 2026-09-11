@@ -2,6 +2,7 @@ import { createMap, createMapper, forMember, mapFrom, mapWithArguments } from '@
 import { pojos, PojosMetadataMap } from '@automapper/pojos';
 import { entries } from 'lodash';
 import configmap from '../configmap';
+import { loaderOf } from '../loader';
 import {
   AppshellConfigRemote,
   AppshellManifest,
@@ -27,30 +28,14 @@ const mapAppshellEntrypoint = (
   key: string,
   remote: AppshellConfigRemote,
 ) => {
-  const moduleName = key.replace(/\/.+/, '');
-  const moduleKey = key.replace(moduleName, '.');
   const { id } = remote;
-  const { shareScope } = source.module;
-  // From the Module Federation config, which is what emits the file, rather than from a
-  // yaml field restating it. MF's own default when unset is remoteEntry.js.
-  const filename = source.module.filename ?? 'remoteEntry.js';
 
   // No manifestUrl or remoteEntryUrl. Both are origins, and an origin is a property of
   // wherever this gets deployed rather than of the artifact — the registry composes them
   // from the package's address and its own serving plane.
-  //
-  // The federation fields sit under a kind rather than at the top level, so they are
-  // labelled as one framework's vocabulary rather than looking generic.
   return {
     id,
-    loader: {
-      apiVersion: 'federation.appshell.org/v1',
-      kind: 'ModuleFederation',
-      scope: moduleName,
-      module: moduleKey,
-      shareScope,
-      filename,
-    },
+    loader: loaderOf(source.module, key),
     metadata: remote.metadata,
   } satisfies PublishedRemote;
 };

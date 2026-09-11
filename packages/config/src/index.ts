@@ -7,6 +7,7 @@ export type { AppshellContext } from './context';
 export { clearCredential, credentialsPath, resolveToken, saveCredential } from './credentials';
 export type { Credential } from './credentials';
 export { default as generateManifest, manifestFrom } from './generate.manifest';
+export { loaderOf } from './loader';
 export { default as outdated } from './outdated';
 export { activate, openOverlay, publish } from './publish';
 export type { OpenedOverlay, OverlayRemotePatch, PublishOptions, PublishResult } from './publish';

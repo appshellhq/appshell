@@ -1,5 +1,5 @@
 import axios from './axios';
-import { AppshellManifest, Metadata } from './types';
+import { AppshellManifest, Metadata, ModuleFederationLoader } from './types';
 
 export type PublishOptions = {
   registry: string;
@@ -124,10 +124,22 @@ export const activate = async (
   }
 };
 
-/** What an overlay redirects a single remote to. */
+/** What an overlay redirects a single remote to, or introduces one as. */
 export type OverlayRemotePatch = {
   remoteEntryUrl: string;
   manifestUrl?: string;
+  /**
+   * How to load this build's copy, from the Module Federation config that emits it.
+   *
+   * Sent because the loader describes the code being loaded, and an overlay points at
+   * this build rather than the published one. Without it a redirect addresses a dev
+   * server's bundle by whatever container name the last publish happened to have, so
+   * renaming the container locally resolves to a container the browser cannot find.
+   *
+   * It is also what lets an overlay introduce a component that is not published yet: a
+   * redirect inherits the published loader, an addition has no published anything.
+   */
+  loader?: ModuleFederationLoader;
   /**
    * The remote's `metadata` as this build declares it.
    *

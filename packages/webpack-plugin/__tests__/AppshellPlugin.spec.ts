@@ -501,6 +501,29 @@ describe('AppshellPlugin', () => {
         expect(Object.values(remotes)[0].remoteEntryUrl).toMatch(/^http:\/\/localhost:3001\//);
       });
 
+      /*
+       * The loader describes the code being loaded, and an overlay points at this build.
+       * Without it a redirect addresses a dev server's bundle by whatever container name
+       * the last publish happened to have, and a component not published yet is refused
+       * outright — there being no published loader for it to inherit.
+       */
+      it("sends this build's loader, so the overlay describes the code it points at", async () => {
+        mocked.openOverlay.mockResolvedValue({ created: false } as never);
+        const plugin = serving();
+
+        plugin.apply(compiler as any);
+        await compiler.compile();
+
+        const [, , remotes] = mocked.openOverlay.mock.calls[0];
+
+        expect(remotes['default/webpack-plugin/Foo'].loader).toMatchObject({
+          apiVersion: 'federation.appshell.org/v1',
+          kind: 'ModuleFederation',
+          scope: 'TestModule',
+          module: './Foo',
+        });
+      });
+
       it("sends this build's metadata, so the yaml under development is what renders", async () => {
         mocked.openOverlay.mockResolvedValue({ created: false } as never);
         const plugin = serving();
