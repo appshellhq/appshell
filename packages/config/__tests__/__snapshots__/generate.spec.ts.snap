@@ -2,7 +2,6 @@
 
 exports[`generate manifest should generate an appshell manifest from the config template 1`] = `
 {
-  "bundle": undefined,
   "components": {
     "BizModule/Biz": {
       "id": "BizModule/Biz",

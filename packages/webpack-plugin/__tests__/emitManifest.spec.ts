@@ -138,48 +138,24 @@ describe('the emitted manifest', () => {
   });
 
   /*
-   * The entry is the one mutable name a package publishes — chunks are content-addressed,
-   * so their names move with their content, while the entry keeps a stable name so
-   * manifests do not 404. That is what let a bundle change under a published manifest.
+   * A package's identity is its surface — what it exposes and how it is addressed — and
+   * never its bytes. The manifest used to carry a sha384 over every emitted asset, which
+   * made the same commit built in two directories two different packages: two Module
+   * Federation modules carry an absolute path in their identity, so the output moves with
+   * the project's location.
+   */
+  it('should not describe the bytes it emitted', () => {
+    expect(manifest()).not.toHaveProperty('bundle');
+  });
+
+  /*
+   * The property the whole publishing model rests on, stated as a test rather than left
+   * as a comment: a code change behind an unchanged surface is a deploy, not a publish.
    *
-   * Hashing it puts the code inside the package digest transitively: the entry names every
-   * chunk, so it changes whenever any of them does.
+   * This test previously asserted the opposite — that the manifest changed whenever the
+   * code did — which is what put path-dependent bytes inside package identity.
    */
-  it('should pin the code it was built from', () => {
-    expect(manifest().bundle).toMatchObject({
-      algorithm: 'sha384',
-      digest: expect.stringMatching(/^[A-Za-z0-9+/]+=*$/),
-    });
-  });
-
-  /*
-   * The property the digest exists for. A source edit that changes behaviour need not
-   * change any declared field — the addresses a package asks the registry for live in its
-   * code — so the manifest was byte-identical across such a change and republishing it was
-   * a no-op rather than a conflict. Pinning the entry makes the two builds different
-   * packages, which is what an immutable version is supposed to mean.
-   */
-  /*
-   * The digest is inside the package digest, so a build that is not reproducible would
-   * make every republish of an unchanged version a conflict.
-   */
-  it('should be the same digest for the same source', async () => {
-    const own = project();
-    const read = () =>
-      JSON.parse(fs.readFileSync(path.join(own, 'dist', 'appshell.manifest.json'), 'utf-8'));
-
-    await compile(own, 'production');
-    const first = read().bundle.digest;
-
-    await compile(own, 'production');
-    const second = read().bundle.digest;
-
-    expect(second).toBe(first);
-
-    fs.rmSync(own, { recursive: true, force: true });
-  });
-
-  it('should change when the code changes, even though nothing declared does', async () => {
+  it('should be unchanged when only the code changes', async () => {
     // Its own project: recompiling the shared one would leave every test after this
     // reading a dist built from different source.
     const own = project();
@@ -194,13 +170,23 @@ describe('the emitted manifest', () => {
       "export default () => 'color: var(--appshell-primary)' + 'changed';\n",
     );
     await compile(own, 'production');
-    const after = read();
 
-    // Nothing a package declares mentions its behaviour, so the rest is unchanged.
-    expect(after.components['TestModule/Foo'].metadata).toEqual(
-      before.components['TestModule/Foo'].metadata,
-    );
-    expect(after.bundle.digest).not.toBe(before.bundle.digest);
+    expect(read()).toEqual(before);
+
+    fs.rmSync(own, { recursive: true, force: true });
+  });
+
+  it('should be identical across rebuilds of the same source', async () => {
+    const own = project();
+    const read = () =>
+      JSON.parse(fs.readFileSync(path.join(own, 'dist', 'appshell.manifest.json'), 'utf-8'));
+
+    await compile(own, 'production');
+    const first = read();
+
+    await compile(own, 'production');
+
+    expect(read()).toEqual(first);
 
     fs.rmSync(own, { recursive: true, force: true });
   });

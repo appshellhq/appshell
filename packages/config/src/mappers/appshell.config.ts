@@ -102,12 +102,6 @@ createMap<AppshellTemplate, AppshellManifest>(
   // The shared contract, rather than the plugin options it came from. The array form of
   // `shared` declares names with no version constraint, so it says nothing about
   // compatibility and is dropped — the registry has nothing to check against it.
-  // Absent when the manifest is built outside a compilation — `generate manifest` off a
-  // template, say — where there are no emitted bytes to hash.
-  forMember(
-    (destination) => destination.bundle,
-    mapFrom((source) => source.bundle),
-  ),
   forMember(
     (destination) => destination.shared,
     mapFrom((source) => sharedContractOf(source.module)),
