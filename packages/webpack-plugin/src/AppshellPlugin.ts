@@ -496,9 +496,19 @@ export default class AppshellPlugin {
         },
       );
 
+      /*
+       * The url goes out either way.
+       *
+       * `created` says an overlay was already open **on the registry for this developer**.
+       * It says nothing about whether any browser confirmed it — that is a cookie, which
+       * the registry cannot see. Claiming `this browser already holds it` asserted
+       * something unknowable and, worse, withheld the confirm url in exactly the case
+       * where a developer still needed it: a second machine, a different browser, a
+       * cleared cookie, or an overlay opened by an earlier run.
+       */
       const next = overlay.created
         ? `. Confirm it in a browser: ${overlay.confirmUrl}`
-        : ' (extended the overlay this browser already holds)';
+        : `. Reusing the overlay already open for you; confirm it in a browser if you have not: ${overlay.confirmUrl}`;
 
       logger.info(
         `Redirecting ${Object.keys(remotes).join(', ')} to ${origin} in ${application}${next}`,
