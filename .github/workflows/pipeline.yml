@@ -76,20 +76,99 @@ jobs:
   # which. It also installs @appshell/* from npm rather than from this tree, so a red run
   # can mean a published package regressed — worth knowing, and worth not confusing with
   # a regression in the change under test.
+  # Runs after the packages are published, not alongside them.
+  #
+  # It used to run in parallel, and `npm ci` installs exactly what the lockfile pins — so
+  # a run that published alpha.N built its images against alpha.N-1 and the images in the
+  # registry were permanently one release behind. Not a race: deterministic, and wrong
+  # every time. Making this job `needs:` the publish is half the fix; the other half is
+  # installing the version that run produced rather than the one the lockfile remembers.
+  #
+  # The cost is that the example no longer builds in parallel with the publish. Worth it:
+  # the previous arrangement was faster at building the wrong thing.
   example:
     name: Example app
+    needs: publish_npm_packages
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     defaults:
       run:
         working-directory: examples/appshell-react-host
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          # The publish job pushed a release commit; without this the example is built
+          # from the tree as it was before the versions were bumped.
+          ref: ${{ github.ref }}
       - uses: actions/setup-node@v4
         with:
           node-version: 24.x
           cache: 'npm'
           cache-dependency-path: examples/appshell-react-host/package-lock.json
+
+      # Updates both package.json and the lockfile, which is what keeps `npm ci` below
+      # able to run at all — it refuses a tree the two disagree about.
+      - name: Build against the packages this run published
+        env:
+          VERSION: ${{ needs.publish_npm_packages.outputs.version }}
+        run: |
+          set -euo pipefail
+          test -n "$VERSION"
+
+          # Every manifest that names an @appshell package, not just the root one: the
+          # workspaces declare their own, and a root --save leaves those behind to drift.
+          #
+          # Plain fs, no dependencies: this runs before `npm ci`, so node_modules may not
+          # exist yet and anything required here would be a dependency on cache state.
+          targets=$(node -e "
+            const { readFileSync, readdirSync, existsSync } = require('fs');
+
+            const dirs = ['apps', 'packages'].flatMap((group) =>
+              existsSync(group) ? readdirSync(group).map((d) => group + '/' + d) : [],
+            );
+
+            ['.', ...dirs].forEach((dir) => {
+              const file = dir + '/package.json';
+
+              if (!existsSync(file)) return;
+
+              const p = JSON.parse(readFileSync(file, 'utf8'));
+              const names = Object.keys({ ...p.dependencies, ...p.devDependencies })
+                .filter((n) => n.startsWith('@appshell/'));
+
+              if (names.length) console.log(dir + ' ' + names.map((n) => n + '@' + process.env.VERSION).join(' '));
+            });
+          ")
+
+          echo "$targets"
+
+          # npm's replicas lag behind a publish, and the metadata arrives before the
+          # tarball does — measured at ten seconds for one and nearly two minutes for the
+          # other in the same release. A job that installs the moment a publish returns
+          # therefore fails on a package that demonstrably exists, so it waits for the one
+          # that is furthest behind rather than retrying the whole install blindly.
+          for attempt in $(seq 1 30); do
+            if npm view "@appshell/config@$VERSION" dist.tarball >/dev/null 2>&1 \
+              && curl -sfIo /dev/null "$(npm view "@appshell/runtime@$VERSION" dist.tarball)"; then
+              break
+            fi
+
+            echo "Waiting for $VERSION to be installable (attempt $attempt)"
+            sleep 10
+          done
+
+          # --package-lock-only: `npm ci` below resolves the tree; this only pins.
+          while read -r dir specs; do
+            [ -z "$dir" ] && continue
+
+            if [ "$dir" = "." ]; then
+              npm install --package-lock-only --save $specs
+            else
+              npm install --package-lock-only --save -w "$dir" $specs
+            fi
+          done <<< "$targets"
 
       # `.env` is git-ignored; sample.env carries the same keys and is what a developer is
       # told to copy.
@@ -107,6 +186,31 @@ jobs:
 
       - name: Test
         run: npm test
+
+      # Committed so the repository says what was built, and so a developer cloning it
+      # gets the same versions without waiting for the next release to bump them.
+      #
+      # Pushed with GITHUB_TOKEN, whose pushes deliberately do not trigger workflows. That
+      # matters more than it looks: this pipeline publishes on every push with
+      # --force-publish, so a commit that retriggered it would publish another version,
+      # which would bump the example again, without end. The non-retriggering push is what
+      # makes this bookkeeping rather than a loop.
+      - name: Record what was built
+        env:
+          VERSION: ${{ needs.publish_npm_packages.outputs.version }}
+        run: |
+          set -euo pipefail
+
+          if git diff --quiet -- package.json package-lock.json packages/components/package.json; then
+            echo "Already building against $VERSION; nothing to record."
+            exit 0
+          fi
+
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add package.json package-lock.json packages/components/package.json
+          git commit -m "chore(example): build against $VERSION"
+          git push origin HEAD:${GITHUB_REF#refs/heads/}
 
   # Discovers the micro-frontends rather than listing them, after the pattern in
   # navaris/platform-services: adding one needs no workflow change. Scans `apps/` only —
@@ -241,6 +345,10 @@ jobs:
     permissions:
       contents: write
       id-token: write
+    outputs:
+      # What the example is built against, so images cannot be one release behind the
+      # packages the same run published.
+      version: ${{ steps.published.outputs.version }}
 
     steps:
       - uses: actions/checkout@v4
@@ -273,6 +381,12 @@ jobs:
       - name: Version and tag release
         if: ${{ github.ref == 'refs/heads/main' }}
         run: npx lerna version --no-push --conventional-graduate --force-publish --yes
+
+      # Read after `lerna version` and before `lerna publish`, so it is the version this
+      # run is about to put on npm rather than the one that was there when it started.
+      - name: Record the version being published
+        id: published
+        run: echo "version=$(node -p "require('./packages/config/package.json').version")" >> "$GITHUB_OUTPUT"
 
       - name: Build
         run: npm run build
