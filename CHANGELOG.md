@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.81](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.80...v1.0.0-alpha.81) (2026-09-11)
+
+### Bug Fixes
+
+- **ci:** build example images from the tree the bump landed in ([3bf675d](https://github.com/appshellhq/appshell/commit/3bf675dbc58f2cb81f0c7c1e3ab23cccf9a0dee9))
+
 # [1.0.0-alpha.80](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.79...v1.0.0-alpha.80) (2026-09-11)
 
 ### Bug Fixes
