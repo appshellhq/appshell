@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.87](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.86...v1.0.0-alpha.87) (2026-09-12)
+
+### Features
+
+- **cli:** list, get and describe packages ([02cd011](https://github.com/appshellhq/appshell/commit/02cd011ee2c9329a961e42f32a33a1dac9ce5012)), closes [#9](https://github.com/appshellhq/appshell/issues/9) [appshellhq/appshell-services#26](https://github.com/appshellhq/appshell-services/issues/26)
+
 # [1.0.0-alpha.86](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.85...v1.0.0-alpha.86) (2026-09-12)
 
 ### Features
