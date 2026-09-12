@@ -11,6 +11,7 @@ export type PackageSummary = {
   owner: string;
   visibility: 'public' | 'private';
   digest: string;
+  deprecated?: { reason: string; at: string };
   manifest?: {
     components?: Record<string, { loader?: { scope?: string; module?: string } }>;
     remotes?: string[];
@@ -186,6 +187,7 @@ export type Theme = {
   owner: string;
   visibility: 'public' | 'private';
   digest: string;
+  deprecated?: { reason: string; at: string };
   tokens: { light: ThemeTokens; dark: ThemeTokens };
   derivedFrom?: string;
   metadata?: Record<string, unknown>;
@@ -342,6 +344,18 @@ export class RegistryClient {
       'get',
       `/v1/packages/${scopeId}/${name}/versions`,
       `list versions of ${scopeId}/${name}`,
+    );
+  }
+
+  /** Passing no reason lifts an existing deprecation. */
+  deprecatePackage(scopeId: string, name: string, version: string, reason?: string) {
+    return this.send<{ id: string; deprecated?: { reason: string; at: string } }>(
+      'patch',
+      `/v1/packages/${scopeId}/${name}/${version}/deprecation`,
+      reason
+        ? `deprecate ${scopeId}/${name}@${version}`
+        : `undeprecate ${scopeId}/${name}@${version}`,
+      { reason },
     );
   }
 

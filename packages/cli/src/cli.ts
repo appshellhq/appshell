@@ -17,6 +17,7 @@ import generateManifestHandler, { GenerateManifestArgs } from './handlers/genera
 import loginHandler, { LoginArgs, logout } from './handlers/login';
 import outdatedHandler, { OutdatedArgs } from './handlers/outdated';
 import {
+  deprecate as packagesDeprecate,
   describe as packagesDescribe,
   get as packagesGet,
   list as packagesList,
@@ -167,6 +168,35 @@ const packagesCommand: yargs.CommandModule<GlobalArgs, GlobalArgs> = {
         command: 'describe <name>',
         describe: "What a version exposes, as 'name', 'scope/name' or 'scope/name@version'",
         handler: packagesDescribe as never,
+      })
+      /*
+       * The remedy for a version published in error. Unpublish refuses anything an
+       * application has activated, so it only works on versions nobody uses — which is
+       * not the case anyone needs a remedy for. This refuses new activations and leaves
+       * existing ones resolving, so nothing running breaks while people move off it.
+       */
+      .command({
+        command: 'deprecate <name> [reason..]',
+        describe: "Mark a version as not to be adopted, as 'name@1.2.3'",
+        builder: (y) =>
+          y
+            .positional('reason', {
+              type: 'string',
+              array: true,
+              describe: 'Why, and what to use instead',
+            })
+            .option('undo', {
+              type: 'boolean',
+              default: false,
+              describe: 'Lift an existing deprecation instead',
+            }),
+        handler: ((argv: { reason?: string[] }) =>
+          packagesDeprecate({
+            ...(argv as object),
+            // Taken as words so a reason needs no quoting, which is the difference
+            // between writing one and writing 'see docs'.
+            reason: argv.reason?.join(' '),
+          } as never)) as never,
       }),
   handler: () => undefined,
 };

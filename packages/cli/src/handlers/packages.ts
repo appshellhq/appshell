@@ -42,7 +42,36 @@ const versionLine = (pkg: PackageSummary, held: Map<string, string[]>, width: nu
     ? chalk.green(`activated in ${where.join(', ')}`)
     : chalk.dim('not activated');
 
-  return `  ${pkg.version.padEnd(width)}  ${chalk.dim(pkg.visibility.padEnd(7))}  ${mark}`;
+  // Shown on the same line as the activation, because the two together are the whole
+  // decision: a deprecated version still in use is the one that needs moving off.
+  const notice = pkg.deprecated ? `  ${chalk.yellow(`deprecated — ${pkg.deprecated.reason}`)}` : '';
+
+  return `  ${pkg.version.padEnd(width)}  ${chalk.dim(pkg.visibility.padEnd(7))}  ${mark}${notice}`;
+};
+
+export const deprecate = async (argv: PackageArgs & { reason?: string; undo?: boolean }) => {
+  const client = new RegistryClient(argv.registry);
+  const [reference, version] = argv.name.split('@');
+  const [scopeId, name] = reference.includes('/')
+    ? reference.split('/')
+    : [argv.scope ?? argv.scopeId, reference];
+
+  if (!version) {
+    throw new Error(`Name a version to deprecate, as '${name}@1.2.3'.`);
+  }
+
+  const result = await client.deprecatePackage(
+    scopeId,
+    name,
+    version,
+    argv.undo ? undefined : argv.reason,
+  );
+
+  console.log(
+    result.deprecated
+      ? chalk.yellow(`Deprecated ${scopeId}/${name}@${version}: ${result.deprecated.reason}`)
+      : chalk.green(`Lifted the deprecation on ${scopeId}/${name}@${version}`),
+  );
 };
 
 export const list = async (argv: PackagesArgs) => {
@@ -124,6 +153,10 @@ export const describe = async (argv: PackageArgs) => {
   console.log(
     `  ${chalk.dim('activated')}   ${where.length ? where.join(', ') : chalk.dim('nowhere')}`,
   );
+
+  if (pkg.deprecated) {
+    console.log(`  ${chalk.dim('deprecated')}  ${chalk.yellow(pkg.deprecated.reason)}`);
+  }
   // The surface, which is what a version *is* — and the fastest way to answer whether it
   // changed, without diffing two manifests by eye.
   console.log(`  ${chalk.dim('digest')}      ${pkg.digest}`);
