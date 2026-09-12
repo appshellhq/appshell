@@ -195,7 +195,14 @@ const packagesCommand: yargs.CommandModule<GlobalArgs, GlobalArgs> = {
             ...(argv as object),
             // Taken as words so a reason needs no quoting, which is the difference
             // between writing one and writing 'see docs'.
-            reason: argv.reason?.join(' '),
+            //
+            // No words at all is no reason, which lifts the deprecation. Joining the
+            // empty default instead produced '', and an empty string is a field that is
+            // present and blank rather than absent — so the bare form sent
+            // `{reason: ''}`, which the registry rightly refuses as a deprecation with
+            // nothing to say, while the CLI had already decided it was undeprecating and
+            // reported the failure under that name.
+            reason: argv.reason?.length ? argv.reason.join(' ') : undefined,
           } as never)) as never,
       }),
   handler: () => undefined,

@@ -349,13 +349,19 @@ export class RegistryClient {
 
   /** Passing no reason lifts an existing deprecation. */
   deprecatePackage(scopeId: string, name: string, version: string, reason?: string) {
+    // One test of `reason` decides both the label and the body. They used to be decided
+    // separately — the label by truthiness, the body by spreading the value in
+    // regardless — so an empty string described itself as an undeprecation and sent a
+    // deprecation with a blank reason, which the registry refuses.
+    const lifting = !reason;
+
     return this.send<{ id: string; deprecated?: { reason: string; at: string } }>(
       'patch',
       `/v1/packages/${scopeId}/${name}/${version}/deprecation`,
-      reason
-        ? `deprecate ${scopeId}/${name}@${version}`
-        : `undeprecate ${scopeId}/${name}@${version}`,
-      { reason },
+      lifting
+        ? `undeprecate ${scopeId}/${name}@${version}`
+        : `deprecate ${scopeId}/${name}@${version}`,
+      lifting ? {} : { reason },
     );
   }
 
