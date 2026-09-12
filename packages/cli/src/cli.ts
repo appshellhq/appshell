@@ -23,6 +23,7 @@ import {
   list as packagesList,
 } from './handlers/packages';
 import publishHandler from './handlers/publish';
+import { create as scopesCreate, get as scopesGet, list as scopesList } from './handlers/scopes';
 import * as theme from './handlers/theme';
 import { ThemeGetArgs, ThemeInitArgs, ThemeListArgs, ThemePublishArgs } from './handlers/theme';
 import { GlobalArgs } from './util/args';
@@ -204,6 +205,40 @@ const packagesCommand: yargs.CommandModule<GlobalArgs, GlobalArgs> = {
             // reported the failure under that name.
             reason: argv.reason?.length ? argv.reason.join(' ') : undefined,
           } as never)) as never,
+      }),
+  handler: () => undefined,
+};
+
+/*
+ * A scope is the namespace half of every package address, and it is owned.
+ *
+ * Publishing provisions the caller's own, so most people never need this. It exists for
+ * every other name: the registry refuses a publish into a scope nobody has claimed rather
+ * than granting it on the way past, and this is the command that refusal names. Without
+ * it the only route out of that error was an http request written by hand.
+ */
+const scopesCommand: yargs.CommandModule<GlobalArgs, GlobalArgs> = {
+  command: 'scopes',
+  aliases: ['scope'],
+  describe: 'Claim and inspect the namespaces packages are published into',
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  builder: (yargs) =>
+    yargs
+      .command({
+        command: 'list',
+        aliases: ['ls', '$0'],
+        describe: 'List the scopes you own',
+        handler: scopesList as never,
+      })
+      .command({
+        command: 'create <name>',
+        describe: 'Claim a scope',
+        handler: scopesCreate as never,
+      })
+      .command({
+        command: 'get <name>',
+        describe: 'Show a scope and who owns it, or that it is unclaimed',
+        handler: scopesGet as never,
       }),
   handler: () => undefined,
 };
@@ -792,6 +827,7 @@ export const buildCli = (args: string[]) => {
       })
       .command(devCommand)
       .command(packagesCommand)
+      .command(scopesCommand)
       .command(loginCommand)
       .command(logoutCommand)
       .command(publishCommand)

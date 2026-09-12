@@ -249,6 +249,14 @@ const describe = (error: unknown) => {
     : detail;
 };
 
+export type ScopeOwner = { kind: 'user' | 'org'; id: string };
+
+export type ScopeSummary = {
+  id: string;
+  owner: ScopeOwner;
+  createdAt: string;
+};
+
 export class RegistryClient {
   readonly baseUrl: string;
 
@@ -382,6 +390,29 @@ export class RegistryClient {
       `/v1/applications/${scopeId}/${name}`,
       `fetch application ${scopeId}/${name}`,
     );
+  }
+
+  /**
+   * Claims a namespace. The caller's own needs no call — publishing provisions it — so
+   * this is for every other name, and it is the remedy the registry names when it
+   * refuses a publish into an unclaimed scope.
+   */
+  createScope(name: string) {
+    return this.send<{ scope: ScopeSummary; created: boolean; message: string }>(
+      'post',
+      '/v1/scopes',
+      `create scope ${name}`,
+      { name },
+    );
+  }
+
+  listScopes() {
+    return this.send<ScopeSummary[]>('get', '/v1/scopes', 'list scopes');
+  }
+
+  /** 404 when the name is unclaimed, which is the question this usually answers. */
+  getScope(id: string) {
+    return this.send<ScopeSummary>('get', `/v1/scopes/${id}`, `get scope ${id}`);
   }
 
   createApplication(body: CreateApplicationBody) {
