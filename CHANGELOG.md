@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.91](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.90...v1.0.0-alpha.91) (2026-09-12)
+
+### Bug Fixes
+
+- **ci:** stop retrying a dependency conflict as though it were replication lag ([b95d43f](https://github.com/appshellhq/appshell/commit/b95d43ff8a5ef6923c681bafc750c67273fe635b))
+- **examples:** pin react-dom wherever react is pinned ([5a3d115](https://github.com/appshellhq/appshell/commit/5a3d115d5621999572a8fea08fdcc708674d82f2))
+
 # [1.0.0-alpha.90](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.89...v1.0.0-alpha.90) (2026-09-12)
 
 ### Bug Fixes
