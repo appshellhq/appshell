@@ -15,7 +15,14 @@
     "stats": "webpack --json > stats.json"
   },
   "devDependencies": {
-    "@module-federation/enhanced": "^2.8.2"
+    "@module-federation/enhanced": "^2.8.2",
+    "@testing-library/react": "^16.1.0"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@appshell/react": "^1.0.0-alpha.84",
+    "@appshell/react-host-components": "*",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  }
 }

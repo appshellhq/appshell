@@ -1,5 +1,5 @@
 {
-  "name": "react-appshell-host-components",
+  "name": "@appshell/react-host-components",
   "version": "0.0.2",
   "description": "React components for sample app",
   "main": "dist/main.js",
@@ -17,6 +17,10 @@
     "react-dom": "^18.2.0"
   },
   "dependencies": {
+    "@appshell/react": "^1.0.0-alpha.84",
     "@appshell/runtime": "^1.0.0-alpha.84"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.1.0"
   }
 }

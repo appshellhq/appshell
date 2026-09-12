@@ -1,5 +1,5 @@
 import { useRemote } from '@appshell/react';
-import { AppShowcase, PackageBlock, Remote } from 'react-appshell-host-components';
+import { AppShowcase, PackageBlock, Remote } from '@appshell/react-host-components';
 import pkg from '../package.json';
 import './index.css';
 

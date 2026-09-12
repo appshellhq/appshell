@@ -3,4 +3,4 @@
  * the Application's token values into the document, so these utilities resolve to
  * whatever that Application supplies — no rebuild, no republish.
  */
-@import 'react-appshell-host-components/src/appshell.css';
+@import '@appshell/react-host-components/src/appshell.css';

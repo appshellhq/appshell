@@ -19,6 +19,11 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "@module-federation/enhanced": "^2.8.2"
+    "@module-federation/enhanced": "^2.8.2",
+    "@testing-library/react": "^16.1.0"
+  },
+  "dependencies": {
+    "@appshell/react": "^1.0.0-alpha.84",
+    "@appshell/react-host-components": "*"
   }
 }

@@ -1,5 +1,5 @@
 import { RemoteSlot } from '@appshell/react';
-import { PackageBlock, Viewer } from 'react-appshell-host-components';
+import { PackageBlock, Viewer } from '@appshell/react-host-components';
 import pkg from '../package.json';
 import AppshellLogo from './assets/appshell-logo.svg';
 import ReactLogo from './assets/react-logo.svg';
