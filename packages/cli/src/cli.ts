@@ -281,7 +281,18 @@ const loginCommand: yargs.CommandModule<unknown, LoginArgs> = {
           'OIDC client secret. Switches to the client credentials grant for CI. Prefer APPSHELL_CLIENT_SECRET',
       })
       .option('scope', {
-        default: 'openid profile',
+        /*
+         * `offline_access` is what makes staying logged in possible at all.
+         *
+         * Without it the refresh token is bound to the sso session, which this realm
+         * idles out after 30 minutes — so a refresh only ever worked inside a stretch of
+         * continuous use, which is when logging in again is least annoying. An offline
+         * token outlives the session; Keycloak's default idle for one is 30 days.
+         *
+         * Every account here is granted the offline_access role through
+         * default-roles-navaris, so asking for it costs nothing when it is not wanted.
+         */
+        default: 'openid profile offline_access',
         type: 'string',
         description: 'OIDC scopes to request',
       }) as yargs.Argv<LoginArgs>,

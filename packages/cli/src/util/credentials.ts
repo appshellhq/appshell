@@ -1,6 +1,7 @@
 export {
   clearCredential,
   credentialsPath,
+  ensureToken,
   resolveToken,
   saveCredential,
 } from '@appshell/config';

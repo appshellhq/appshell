@@ -4,6 +4,7 @@ import {
   activate,
   AppshellConfig,
   AppshellTemplate,
+  ensureToken,
   loaderOf,
   manifestFrom,
   ModuleFederationPluginOptions,
@@ -496,7 +497,21 @@ export default class AppshellPlugin {
        * present as `react-dom` evaluates, and the production shell installs none — so
        * under it a hot update arrives, reports success and changes nothing on the page.
        */
-      const overlay = await openOverlay(registry, application, remotes, token, shared, 'dev');
+      /*
+       * Renewed here rather than taken from the context built at startup. `resolveContext`
+       * is synchronous — the plugin calls it while configuring — so it can only read a
+       * stored token, and a dev server left running past its expiry then opened every
+       * overlay with a token the registry refuses. Observed as a 401 on every rebuild
+       * while a perfectly good refresh token sat in the credential file.
+       */
+      const overlay = await openOverlay(
+        registry,
+        application,
+        remotes,
+        (await ensureToken(registry)) ?? token,
+        shared,
+        'dev',
+      );
 
       // Loud, because nothing downstream can notice. The registry's shared dependency
       // report describes the published manifest, and module federation resolves a

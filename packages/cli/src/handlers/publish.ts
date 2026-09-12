@@ -3,7 +3,7 @@ import { AppshellManifest, AppshellTemplate, generateManifest, publish } from '@
 import chalk from 'chalk';
 import chokidar from 'chokidar';
 import fs from 'fs';
-import { resolveToken } from '../util/credentials';
+import { ensureToken } from '../util/credentials';
 import { identify } from '../util/identity';
 import { resolveTemplate } from '../util/template';
 
@@ -23,7 +23,7 @@ const publishOnce = async (argv: PublishArgs) => {
   const template = resolveTemplate(argv.template);
   // Whether a credential is required is the registry's policy, not ours: a
   // registry running AUTH_MODE=none needs none. A 401 says so precisely.
-  const token = resolveToken(registry);
+  const token = await ensureToken(registry);
 
   const manifest = (await generateManifest(template)) as AppshellManifest | undefined;
   if (!manifest) {

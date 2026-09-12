@@ -4,7 +4,13 @@
 export { default as configmap } from './configmap';
 export { persistedContext, resolveContext } from './context';
 export type { AppshellContext } from './context';
-export { clearCredential, credentialsPath, resolveToken, saveCredential } from './credentials';
+export {
+  clearCredential,
+  credentialsPath,
+  ensureToken,
+  resolveToken,
+  saveCredential,
+} from './credentials';
 export type { Credential } from './credentials';
 export { default as generateManifest, manifestFrom } from './generate.manifest';
 export { loaderOf } from './loader';

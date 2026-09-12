@@ -148,6 +148,10 @@ export default async (argv: LoginArgs) => {
     accessToken: token.access_token,
     refreshToken: token.refresh_token,
     expiresAt: token.expires_in ? Date.now() + token.expires_in * 1000 : undefined,
+    // Stored so the credential can renew itself later. Neither is derivable from the
+    // registry url, and without them a refresh token is a string nothing can spend.
+    issuer: authIssuer,
+    clientId,
   });
 
   console.log(chalk.green(`Logged in to ${registry}`));

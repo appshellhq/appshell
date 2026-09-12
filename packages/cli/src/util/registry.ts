@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { AxiosRequestConfig } from 'axios';
 import axios from './axios';
-import { resolveToken } from './credentials';
+import { ensureToken } from './credentials';
 
 export type ApplicationSummary = {
   id: string;
@@ -238,8 +238,14 @@ export class RegistryClient {
     this.baseUrl = registry.replace(/\/$/, '');
   }
 
-  private request<T>(method: 'get' | 'post' | 'patch' | 'delete', route: string, body?: unknown) {
-    const token = resolveToken(this.baseUrl);
+  private async request<T>(
+    method: 'get' | 'post' | 'patch' | 'delete',
+    route: string,
+    body?: unknown,
+  ) {
+    // Renews an expired access token rather than sending nothing and letting the request
+    // 401. Every command goes through here, so this is the one place that has to know.
+    const token = await ensureToken(this.baseUrl);
     const config: AxiosRequestConfig = token
       ? { headers: { Authorization: `Bearer ${token}` } }
       : {};
