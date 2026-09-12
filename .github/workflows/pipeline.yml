@@ -176,14 +176,38 @@ jobs:
           # condition runs with errexit suppressed, so without this a failure on the root
           # manifest would carry on to the workspaces and then report the status of
           # whichever ran last — success, over a half-updated tree.
+          #
+          # A failure is retryable only if it looks like the version is not there yet.
+          # ERESOLVE is a dependency conflict: the packages exist and cannot be arranged,
+          # so every retry produces the same answer. Retrying one burned the full fifteen
+          # minutes and then reported a timeout, which describes replication lag rather
+          # than the peer conflict actually printed — the log said what was wrong on the
+          # first attempt and the loop buried it under eighty-nine identical repeats.
+          log=$(mktemp)
+
           install() {
+            local status
+
             while read -r dir specs; do
               [ -z "$dir" ] && continue
 
               if [ "$dir" = "." ]; then
-                npm install --package-lock-only --prefer-online --no-save $specs || return 1
+                npm install --package-lock-only --prefer-online --no-save $specs 2>&1 | tee "$log"
               else
-                npm install --package-lock-only --prefer-online --no-save -w "$dir" $specs || return 1
+                npm install --package-lock-only --prefer-online --no-save -w "$dir" $specs 2>&1 | tee "$log"
+              fi
+
+              # PIPESTATUS, because the exit code of a pipeline is tee's.
+              status=${PIPESTATUS[0]}
+
+              if [ "$status" -ne 0 ]; then
+                if grep -q 'code ERESOLVE' "$log"; then
+                  echo "::error::Cannot arrange dependencies for $dir. This will not resolve by waiting."
+                  # 2 rather than 1: the caller has to tell `give up now` from `try again`.
+                  return 2
+                fi
+
+                return 1
               fi
             done <<< "$targets"
           }
@@ -197,8 +221,18 @@ jobs:
           # packument fetched before the publish does not list the new version. Waiting
           # cannot fix a stale read.
           for attempt in $(seq 1 90); do
-            if install; then
+            # Captured through `||` rather than tested with `&&`, so that three outcomes
+            # stay distinguishable and neither branch depends on how errexit treats the
+            # failing half of an and-or list.
+            status=0
+            install || status=$?
+
+            if [ "$status" -eq 0 ]; then
               exit 0
+            fi
+
+            if [ "$status" -eq 2 ]; then
+              exit 1
             fi
 
             echo "Not installable yet; npm is still replicating $VERSION (attempt $attempt/90)"
