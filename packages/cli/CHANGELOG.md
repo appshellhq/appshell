@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.88](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.87...v1.0.0-alpha.88) (2026-09-12)
+
+### Features
+
+- **cli:** deprecate a version, and show it wherever a version is chosen ([09f5e98](https://github.com/appshellhq/appshell/commit/09f5e989d753696e391d736202465c92b4eb6d33))
+
 # [1.0.0-alpha.87](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.86...v1.0.0-alpha.87) (2026-09-12)
 
 ### Features
