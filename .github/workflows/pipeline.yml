@@ -162,23 +162,31 @@ jobs:
               [ -z "$dir" ] && continue
 
               if [ "$dir" = "." ]; then
-                npm install --package-lock-only --save $specs || return 1
+                npm install --package-lock-only --prefer-online --save $specs || return 1
               else
-                npm install --package-lock-only --save -w "$dir" $specs || return 1
+                npm install --package-lock-only --prefer-online --save -w "$dir" $specs || return 1
               fi
             done <<< "$targets"
           }
 
-          for attempt in $(seq 1 30); do
+          # Fifteen minutes, because five was not enough: a run succeeded on attempt 29 of
+          # 30, which is luck rather than margin. The lag has been measured at ten seconds
+          # and at five minutes in the same week, so the budget is set by the worst case
+          # seen rather than the typical one — waiting costs nothing when it is not needed.
+          #
+          # --prefer-online on the install itself: the runner restores an npm cache, and a
+          # packument fetched before the publish does not list the new version. Waiting
+          # cannot fix a stale read.
+          for attempt in $(seq 1 90); do
             if install; then
               exit 0
             fi
 
-            echo "Not installable yet; npm is still replicating $VERSION (attempt $attempt)"
+            echo "Not installable yet; npm is still replicating $VERSION (attempt $attempt/90)"
             sleep 10
           done
 
-          echo "::error::$VERSION did not become installable within five minutes."
+          echo "::error::$VERSION did not become installable within fifteen minutes."
           exit 1
 
       # `.env` is git-ignored; sample.env carries the same keys and is what a developer is

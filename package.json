@@ -19,6 +19,8 @@
     "start": "dotenv -- lerna run --parallel start",
     "stats": "lerna run --parallel stats",
     "test": "jest",
+    "test:examples": "npm test --prefix examples/appshell-react-host",
+    "test:all": "npm test && npm run test:examples",
     "test:ci": "npm test a -- --silent --watchAll=false --coverage --reporters=jest-junit",
     "prepare": "husky"
   },
