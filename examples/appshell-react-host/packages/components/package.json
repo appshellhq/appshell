@@ -17,6 +17,6 @@
     "react-dom": "^18.2.0"
   },
   "dependencies": {
-    "@appshell/runtime": "^1.0.0-alpha.83"
+    "@appshell/runtime": "^1.0.0-alpha.84"
   }
 }
