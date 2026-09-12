@@ -16,6 +16,11 @@ import { DevStartArgs, DevStatusArgs, DevStopArgs } from './handlers/dev';
 import generateManifestHandler, { GenerateManifestArgs } from './handlers/generate.manifest';
 import loginHandler, { LoginArgs, logout } from './handlers/login';
 import outdatedHandler, { OutdatedArgs } from './handlers/outdated';
+import {
+  describe as packagesDescribe,
+  get as packagesGet,
+  list as packagesList,
+} from './handlers/packages';
 import publishHandler from './handlers/publish';
 import * as theme from './handlers/theme';
 import { ThemeGetArgs, ThemeInitArgs, ThemeListArgs, ThemePublishArgs } from './handlers/theme';
@@ -124,6 +129,45 @@ const devCommand: yargs.CommandModule<GlobalArgs, GlobalArgs> = {
   // eslint-disable-next-line @typescript-eslint/no-shadow
   builder: (yargs) =>
     yargs.command(devStartCommand).command(devStatusCommand).command(devStopCommand),
+  handler: () => undefined,
+};
+
+/**
+ * Reads over what the registry holds, shaped after npm and kubectl because both are
+ * already in a developer's fingers.
+ *
+ * The listing marks which version each application has activated. That is the fact
+ * `unpublish` needs and the one the cli could not previously answer — `unpublish` takes a
+ * version and nothing here would tell you which versions existed, let alone which one was
+ * load-bearing.
+ */
+const packagesCommand: yargs.CommandModule<GlobalArgs, GlobalArgs> = {
+  command: 'packages',
+  aliases: ['pkg'],
+  describe: 'List and inspect packages in the appshell registry',
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  builder: (yargs) =>
+    yargs
+      .option('scope', {
+        type: 'string',
+        describe: 'List another scope instead of the configured one',
+      })
+      .command({
+        command: 'list',
+        aliases: ['ls', '$0'],
+        describe: 'List published packages and which versions are activated',
+        handler: packagesList as never,
+      })
+      .command({
+        command: 'get <name>',
+        describe: "Every published version of a package, as 'name' or 'scope/name'",
+        handler: packagesGet as never,
+      })
+      .command({
+        command: 'describe <name>',
+        describe: "What a version exposes, as 'name', 'scope/name' or 'scope/name@version'",
+        handler: packagesDescribe as never,
+      }),
   handler: () => undefined,
 };
 
@@ -710,6 +754,7 @@ export const buildCli = (args: string[]) => {
             .demandCommand(),
       })
       .command(devCommand)
+      .command(packagesCommand)
       .command(loginCommand)
       .command(logoutCommand)
       .command(publishCommand)

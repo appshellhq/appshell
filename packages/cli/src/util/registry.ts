@@ -3,6 +3,22 @@ import { AxiosRequestConfig } from 'axios';
 import axios from './axios';
 import { ensureToken } from './credentials';
 
+export type PackageSummary = {
+  id: string;
+  scopeId: string;
+  name: string;
+  version: string;
+  owner: string;
+  visibility: 'public' | 'private';
+  digest: string;
+  manifest?: {
+    components?: Record<string, { loader?: { scope?: string; module?: string } }>;
+    remotes?: string[];
+    shared?: { scopes?: Record<string, Record<string, unknown>> };
+  };
+  publishedAt: string;
+};
+
 export type ApplicationSummary = {
   id: string;
   scopeId: string;
@@ -307,6 +323,37 @@ export class RegistryClient {
     const suffix = query.toString() ? `?${query}` : '';
 
     return this.send<ApplicationSummary[]>('get', `/v1/applications${suffix}`, 'list applications');
+  }
+
+  /**
+   * Every published package in a scope, one entry per version.
+   *
+   * Public, and the registry filters by what the caller may see: public packages plus the
+   * private ones in their own scope.
+   */
+  listPackages(scopeId?: string) {
+    const suffix = scopeId ? `?scopeId=${encodeURIComponent(scopeId)}` : '';
+
+    return this.send<PackageSummary[]>('get', `/v1/packages${suffix}`, 'list packages');
+  }
+
+  packageVersions(scopeId: string, name: string) {
+    return this.send<PackageSummary[]>(
+      'get',
+      `/v1/packages/${scopeId}/${name}/versions`,
+      `list versions of ${scopeId}/${name}`,
+    );
+  }
+
+  /** Defaults to the latest version when none is named. */
+  getPackage(scopeId: string, name: string, version?: string) {
+    const suffix = version ? `?version=${encodeURIComponent(version)}` : '';
+
+    return this.send<PackageSummary>(
+      'get',
+      `/v1/packages/${scopeId}/${name}${suffix}`,
+      `fetch ${scopeId}/${name}${version ? `@${version}` : ''}`,
+    );
   }
 
   getApplication(scopeId: string, name: string) {
