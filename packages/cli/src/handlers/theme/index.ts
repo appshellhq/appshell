@@ -50,7 +50,7 @@ export const list = async (argv: ThemeListArgs) => {
     themes.map((theme) => ({
       ref: theme.id,
       visibility: theme.visibility,
-      owner: theme.owner,
+      publishedBy: theme.publishedBy.username,
       derivedFrom: theme.derivedFrom ?? '',
     })),
   );

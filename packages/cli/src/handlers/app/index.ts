@@ -76,7 +76,7 @@ export const list = async (argv: AppArgs & { owner?: string }) => {
       revision: env.revision,
       packages: Object.keys(env.packages ?? {}).length,
       ephemeral: env.ephemeral,
-      owner: env.owner,
+      createdBy: env.createdBy.username,
     })),
   );
 };

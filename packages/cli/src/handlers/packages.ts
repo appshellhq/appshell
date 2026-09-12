@@ -148,7 +148,7 @@ export const describe = async (argv: PackageArgs) => {
   console.log(chalk.bold(`\n${scopeId}/${name}@${pkg.version}\n`));
   console.log(`  ${chalk.dim('visibility')}  ${pkg.visibility}`);
   console.log(`  ${chalk.dim('published')}   ${new Date(pkg.publishedAt).toLocaleString()}`);
-  console.log(`  ${chalk.dim('owner')}       ${pkg.owner}`);
+  console.log(`  ${chalk.dim('published by')} ${pkg.publishedBy.username}`);
   // Named rather than counted: it is what decides whether this version can be removed.
   console.log(
     `  ${chalk.dim('activated')}   ${where.length ? where.join(', ') : chalk.dim('nowhere')}`,

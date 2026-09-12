@@ -502,7 +502,7 @@ export const status = async (argv: DevStatusArgs) => {
 
     console.log(
       chalk.dim(
-        `    opened by ${overlay.owner} \u00b7 expires ${new Date(
+        `    opened by ${overlay.openedBy.username} \u00b7 expires ${new Date(
           overlay.expiresAt,
         ).toLocaleString()}`,
       ),

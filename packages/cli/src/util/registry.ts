@@ -8,7 +8,7 @@ export type PackageSummary = {
   scopeId: string;
   name: string;
   version: string;
-  owner: string;
+  publishedBy: Actor;
   visibility: 'public' | 'private';
   digest: string;
   deprecated?: { reason: string; at: string };
@@ -24,7 +24,7 @@ export type ApplicationSummary = {
   id: string;
   scopeId: string;
   name: string;
-  owner: string;
+  createdBy: Actor;
   ephemeral: boolean;
   revision: number;
   packages: Record<string, { packageId: string; activatedAt: string }>;
@@ -106,7 +106,7 @@ export type CreatedOverlay = {
 
 export type OpenOverlay = {
   id: string;
-  owner: string;
+  openedBy: Actor;
   remotes: string[];
   shellFlavor: 'prod' | 'dev';
   /** The theme this overlay substitutes, when it substitutes one. */
@@ -117,7 +117,7 @@ export type OpenOverlay = {
 };
 
 /** Which overlay this is, as opposed to what it does. Nothing here changes the page. */
-type OverlayIdentity = 'id' | 'owner' | 'createdAt' | 'expiresAt' | 'confirmUrl';
+type OverlayIdentity = 'id' | 'openedBy' | 'createdAt' | 'expiresAt' | 'confirmUrl';
 
 /** A field that changes what the developer sees, and so must be reported wherever an
  * overlay is described. */
@@ -184,7 +184,7 @@ export type Theme = {
   scopeId: string;
   name: string;
   version: string;
-  owner: string;
+  publishedBy: Actor;
   visibility: 'public' | 'private';
   digest: string;
   deprecated?: { reason: string; at: string };
@@ -250,6 +250,12 @@ const describe = (error: unknown) => {
 };
 
 export type ScopeOwner = { kind: 'user' | 'org'; id: string };
+
+/**
+ * Who did something. `id` is the account's stable subject; `username` is what it was
+ * called at the time — a snapshot, so it may already name something else.
+ */
+export type Actor = { id: string; username: string };
 
 export type ScopeSummary = {
   id: string;
@@ -326,10 +332,10 @@ export class RegistryClient {
     );
   }
 
-  listApplications(scopeId?: string, owner?: string) {
+  listApplications(scopeId?: string, createdBy?: string) {
     const query = new URLSearchParams();
     if (scopeId) query.set('scopeId', scopeId);
-    if (owner) query.set('owner', owner);
+    if (createdBy) query.set('owner', createdBy);
     const suffix = query.toString() ? `?${query}` : '';
 
     return this.send<ApplicationSummary[]>('get', `/v1/applications${suffix}`, 'list applications');
