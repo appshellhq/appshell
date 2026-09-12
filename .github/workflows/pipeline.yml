@@ -108,8 +108,17 @@ jobs:
           cache: 'npm'
           cache-dependency-path: examples/appshell-react-host/package-lock.json
 
-      # Updates both package.json and the lockfile, which is what keeps `npm ci` below
-      # able to run at all — it refuses a tree the two disagree about.
+      # The lockfile only. `--no-save` leaves the declared ranges in package.json alone,
+      # and that distinction is the whole point.
+      #
+      # An example's `shared` contract is built from its package.json *ranges* — see the
+      # webpack configs — so rewriting them on every release rewrote the package's surface
+      # on every release, and every published manifest went stale the moment the next
+      # push landed. The first version of this step used --save and did exactly that.
+      #
+      # A required version is a compatibility constraint, not a record of what happened to
+      # be installed. It should move when compatibility moves, which a developer decides.
+      # The lockfile is what tracks the version in use, and it is what the images need.
       - name: Build against the packages this run published
         env:
           VERSION: ${{ needs.publish_npm_packages.outputs.version }}
@@ -162,9 +171,9 @@ jobs:
               [ -z "$dir" ] && continue
 
               if [ "$dir" = "." ]; then
-                npm install --package-lock-only --prefer-online --save $specs || return 1
+                npm install --package-lock-only --prefer-online --no-save $specs || return 1
               else
-                npm install --package-lock-only --prefer-online --save -w "$dir" $specs || return 1
+                npm install --package-lock-only --prefer-online --no-save -w "$dir" $specs || return 1
               fi
             done <<< "$targets"
           }
@@ -220,14 +229,14 @@ jobs:
         run: |
           set -euo pipefail
 
-          if git diff --quiet -- package.json package-lock.json packages/components/package.json; then
+          if git diff --quiet -- package-lock.json; then
             echo "Already building against $VERSION; nothing to record."
             exit 0
           fi
 
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
-          git add package.json package-lock.json packages/components/package.json
+          git add package-lock.json
           git commit -m "chore(example): build against $VERSION"
           git push origin HEAD:${GITHUB_REF#refs/heads/}
 
