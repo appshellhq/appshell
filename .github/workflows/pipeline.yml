@@ -129,6 +129,11 @@ jobs:
           # Every manifest that names an @appshell package, not just the root one: the
           # workspaces declare their own, and a root --save leaves those behind to drift.
           #
+          # Local workspaces are excluded even though they match the scope. The examples
+          # are named @appshell/* too, so the prefix alone no longer means `published on
+          # npmjs` — asking npm for @appshell/sample-mfe-ping@<version> would look for a
+          # package that exists only in this checkout and fail the install.
+          #
           # Plain fs, no dependencies: this runs before `npm ci`, so node_modules may not
           # exist yet and anything required here would be a dependency on cache state.
           targets=$(node -e "
@@ -138,14 +143,19 @@ jobs:
               existsSync(group) ? readdirSync(group).map((d) => group + '/' + d) : [],
             );
 
+            const manifests = new Map();
+
             ['.', ...dirs].forEach((dir) => {
               const file = dir + '/package.json';
 
-              if (!existsSync(file)) return;
+              if (existsSync(file)) manifests.set(dir, JSON.parse(readFileSync(file, 'utf8')));
+            });
 
-              const p = JSON.parse(readFileSync(file, 'utf8'));
+            const local = new Set([...manifests.values()].map((p) => p.name).filter(Boolean));
+
+            manifests.forEach((p, dir) => {
               const names = Object.keys({ ...p.dependencies, ...p.devDependencies })
-                .filter((n) => n.startsWith('@appshell/'));
+                .filter((n) => n.startsWith('@appshell/') && !local.has(n));
 
               if (names.length) console.log(dir + ' ' + names.map((n) => n + '@' + process.env.VERSION).join(' '));
             });
