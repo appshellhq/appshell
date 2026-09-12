@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.90](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.89...v1.0.0-alpha.90) (2026-09-12)
+
+### Bug Fixes
+
+- **cli:** lifting a deprecation sent a blank reason instead of none ([2387863](https://github.com/appshellhq/appshell/commit/23878636439e1c3384eec6112c02e2a4aa788f35))
+
+### Features
+
+- **cli:** claim and inspect the scopes packages publish into ([ac483f7](https://github.com/appshellhq/appshell/commit/ac483f79517e06acd32d0c40e83ba66ea3cc88e5))
+
 # [1.0.0-alpha.89](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.88...v1.0.0-alpha.89) (2026-09-12)
 
 ### Features

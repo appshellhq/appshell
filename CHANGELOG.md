@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.90](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.89...v1.0.0-alpha.90) (2026-09-12)
+
+### Bug Fixes
+
+- **ci:** the version bump no longer looks for local workspaces on npm ([e33e143](https://github.com/appshellhq/appshell/commit/e33e14354bb20079fe3dafbe9dedcc85ec51810a))
+- **cli:** lifting a deprecation sent a blank reason instead of none ([2387863](https://github.com/appshellhq/appshell/commit/23878636439e1c3384eec6112c02e2a4aa788f35))
+- **examples:** declare every dependency the apps import ([b4f833f](https://github.com/appshellhq/appshell/commit/b4f833f3edaffe5adfae0aca27904b5645e0a6d1))
+
+### Features
+
+- **cli:** claim and inspect the scopes packages publish into ([ac483f7](https://github.com/appshellhq/appshell/commit/ac483f79517e06acd32d0c40e83ba66ea3cc88e5))
+- **examples:** the sample apps declare the scope they publish into ([9d87859](https://github.com/appshellhq/appshell/commit/9d8785977a5786935236ebc377c2571bbb22de87)), closes [appshellhq/appshell-services#14](https://github.com/appshellhq/appshell-services/issues/14)
+
 # [1.0.0-alpha.89](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.88...v1.0.0-alpha.89) (2026-09-12)
 
 ### Features
