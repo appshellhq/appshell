@@ -10,6 +10,7 @@ import {
   ModuleFederationPluginOptions,
   openOverlay,
   OverlayRemotePatch,
+  parsePackageName,
   persistedContext,
   publish,
   resolveContext,
@@ -430,8 +431,19 @@ export default class AppshellPlugin {
       );
     }
 
-    const { scopeId } = resolveContext();
-    const { name } = AppshellPlugin.identify(context);
+    const { scopeId: contextScope } = resolveContext();
+    const { scopeId: declaredScope, name } = AppshellPlugin.identify(context);
+
+    /*
+     * A package that declares its scope overlays into the same place it publishes to.
+     *
+     * Without this the two would disagree the moment a package name carried a scope: the
+     * publish would go to `acme` while the overlay redirected `rhamilton/checkout`, which
+     * is an address the composition does not have — so the redirect would silently do
+     * nothing, and the developer would be told their code was being served when it was
+     * not.
+     */
+    const scopeId = declaredScope ?? contextScope;
 
     /*
      * An overlay names remotes the way the registry addresses them — `scope/package/Component`
@@ -573,7 +585,9 @@ export default class AppshellPlugin {
       throw new Error(`Cannot determine what to publish: ${packageFile} needs a name and version.`);
     }
 
-    return { name: (name as string).replace(/^@[^/]+\//, ''), version: version as string };
+    // The scope is kept rather than stripped — see parsePackageName. A package that
+    // declares where it belongs must publish and overlay into the same place.
+    return { ...parsePackageName(name as string), version: version as string };
   }
 
   /**

@@ -4,6 +4,14 @@ import { AppshellManifest, Metadata, ModuleFederationLoader } from './types';
 export type PublishOptions = {
   registry: string;
   token?: string;
+  /**
+   * Where this package belongs, when the package name declares it.
+   *
+   * Omitted means the publisher's own namespace, which is how every publish worked before
+   * this existed. The registry refuses a scope the caller does not own, so declaring one
+   * is a statement of fact rather than a request.
+   */
+  scopeId?: string;
   name: string;
   version: string;
   manifest: AppshellManifest;
@@ -14,7 +22,7 @@ export type PublishOptions = {
 };
 
 export type PublishResult = {
-  /** `scope/name@version`. The scope comes from the token, not the caller. */
+  /** `scope/name@version`. From the package name where it declares one, else the token. */
   id: string;
   created: boolean;
   /** Empty unless a shared block was sent. See `openOverlay`. */
@@ -51,6 +59,7 @@ const describe = (error: unknown) => {
 export const publish = async ({
   registry,
   token,
+  scopeId,
   name,
   version,
   manifest,
@@ -87,7 +96,7 @@ export const publish = async ({
   try {
     const { data } = await axios.post<PublishResult>(
       `${registry.replace(/\/$/, '')}/v1/packages`,
-      { name, version, manifest, visibility, metadata, force },
+      { ...(scopeId ? { scopeId } : {}), name, version, manifest, visibility, metadata, force },
       { headers: authorization(token) },
     );
 

@@ -40,10 +40,11 @@ const publishOnce = async (argv: PublishArgs) => {
   const declared = (JSON.parse(fs.readFileSync(template, 'utf-8')) as AppshellTemplate).visibility;
   const visibility = argv.visibility ?? declared;
 
-  const { name, version } = identify(process.cwd(), argv.name, argv.packageVersion);
+  const { scopeId, name, version } = identify(process.cwd(), argv.name, argv.packageVersion);
   const { id, created } = await publish({
     registry,
     token,
+    scopeId,
     name,
     version,
     manifest,

@@ -579,9 +579,12 @@ describe('AppshellPlugin', () => {
 
         const [, , remotes] = mocked.openOverlay.mock.calls[0];
 
-        // `scope/package/Component`, and pointing at this dev server.
+        // `scope/package/Component`, and pointing at this dev server. The scope is
+        // `appshell` because the fixture's package.json declares `@appshell/…` — a
+        // package that says where it belongs overlays into the same place it publishes
+        // to, rather than into whichever scope the developer's token happens to carry.
         expect(Object.keys(remotes)).toEqual(
-          expect.arrayContaining(['default/webpack-plugin/Foo', 'default/webpack-plugin/Bar']),
+          expect.arrayContaining(['appshell/webpack-plugin/Foo', 'appshell/webpack-plugin/Bar']),
         );
         expect(Object.values(remotes)[0].remoteEntryUrl).toMatch(/^http:\/\/localhost:3001\//);
       });
@@ -606,7 +609,7 @@ describe('AppshellPlugin', () => {
 
         const [, , remotes] = mocked.openOverlay.mock.calls[0];
 
-        expect(remotes['default/webpack-plugin/Foo'].manifestUrl).toBe(
+        expect(remotes['appshell/webpack-plugin/Foo'].manifestUrl).toBe(
           'http://localhost:3001/appshell.manifest.json',
         );
       });
@@ -620,7 +623,7 @@ describe('AppshellPlugin', () => {
 
         const [, , remotes] = mocked.openOverlay.mock.calls[0];
 
-        expect(remotes['default/webpack-plugin/Foo'].loader).toMatchObject({
+        expect(remotes['appshell/webpack-plugin/Foo'].loader).toMatchObject({
           apiVersion: 'federation.appshell.org/v1',
           kind: 'ModuleFederation',
           scope: 'TestModule',

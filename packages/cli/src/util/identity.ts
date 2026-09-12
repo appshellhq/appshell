@@ -1,3 +1,4 @@
+import { parsePackageName } from '@appshell/config';
 import fs from 'fs';
 import path from 'path';
 
@@ -12,6 +13,8 @@ import path from 'path';
  */
 export const identify = (cwd: string, nameOverride?: string, versionOverride?: string) => {
   if (nameOverride && versionOverride) {
+    // Explicit overrides name the package outright, so there is no manifest to read a
+    // declared scope from — it falls back to the publisher's own, as it always did.
     return { name: nameOverride, version: versionOverride };
   }
 
@@ -21,16 +24,22 @@ export const identify = (cwd: string, nameOverride?: string, versionOverride?: s
   }
 
   const { name, version } = JSON.parse(fs.readFileSync(packageFile, 'utf-8'));
+  // The scope is kept rather than stripped: `@acme/checkout` says where it belongs, in a
+  // file under review, identically for everyone who publishes it.
+  const declared = name ? parsePackageName(name as string) : undefined;
   const resolved = {
-    name: nameOverride ?? (name as string | undefined)?.replace(/^@[^/]+\//, ''),
+    scopeId: declared?.scopeId,
+    name: nameOverride ?? declared?.name,
     version: versionOverride ?? (version as string | undefined),
   };
 
   if (!resolved.name || !resolved.version) {
-    throw new Error(`Cannot determine which package this is: ${packageFile} needs a name and version.`);
+    throw new Error(
+      `Cannot determine which package this is: ${packageFile} needs a name and version.`,
+    );
   }
 
-  return resolved as { name: string; version: string };
+  return resolved as { scopeId?: string; name: string; version: string };
 };
 
 export default identify;

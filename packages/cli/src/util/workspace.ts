@@ -1,4 +1,4 @@
-import { AppshellConfig, utils } from '@appshell/config';
+import { AppshellConfig, parsePackageName, utils } from '@appshell/config';
 import fg from 'fast-glob';
 import fs from 'fs';
 import path from 'path';
@@ -79,7 +79,7 @@ const packageAt = (dir: string): WorkspacePackage | undefined => {
 
     return {
       dir,
-      name: (name as string).replace(/^@[^/]+\//, ''),
+      ...parsePackageName(name as string),
       version,
       remotes: Object.keys(config?.remotes ?? {}),
     };
