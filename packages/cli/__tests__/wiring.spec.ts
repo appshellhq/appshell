@@ -2,6 +2,7 @@ import path from 'path';
 import type yargs from 'yargs';
 import * as app from '../src/handlers/app';
 import * as dev from '../src/handlers/dev';
+import * as packages from '../src/handlers/packages';
 import * as theme from '../src/handlers/theme';
 
 /*
@@ -18,6 +19,7 @@ import * as theme from '../src/handlers/theme';
 jest.mock('../src/handlers/app');
 jest.mock('../src/handlers/dev');
 jest.mock('../src/handlers/theme');
+jest.mock('../src/handlers/packages');
 jest.mock('../src/handlers/publish');
 jest.mock('../src/handlers/login');
 jest.mock('../src/handlers/outdated');
@@ -198,6 +200,30 @@ describe('app', () => {
 
     expect(app.revisions).toHaveBeenCalled();
     expect(app.get).not.toHaveBeenCalled();
+  });
+});
+
+describe('packages visibility', () => {
+  it('should hand the handler both positionals', () => {
+    run('packages visibility acme/checkout private');
+
+    expect(handedTo(packages.visibility)).toMatchObject({
+      name: 'acme/checkout',
+      visibility: 'private',
+    });
+  });
+
+  /*
+   * Constrained at the parser rather than trusted to the registry. A typo that reaches the
+   * api as a 400 is a worse error than one refused here, and `visibility` is the whole
+   * point of the command — getting it wrong silently is what this command exists to fix.
+   */
+  it('should refuse a visibility that is not one of the two', () => {
+    expect(run('packages visibility acme/checkout pubic').error).toMatch(/Choices|Invalid/i);
+  });
+
+  it('should require the visibility positional', () => {
+    expect(run('packages visibility acme/checkout').error).toBeTruthy();
   });
 });
 

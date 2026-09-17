@@ -362,6 +362,21 @@ export class RegistryClient {
   }
 
   /** Passing no reason lifts an existing deprecation. */
+  /**
+   * Reclassifies a package, across every version.
+   *
+   * No version in the path, because visibility belongs to the package rather than to a
+   * release of it — the same reason `npm access` takes a package name and not a version.
+   */
+  setPackageVisibility(scopeId: string, name: string, visibility: 'public' | 'private') {
+    return this.send<{ scopeId: string; name: string; visibility: string; versions: number }>(
+      'patch',
+      `/v1/packages/${scopeId}/${name}/visibility`,
+      `set ${scopeId}/${name} ${visibility}`,
+      { visibility },
+    );
+  }
+
   deprecatePackage(scopeId: string, name: string, version: string, reason?: string) {
     // One test of `reason` decides both the label and the body. They used to be decided
     // separately — the label by truthiness, the body by spreading the value in

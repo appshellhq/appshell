@@ -21,6 +21,7 @@ import {
   describe as packagesDescribe,
   get as packagesGet,
   list as packagesList,
+  visibility as packagesVisibility,
 } from './handlers/packages';
 import publishHandler from './handlers/publish';
 import { create as scopesCreate, get as scopesGet, list as scopesList } from './handlers/scopes';
@@ -169,6 +170,25 @@ const packagesCommand: yargs.CommandModule<GlobalArgs, GlobalArgs> = {
         command: 'describe <name>',
         describe: "What a version exposes, as 'name', 'scope/name' or 'scope/name@version'",
         handler: packagesDescribe as never,
+      })
+      /*
+       * Publishing cannot do this. Visibility is not part of a package's digest, and
+       * publish short-circuits on a digest match — so `publish --visibility private` on an
+       * existing version matched on content and returned a no-op reporting success.
+       *
+       * Takes a package rather than a version because that is what visibility belongs to,
+       * the way `npm access` treats it: every version follows.
+       */
+      .command({
+        command: 'visibility <name> <visibility>',
+        describe: "Reclassify a package, as 'name' or 'scope/name'",
+        builder: (y) =>
+          y.positional('visibility', {
+            type: 'string',
+            choices: ['public', 'private'] as const,
+            describe: 'What the package becomes',
+          }),
+        handler: packagesVisibility as never,
       })
       /*
        * The remedy for a version published in error. Unpublish refuses anything an

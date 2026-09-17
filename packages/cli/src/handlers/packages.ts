@@ -50,6 +50,29 @@ const versionLine = (pkg: PackageSummary, held: Map<string, string[]>, width: nu
   return `  ${pkg.version.padEnd(width)}  ${chalk.dim(pkg.visibility.padEnd(7))}  ${mark}${notice}`;
 };
 
+/**
+ * Reclassifies a package, across every version.
+ *
+ * Its own command because publishing could not do it. Visibility is not part of a
+ * package's digest — it is not what a package *is* — and publish short-circuits on a
+ * digest match, so `publish --visibility private` on an existing version matched on
+ * content, returned early, and printed success while changing nothing.
+ */
+export const visibility = async (argv: PackageArgs & { visibility: 'public' | 'private' }) => {
+  const client = new RegistryClient(argv.registry);
+  const [scopeId, name] = argv.name.includes('/')
+    ? argv.name.split('/')
+    : [argv.scope ?? (await resolveScopeId(argv)), argv.name];
+
+  const result = await client.setPackageVisibility(scopeId, name, argv.visibility);
+
+  console.log(
+    result.versions
+      ? chalk.green(`${scopeId}/${name} is now ${argv.visibility} (${result.versions} version(s))`)
+      : chalk.dim(`${scopeId}/${name} was already ${argv.visibility}`),
+  );
+};
+
 export const deprecate = async (argv: PackageArgs & { reason?: string; undo?: boolean }) => {
   const client = new RegistryClient(argv.registry);
   const [reference, version] = argv.name.split('@');
