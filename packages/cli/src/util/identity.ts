@@ -4,8 +4,9 @@ import path from 'path';
 
 /**
  * The registry needs a lowercase name and a version; module federation config carries
- * neither, so identity comes from the package being worked on. The npm scope is
- * stripped because the registry takes scope from the caller's token instead.
+ * neither, so identity comes from the package being worked on. The npm scope is kept and
+ * returned alongside them: it names where the package belongs, and the registry honours
+ * it over the publisher's own namespace.
  *
  * Shared so that `publish` and `dev` always agree on which package the current directory
  * is — an overlay that redirected a different package than the one you published would be
