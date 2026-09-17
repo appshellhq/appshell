@@ -6,6 +6,7 @@ import { first, uniq } from 'lodash';
 import { ComparisonResult, ComparisonResults } from 'packages/config/src/types';
 import { groupByPackageName } from '../../../config/src/sync';
 import { fetchPackageSpec, fetchSharedModules } from '../util/fetch';
+import { resolveScopeId } from '../util/scope';
 
 export type OutdatedArgs = {
   apiKey: string | undefined;
@@ -163,7 +164,8 @@ const printSummary = (results: ComparisonResults[]) => {
 };
 
 export default async (argv: OutdatedArgs) => {
-  const { apiKey, apiKeyHeader, workingDir, registry, application, scopeId, manager } = argv;
+  const { apiKey, apiKeyHeader, workingDir, registry, application, manager } = argv;
+  const scopeId = await resolveScopeId(argv);
 
   try {
     console.log(`outdated --working-dir=${workingDir} --registry=${registry} --manager=${manager}`);

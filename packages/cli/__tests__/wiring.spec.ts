@@ -28,6 +28,13 @@ jest.mock('../src/handlers/config/set');
 // `unpublish` has an inline handler rather than an imported one, so the client it reaches
 // for is what has to be replaced.
 jest.mock('../src/util/registry');
+// Scope is resolved per command now, and resolving it asks the registry which scopes the
+// account owns. Stubbed so this stays a parsing test: what it checks is that the resolved
+// scope is what reaches the call, not how it was arrived at.
+jest.mock('../src/util/scope', () => ({
+  resolveScopeId: jest.fn().mockResolvedValue('acme'),
+  resetScopeCache: jest.fn(),
+}));
 
 // Somewhere with no config file, so defaults come from the code rather than from whatever
 // happens to be in the home directory of the machine running this.
@@ -84,7 +91,7 @@ describe('the bug that started this', () => {
     const { RegistryClient } = require('../src/util/registry');
     const [client] = (RegistryClient as jest.Mock).mock.instances;
 
-    expect(client.unpublish).toHaveBeenCalledWith('default', 'my-package', '1.2.3');
+    expect(client.unpublish).toHaveBeenCalledWith('acme', 'my-package', '1.2.3');
   });
 
   it('should still report the cli version at the top level', () => {
@@ -210,10 +217,26 @@ describe('global options', () => {
     expect(handedTo(dev.status)?.application).toBe('storefront');
   });
 
-  it('should default scopeId rather than leaving it undefined', () => {
+  /*
+   * The parser used to default this to the literal 'default'. That was the second source
+   * of truth behind appshellhq/appshell#3: publish took the scope from the package name
+   * while everything else took it from here, so a package published into `acme` was then
+   * looked for in `default`. Leaving it unset is what lets `resolveScopeId` fall through
+   * to the package in the working directory and then to the scope the account owns.
+   *
+   * A default here would defeat that silently, because the first branch of the resolver
+   * is `if (argv.scopeId) return argv.scopeId` and yargs would always have supplied one.
+   */
+  it('should leave scopeId unset so it can be resolved per command', () => {
     run('dev status');
 
-    expect(handedTo(dev.status)?.scopeId).toBe('default');
+    expect(handedTo(dev.status)?.scopeId).toBeUndefined();
+  });
+
+  it('should still let an explicit scope win over resolution', () => {
+    run('dev status --scopeId acme');
+
+    expect(handedTo(dev.status)?.scopeId).toBe('acme');
   });
 });
 

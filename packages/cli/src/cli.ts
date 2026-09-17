@@ -487,7 +487,7 @@ const publishCommand: yargs.CommandModule<GlobalArgs, PublishOptions> = {
 
 const unpublishCommand: yargs.CommandModule<
   unknown,
-  { registry: string; scopeId: string; name: string; version: string }
+  { registry: string; scopeId?: string; name: string; version: string }
 > = {
   command: 'unpublish <name> <version>',
   describe: 'Remove a published package version from the appshell registry',
@@ -502,14 +502,16 @@ const unpublishCommand: yargs.CommandModule<
       .positional('name', { type: 'string', demandOption: true })
       .positional('version', { type: 'string', demandOption: true }) as yargs.Argv<{
       registry: string;
-      scopeId: string;
+      scopeId?: string;
       name: string;
       version: string;
     }>,
   handler: async (argv) => {
     const { RegistryClient } = await import('./util/registry');
-    await new RegistryClient(argv.registry).unpublish(argv.scopeId, argv.name, argv.version);
-    console.log(`Unpublished ${argv.scopeId}/${argv.name}@${argv.version}`);
+    const { resolveScopeId } = await import('./util/scope');
+    const scopeId = await resolveScopeId(argv);
+    await new RegistryClient(argv.registry).unpublish(scopeId, argv.name, argv.version);
+    console.log(`Unpublished ${scopeId}/${argv.name}@${argv.version}`);
   },
 };
 
@@ -556,9 +558,13 @@ export const buildCli = (args: string[]) => {
         type: 'string',
         global: true,
       })
+      // No default. An unset scope is resolved per command by `resolveScopeId`, which
+      // falls back to the package in the working directory and then to the scope the
+      // account owns. The literal 'default' that used to sit here named a scope nobody
+      // owns and nothing can publish into, so it addressed an empty namespace.
       .option('scopeId', {
         describe: 'Scope that owns unqualified packages and applications',
-        default: process.env.APPSHELL_SCOPE_ID || config.scopeId || 'default',
+        default: process.env.APPSHELL_SCOPE_ID || config.scopeId,
         type: 'string',
         global: true,
       })

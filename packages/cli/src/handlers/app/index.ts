@@ -8,14 +8,15 @@ import {
   parsePackage,
   RegistryClient,
 } from '../../util/registry';
+import { resolveScopeId } from '../../util/scope';
 
 export type AppArgs = {
   registry: string;
-  scopeId: string;
+  scopeId?: string;
   application?: string;
 };
 
-const target = (argv: AppArgs & { name?: string }) => {
+const target = async (argv: AppArgs & { name?: string }) => {
   const application = argv.name ?? argv.application;
   if (!application) {
     throw new Error(
@@ -23,7 +24,7 @@ const target = (argv: AppArgs & { name?: string }) => {
     );
   }
 
-  return parseApplication(application, argv.scopeId);
+  return parseApplication(application, await resolveScopeId(argv));
 };
 
 /**
@@ -61,7 +62,7 @@ const readResource = (file: string): ApplicationResource => {
 
 export const list = async (argv: AppArgs & { owner?: string }) => {
   const applications = await new RegistryClient(argv.registry).listApplications(
-    argv.scopeId,
+    await resolveScopeId(argv),
     argv.owner,
   );
 
@@ -82,7 +83,7 @@ export const list = async (argv: AppArgs & { owner?: string }) => {
 };
 
 export const get = async (argv: AppArgs & { name?: string }) => {
-  const { scopeId, name } = target(argv);
+  const { scopeId, name } = await target(argv);
   const application = await new RegistryClient(argv.registry).getApplication(scopeId, name);
 
   console.log(JSON.stringify(application, null, 2));
@@ -105,7 +106,7 @@ export const create = async (
 };
 
 export const remove = async (argv: AppArgs & { name: string }) => {
-  const { scopeId, name } = target(argv);
+  const { scopeId, name } = await target(argv);
   await new RegistryClient(argv.registry).deleteApplication(scopeId, name);
 
   console.log(chalk.green(`Deleted application ${scopeId}/${name}`));
@@ -173,8 +174,12 @@ export const settings = (
  * and validating see the same state rather than racing.
  */
 export const activate = async (argv: AppArgs & { package: string; set?: string[] }) => {
-  const { scopeId, name } = target(argv);
-  const { scopeId: pkgScopeId, name: pkgName, version } = parsePackage(argv.package, argv.scopeId);
+  const { scopeId, name } = await target(argv);
+  const {
+    scopeId: pkgScopeId,
+    name: pkgName,
+    version,
+  } = parsePackage(argv.package, await resolveScopeId(argv));
   const client = new RegistryClient(argv.registry);
   // Only fetched when there is something to resolve against.
   const declared = argv.set?.length
@@ -202,15 +207,18 @@ export const activate = async (argv: AppArgs & { package: string; set?: string[]
 };
 
 export const deactivate = async (argv: AppArgs & { package: string }) => {
-  const { scopeId, name } = target(argv);
-  const { scopeId: pkgScopeId, name: pkgName } = parseApplication(argv.package, argv.scopeId);
+  const { scopeId, name } = await target(argv);
+  const { scopeId: pkgScopeId, name: pkgName } = parseApplication(
+    argv.package,
+    await resolveScopeId(argv),
+  );
   await new RegistryClient(argv.registry).deactivate(scopeId, name, pkgScopeId, pkgName);
 
   console.log(chalk.green(`Deactivated ${pkgScopeId}/${pkgName} in ${scopeId}/${name}`));
 };
 
 export const revisions = async (argv: AppArgs & { name?: string; limit?: number }) => {
-  const { scopeId, name } = target(argv);
+  const { scopeId, name } = await target(argv);
   const history = await new RegistryClient(argv.registry).revisions(scopeId, name, argv.limit);
 
   if (!history.length) {
@@ -229,21 +237,21 @@ export const revisions = async (argv: AppArgs & { name?: string; limit?: number 
 };
 
 export const rollback = async (argv: AppArgs & { name?: string; to: number }) => {
-  const { scopeId, name } = target(argv);
+  const { scopeId, name } = await target(argv);
   await new RegistryClient(argv.registry).rollback(scopeId, name, argv.to);
 
   console.log(chalk.green(`Rolled ${scopeId}/${name} back to revision ${argv.to}`));
 };
 
 export const composition = async (argv: AppArgs & { name?: string }) => {
-  const { scopeId, name } = target(argv);
+  const { scopeId, name } = await target(argv);
   const resolved = await new RegistryClient(argv.registry).composition(scopeId, name);
 
   console.log(JSON.stringify(resolved, null, 2));
 };
 
 export const open = async (argv: AppArgs & { name?: string }) => {
-  const { scopeId, name } = target(argv);
+  const { scopeId, name } = await target(argv);
 
   console.log(`${argv.registry.replace(/\/$/, '')}/a/${scopeId}/${name}`);
 };
@@ -263,14 +271,14 @@ export const sync = async (
     >;
   },
 ) => {
-  const source = parseApplication(argv.from, argv.scopeId);
+  const source = parseApplication(argv.from, await resolveScopeId(argv));
   const destinationName = argv.to ?? argv.application;
   if (!destinationName) {
     throw new Error(
       "No target application given. Pass --to or set one with 'appshell config set application <name>'.",
     );
   }
-  const destination = parseApplication(destinationName, argv.scopeId);
+  const destination = parseApplication(destinationName, await resolveScopeId(argv));
 
   await new RegistryClient(argv.registry).syncApplication(destination.scopeId, destination.name, {
     fromScopeId: source.scopeId,
@@ -293,14 +301,14 @@ export const clone = async (
     ephemeral?: boolean;
   },
 ) => {
-  const source = parseApplication(argv.from, argv.scopeId);
+  const source = parseApplication(argv.from, await resolveScopeId(argv));
   const destinationName = argv.to ?? argv.application;
   if (!destinationName) {
     throw new Error(
       "No target application given. Pass --to or set one with 'appshell config set application <name>'.",
     );
   }
-  const destination = parseApplication(destinationName, argv.scopeId);
+  const destination = parseApplication(destinationName, await resolveScopeId(argv));
 
   await new RegistryClient(argv.registry).cloneApplication(destination.scopeId, destination.name, {
     fromScopeId: source.scopeId,

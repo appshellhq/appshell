@@ -4,6 +4,7 @@ import chalk from 'chalk';
 import fs from 'fs';
 import { GlobalArgs } from '../../util/args';
 import { RegistryClient, Theme, ThemeResource } from '../../util/registry';
+import { resolveScopeId } from '../../util/scope';
 
 /*
  * `T | undefined` rather than `T?`: a declared option is always present on the parsed
@@ -39,7 +40,8 @@ export const parseRef = (ref: string, defaultScope: string) => {
 };
 
 export const list = async (argv: ThemeListArgs) => {
-  const themes = await new RegistryClient(argv.registry).listThemes(argv.scope ?? argv.scopeId);
+  const scopeId = argv.scope ?? (await resolveScopeId(argv));
+  const themes = await new RegistryClient(argv.registry).listThemes(scopeId);
 
   if (!themes.length) {
     console.log('No themes found.');
@@ -57,7 +59,7 @@ export const list = async (argv: ThemeListArgs) => {
 };
 
 export const get = async (argv: ThemeGetArgs) => {
-  const { scopeId, name, version } = parseRef(argv.ref, argv.scopeId);
+  const { scopeId, name, version } = parseRef(argv.ref, await resolveScopeId(argv));
   const theme = await new RegistryClient(argv.registry).getTheme(scopeId, name, version);
 
   console.log(JSON.stringify(theme, null, 2));
@@ -75,7 +77,7 @@ export const get = async (argv: ThemeGetArgs) => {
  * finishes.
  */
 export const init = async (argv: ThemeInitArgs) => {
-  const { scopeId, name, version } = parseRef(argv.from, argv.scopeId);
+  const { scopeId, name, version } = parseRef(argv.from, await resolveScopeId(argv));
   const source = await new RegistryClient(argv.registry).getTheme(scopeId, name, version);
 
   const resource: ThemeResource = {

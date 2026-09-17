@@ -13,6 +13,7 @@ import {
   parseApplication,
   RegistryClient,
 } from '../util/registry';
+import { resolveScopeId } from '../util/scope';
 import { findWorkspace, WorkspacePackage } from '../util/workspace';
 
 /*
@@ -40,14 +41,14 @@ export type DevStopArgs = GlobalArgs & {
 /** `status` takes nothing of its own. */
 export type DevStatusArgs = GlobalArgs;
 
-const target = (argv: GlobalArgs) => {
+const target = async (argv: GlobalArgs) => {
   if (!argv.application) {
     throw new Error(
       "No application given. Pass --application or set one with 'appshell config set application <name>'.",
     );
   }
 
-  return parseApplication(argv.application, argv.scopeId);
+  return parseApplication(argv.application, await resolveScopeId(argv));
 };
 
 /**
@@ -296,7 +297,7 @@ export const effectLines = (
 };
 
 export const start = async (argv: DevStartArgs) => {
-  const { scopeId, name } = target(argv);
+  const { scopeId, name } = await target(argv);
   const client = new RegistryClient(argv.registry);
   const remotes = await remotesOf(argv, client, scopeId);
   const body: CreateOverlayBody = {
@@ -453,7 +454,7 @@ const groupByPackage = (remotes: string[], owners: Record<string, string>) =>
   }, {});
 
 export const status = async (argv: DevStatusArgs) => {
-  const { scopeId, name } = target(argv);
+  const { scopeId, name } = await target(argv);
   const client = new RegistryClient(argv.registry);
   const [overlays, application] = await Promise.all([
     client.listOverlays(scopeId, name),
@@ -555,7 +556,7 @@ const overlayRedirecting = async (
 };
 
 export const stop = async (argv: DevStopArgs) => {
-  const { scopeId, name } = target(argv);
+  const { scopeId, name } = await target(argv);
   const client = new RegistryClient(argv.registry);
 
   // Stepping away from one micro-frontend should not revert every other one.

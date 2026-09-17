@@ -2,6 +2,7 @@
 import chalk from 'chalk';
 import { GlobalArgs } from '../util/args';
 import { ApplicationSummary, PackageSummary, RegistryClient } from '../util/registry';
+import { resolveScopeId } from '../util/scope';
 
 type PackagesArgs = GlobalArgs & { scope?: string };
 type PackageArgs = PackagesArgs & { name: string };
@@ -54,7 +55,7 @@ export const deprecate = async (argv: PackageArgs & { reason?: string; undo?: bo
   const [reference, version] = argv.name.split('@');
   const [scopeId, name] = reference.includes('/')
     ? reference.split('/')
-    : [argv.scope ?? argv.scopeId, reference];
+    : [argv.scope ?? (await resolveScopeId(argv)), reference];
 
   if (!version) {
     throw new Error(`Name a version to deprecate, as '${name}@1.2.3'.`);
@@ -76,7 +77,7 @@ export const deprecate = async (argv: PackageArgs & { reason?: string; undo?: bo
 
 export const list = async (argv: PackagesArgs) => {
   const client = new RegistryClient(argv.registry);
-  const scopeId = argv.scope ?? argv.scopeId;
+  const scopeId = argv.scope ?? (await resolveScopeId(argv));
   const [packages, applications] = await Promise.all([
     client.listPackages(scopeId),
     client.listApplications(scopeId),
@@ -109,7 +110,7 @@ export const get = async (argv: PackageArgs) => {
   const client = new RegistryClient(argv.registry);
   const [scopeId, name] = argv.name.includes('/')
     ? argv.name.split('/')
-    : [argv.scope ?? argv.scopeId, argv.name];
+    : [argv.scope ?? (await resolveScopeId(argv)), argv.name];
 
   const [versions, applications] = await Promise.all([
     client.packageVersions(scopeId, name),
@@ -136,7 +137,7 @@ export const describe = async (argv: PackageArgs) => {
   const [reference, version] = argv.name.split('@');
   const [scopeId, name] = reference.includes('/')
     ? reference.split('/')
-    : [argv.scope ?? argv.scopeId, reference];
+    : [argv.scope ?? (await resolveScopeId(argv)), reference];
 
   const [pkg, applications] = await Promise.all([
     client.getPackage(scopeId, name, version),
