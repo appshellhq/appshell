@@ -7,19 +7,36 @@ export type AppshellContext = {
   registry?: string;
   /** Activation target as `scope/name`. */
   application?: string;
-  scopeId: string;
+  /**
+   * The addressing default, if one is configured. Optional because there is no honest
+   * value to invent when there is not — see `qualify`.
+   */
+  scopeId?: string;
   token?: string;
 };
 
 const configPath = () =>
   process.env.APPSHELL_CONFIG || path.join(os.homedir(), '.appshell', 'config');
 
-const qualify = (name: string | undefined, scopeId: string): string | undefined => {
+/**
+ * Turns `name` into `scope/name`, or leaves it alone when there is no scope to use.
+ *
+ * It used to substitute the literal `default`, which named a scope nobody owns and nothing
+ * can publish into — so an unqualified application became `default/thing`, and the plugin
+ * activated into a namespace guaranteed to be empty. `activate` refuses an unqualified
+ * value with `Invalid application 'thing'. Expected 'scope/name'.`, which is both true and
+ * actionable; `default/thing` was neither.
+ *
+ * The plugin cannot do better than this. It has no account to ask at build time, so the
+ * choice is between saying nothing and inventing an answer, and the invented one failed
+ * silently.
+ */
+const qualify = (name: string | undefined, scopeId?: string): string | undefined => {
   if (!name) {
     return undefined;
   }
 
-  return name.includes('/') ? name : `${scopeId}/${name}`;
+  return name.includes('/') || !scopeId ? name : `${scopeId}/${name}`;
 };
 
 /**
@@ -30,10 +47,7 @@ const qualify = (name: string | undefined, scopeId: string): string | undefined 
  */
 export const resolveContext = (): AppshellContext => {
   const config = readConfig(configPath());
-  // Still falls back to 'default' here, unlike the cli, which stopped doing so in
-  // appshellhq/appshell#3. `qualify` needs a string and the plugin has no account to ask,
-  // so removing it changes behaviour rather than a name — tracked separately.
-  const scopeId = resolveDefaultScope(config) || 'default';
+  const scopeId = resolveDefaultScope(config);
   const application = qualify(process.env.APPSHELL_APPLICATION || config.application, scopeId);
   const registry = process.env.APPSHELL_REGISTRY || config.registry;
   const token = registry ? resolveToken(registry) : process.env.APPSHELL_TOKEN;
@@ -47,7 +61,7 @@ export const resolveContext = (): AppshellContext => {
  */
 export const persistedContext = (): { registry?: string; application?: string } => {
   const config = readConfig(configPath());
-  const scopeId = resolveDefaultScope(config, {}) || 'default';
+  const scopeId = resolveDefaultScope(config, {});
 
   return { registry: config.registry, application: qualify(config.application, scopeId) };
 };

@@ -2,6 +2,8 @@
 import { activate, openOverlay, persistedContext, publish, resolveContext } from '@appshell/config';
 import fs from 'fs';
 import { values } from 'lodash';
+import os from 'os';
+import path from 'path';
 import { rimrafSync } from 'rimraf';
 import { Compilation, container, DefinePlugin, WebpackOptionsNormalized } from 'webpack';
 import AppshellPlugin from '../src/AppshellPlugin';
@@ -157,7 +159,10 @@ describe('AppshellPlugin', () => {
     mocked.publish.mockResolvedValue({ id: 'acme/widgets@1.0.0', created: true });
     mocked.activate.mockResolvedValue(undefined);
     // Hermetic by default: no persisted CLI context, nothing resolved from ~/.appshell.
-    mocked.resolveContext.mockReturnValue({ scopeId: 'default' });
+    // An empty object is what that looks like now — `scopeId: 'default'` used to stand in
+    // for *nothing configured*, and it was a real-looking address for a namespace nobody
+    // owns, which is exactly why it stopped being invented.
+    mocked.resolveContext.mockReturnValue({});
     mocked.persistedContext.mockReturnValue({});
   });
 
@@ -455,9 +460,9 @@ describe('AppshellPlugin', () => {
         compiler.options.mode = 'development';
         compiler.options.devServer = { port: 3001 };
         mocked.resolveContext.mockReturnValue({
-          scopeId: 'default',
+          scopeId: 'acme',
           registry,
-          application: 'default/demo',
+          application: 'acme/demo',
           ...context,
         } as never);
 
@@ -466,6 +471,35 @@ describe('AppshellPlugin', () => {
 
       afterEach(() => {
         delete process.env.WEBPACK_SERVE;
+      });
+
+      /*
+       * An overlay addresses remotes as `scope/package/Component`, so with no scope there
+       * is no address. This used to be unreachable: the context substituted the literal
+       * `default`, so the overlay redirected `default/thing/Component` — an address no
+       * composition holds. The registry reported nothing wrong, the browser went on
+       * running the published bundle, and the developer was told their code was served.
+       */
+      it('should refuse to open an overlay it cannot address', async () => {
+        const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'appshell-unscoped-'));
+        fs.writeFileSync(
+          path.join(dir, 'package.json'),
+          JSON.stringify({ name: 'unscoped-thing', version: '1.0.0' }),
+        );
+
+        // Only the scope is missing. Dropping the application too would return earlier,
+        // at the "no application to overlay into" warning, and never reach this guard.
+        const plugin = serving({ scopeId: undefined });
+        compiler.context = dir;
+
+        plugin.apply(compiler as any);
+        await compiler.compile();
+
+        expect(mocked.openOverlay).not.toHaveBeenCalled();
+        // Said rather than thrown, which is what the other "cannot proceed" branches in
+        // this method do — and the developer's symptom is *my changes are not showing*,
+        // so the useful thing is a reason at the moment it happens.
+        expect(logger.warn).toHaveBeenCalledWith(expect.stringMatching(/declares no scope/));
       });
 
       /*
@@ -544,7 +578,7 @@ describe('AppshellPlugin', () => {
 
         expect(mocked.openOverlay).toHaveBeenCalledWith(
           registry,
-          'default/demo',
+          'acme/demo',
           expect.any(Object),
           undefined,
           expect.any(Object),
@@ -562,7 +596,7 @@ describe('AppshellPlugin', () => {
         expect(mocked.publish).not.toHaveBeenCalled();
         expect(mocked.openOverlay).toHaveBeenCalledWith(
           registry,
-          'default/demo',
+          'acme/demo',
           expect.any(Object),
           undefined,
           expect.any(Object),

@@ -446,6 +446,28 @@ export default class AppshellPlugin {
     const scopeId = declaredScope ?? contextScope;
 
     /*
+     * Refused rather than guessed. An overlay addresses remotes as
+     * `scope/package/Component`, so without a scope there is no address — and the failure
+     * this guard replaces was silent: `contextScope` used to fall back to the literal
+     * `default`, so the overlay redirected `default/checkout/Thing`, an address no
+     * composition holds. The registry reported nothing wrong, the browser went on running
+     * the published bundle, and the developer was told their code was being served.
+     *
+     * That is the same disagreement the comment above describes, reached from the other
+     * side, which is why it is worth an error rather than a warning.
+     */
+    if (!scopeId) {
+      logger.warn(
+        `Not opening an overlay for '${name}': it declares no scope in its package name ` +
+          'and no default scope is configured, so there is no address to redirect. Name ' +
+          "the package '@scope/name', or set one with " +
+          "'appshell config set default-scope <name>'.",
+      );
+
+      return;
+    }
+
+    /*
      * An overlay names remotes the way the registry addresses them — `scope/package/Component`
      * — rather than by the federation key this package builds with. The scope comes from
      * local configuration and the registry derives its own from the caller's token, so
