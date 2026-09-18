@@ -69,7 +69,7 @@ export type ComparisonTarget = {
 export const CLI_SETTINGS = [
   'registry',
   'application',
-  'scopeId',
+  'defaultScope',
   'authIssuer',
   'clientId',
   'apiKey',
@@ -89,7 +89,20 @@ export type CliConfig = Record<string, string> & {
   caFile?: string;
   registry: string;
   application: string;
-  scopeId: string;
+  /**
+   * Which namespace an unqualified name belongs to, absent anything better.
+   *
+   * Addressing only, and named for it. It was `scope-id`, which read as *the scope this
+   * account has* — identity — and it is not: the registry takes a caller's scope from the
+   * token, and this value never reaches it. Publishing takes it from the package name.
+   * So a `scope-id` here decided where names resolved while something else decided where
+   * writes landed, and the two could disagree without anything saying so.
+   *
+   * It earns its place all the same: `resolveScopeId` falls back to the account's own
+   * scope and deliberately refuses to guess when an account owns several, and this is how
+   * that is settled without passing a flag to every command.
+   */
+  defaultScope: string;
   authIssuer: string;
   clientId: string;
 };

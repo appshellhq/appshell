@@ -8,7 +8,7 @@
  */
 export type GlobalArgs = {
   registry: string;
-  /** Optional because it is resolved per command; see `resolveScopeId`. */
-  scopeId?: string;
+  /** The addressing default; resolved per command by `resolveScopeId`. */
+  defaultScope?: string;
   application?: string;
 };

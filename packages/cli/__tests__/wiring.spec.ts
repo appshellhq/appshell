@@ -229,11 +229,11 @@ describe('packages visibility', () => {
 
 describe('global options', () => {
   it('should reach a subcommand handler, since they are declared global', () => {
-    run('dev status --registry http://localhost:9999 --scopeId acme');
+    run('dev status --registry http://localhost:9999 --default-scope acme');
 
     expect(handedTo(dev.status)).toMatchObject({
       registry: 'http://localhost:9999',
-      scopeId: 'acme',
+      defaultScope: 'acme',
     });
   });
 
@@ -253,16 +253,28 @@ describe('global options', () => {
    * A default here would defeat that silently, because the first branch of the resolver
    * is `if (argv.scopeId) return argv.scopeId` and yargs would always have supplied one.
    */
-  it('should leave scopeId unset so it can be resolved per command', () => {
+  it('should leave the default scope unset so it can be resolved per command', () => {
     run('dev status');
 
-    expect(handedTo(dev.status)?.scopeId).toBeUndefined();
+    expect(handedTo(dev.status)?.defaultScope).toBeUndefined();
+  });
+
+  it('should read APPSHELL_DEFAULT_SCOPE', () => {
+    process.env.APPSHELL_DEFAULT_SCOPE = 'acme';
+
+    try {
+      run('dev status');
+
+      expect(handedTo(dev.status)?.defaultScope).toBe('acme');
+    } finally {
+      delete process.env.APPSHELL_DEFAULT_SCOPE;
+    }
   });
 
   it('should still let an explicit scope win over resolution', () => {
-    run('dev status --scopeId acme');
+    run('dev status --default-scope acme');
 
-    expect(handedTo(dev.status)?.scopeId).toBe('acme');
+    expect(handedTo(dev.status)?.defaultScope).toBe('acme');
   });
 });
 

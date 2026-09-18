@@ -13,7 +13,7 @@ export type OutdatedArgs = {
   apiKeyHeader: string | undefined;
   registry: string;
   application: string | undefined;
-  scopeId: string;
+  defaultScope?: string;
   workingDir: string;
   manager: string;
 };

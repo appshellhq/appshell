@@ -167,7 +167,7 @@ describe('AppshellPlugin', () => {
     delete process.env.APPSHELL_PUBLISH_ON_BUILD;
     delete process.env.APPSHELL_REGISTRY;
     delete process.env.APPSHELL_APPLICATION;
-    delete process.env.APPSHELL_SCOPE_ID;
+    delete process.env.APPSHELL_DEFAULT_SCOPE;
     rimrafSync(configsDir);
   });
 

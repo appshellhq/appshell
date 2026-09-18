@@ -45,17 +45,18 @@ describe('config init', () => {
     readConfigSpy.mockReturnValue({
       registry: 'https://old.example.com',
       application: 'old',
-      scopeId: 'acme',
+      defaultScope: 'acme',
     } as never);
 
     await init(args);
 
     expect(mkdirSyncSpy).not.toHaveBeenCalled();
     // What the file already held is kept; only what nothing supplies is left out.
+
     expect(writeConfigSpy).toHaveBeenCalledWith(args.config, {
       registry: 'https://registry.example.com',
       application: 'staging',
-      scopeId: 'acme',
+      defaultScope: 'acme',
       clientId: 'appshell-cli',
     });
   });

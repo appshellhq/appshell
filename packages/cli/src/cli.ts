@@ -3,7 +3,7 @@
 import os from 'os';
 import path from 'path';
 import yargs from 'yargs';
-import { readConfig } from '../../config/src/utils/config';
+import { readConfig, resolveDefaultScope } from '../../config/src/utils/config';
 // yargs derives --version by walking up for a package.json, which does not exist beside
 // a bundled CLI — so it reported 'unknown'. webpack inlines this at build time.
 import { version as cliVersion } from '../package.json';
@@ -121,7 +121,7 @@ const devStopCommand: yargs.CommandModule<GlobalArgs, DevStopArgs> = {
 };
 
 /*
- * `GlobalArgs` on both sides: registry, application and scopeId are declared with
+ * `GlobalArgs` on both sides: registry, application and defaultScope are declared with
  * `global: true` on the root parser before any command attaches, so by the time this
  * builder runs they are genuinely present — the type is describing what is there rather
  * than asserting it.
@@ -322,7 +322,7 @@ const initConfigCommand: yargs.CommandModule<unknown, InitArgs> = {
   command: 'init',
   aliases: ['i'],
   describe: 'Initialize the configuration',
-  // registry, application and scopeId arrive as global options; these two did not. They
+  // registry, application and defaultScope arrive as global options; these two did not. They
   // still reached the handler — the CLI is strictCommands() rather than strict(), so
   // yargs passes an undeclared option through — but nothing advertised them, and
   // `config init --help` was the only place a caller would look.
@@ -341,9 +341,9 @@ const initConfigCommand: yargs.CommandModule<unknown, InitArgs> = {
       })
       // Declared here without defaults so they shadow the global options, whose defaults
       // would otherwise make argv always carry a value and init write it as though it had
-      // been chosen — scopeId's global default is the literal 'default'.
-      .option('scopeId', {
-        describe: 'Scope that owns unqualified packages and applications',
+      // been chosen.
+      .option('defaultScope', {
+        describe: 'Scope that unqualified packages and applications resolve to',
         type: 'string',
       })
       .option('application', {
@@ -507,7 +507,7 @@ const publishCommand: yargs.CommandModule<GlobalArgs, PublishOptions> = {
 
 const unpublishCommand: yargs.CommandModule<
   unknown,
-  { registry: string; scopeId?: string; name: string; version: string }
+  { registry: string; defaultScope?: string; name: string; version: string }
 > = {
   command: 'unpublish <name> <version>',
   describe: 'Remove a published package version from the appshell registry',
@@ -522,7 +522,7 @@ const unpublishCommand: yargs.CommandModule<
       .positional('name', { type: 'string', demandOption: true })
       .positional('version', { type: 'string', demandOption: true }) as yargs.Argv<{
       registry: string;
-      scopeId?: string;
+      defaultScope?: string;
       name: string;
       version: string;
     }>,
@@ -578,13 +578,20 @@ export const buildCli = (args: string[]) => {
         type: 'string',
         global: true,
       })
-      // No default. An unset scope is resolved per command by `resolveScopeId`, which
-      // falls back to the package in the working directory and then to the scope the
-      // account owns. The literal 'default' that used to sit here named a scope nobody
-      // owns and nothing can publish into, so it addressed an empty namespace.
-      .option('scopeId', {
-        describe: 'Scope that owns unqualified packages and applications',
-        default: process.env.APPSHELL_SCOPE_ID || config.scopeId,
+      /*
+       * No default. An unset scope is resolved per command by `resolveScopeId`, which
+       * falls back to the package in the working directory and then to the scope the
+       * account owns. The literal 'default' that used to sit here named a scope nobody
+       * owns and nothing can publish into, so it addressed an empty namespace.
+       *
+       * `default-scope`, not `scope-id`. The old name described identity — the scope this
+       * account *has* — and the value has never been that: the registry takes a caller's
+       * scope from the token, publishing takes it from the package name, and this reaches
+       * neither. It says where an unqualified name resolves, and now says so.
+       */
+      .option('defaultScope', {
+        describe: 'Scope that unqualified packages and applications resolve to',
+        default: resolveDefaultScope(config),
         type: 'string',
         global: true,
       })

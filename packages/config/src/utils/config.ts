@@ -17,6 +17,23 @@ const readYaml = <T>(file: string) => yaml.parse(fs.readFileSync(file, 'utf-8'))
  *
  * The config carries `apiKey`, so what it printed was a credential.
  */
+/**
+ * The addressing default: which namespace an unqualified name resolves to.
+ *
+ * Named `default-scope` and not `scope-id`, because the old name described identity —
+ * *the scope this account has* — and the value has never been that. The registry takes a
+ * caller's scope from the token and publishing takes it from the package name; this
+ * reaches neither. A `scope-id` deciding where names resolved while something else decided
+ * where writes landed is how the two came to disagree without anything saying so.
+ *
+ * Stated once because the cli and the webpack plugin both need the answer, and two
+ * precedence chains for one setting is how they drift apart.
+ */
+export const resolveDefaultScope = (
+  config: { defaultScope?: string },
+  env: NodeJS.ProcessEnv = process.env,
+): string | undefined => env.APPSHELL_DEFAULT_SCOPE || config.defaultScope;
+
 export const readConfig = (configPath: string) => {
   if (fs.existsSync(configPath)) {
     const config = readYaml<CliConfig>(configPath) ?? ({} as CliConfig);

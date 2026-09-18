@@ -12,7 +12,7 @@ import { resolveScopeId } from '../../util/scope';
 
 export type AppArgs = {
   registry: string;
-  scopeId?: string;
+  defaultScope?: string;
   application?: string;
 };
 

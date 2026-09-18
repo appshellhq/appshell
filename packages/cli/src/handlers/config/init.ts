@@ -9,13 +9,13 @@ export type InitArgs = {
   config: string;
   registry?: string;
   application?: string;
-  scopeId?: string;
+  defaultScope?: string;
   authIssuer?: string;
   clientId?: string;
 };
 
 export default async (argv: InitArgs) => {
-  const { config, registry, application, scopeId, authIssuer, clientId } = argv;
+  const { config, registry, application, defaultScope, authIssuer, clientId } = argv;
 
   if (!fs.existsSync(config)) {
     console.log(`Creating configuration file at ${config}`);
@@ -27,7 +27,7 @@ export default async (argv: InitArgs) => {
   /*
    * Only values that mean something are written.
    *
-   * `application` and `scope-id` used to be seeded with the literal 'default'. Neither is
+   * `application` and `default-scope` used to be seeded with the literal 'default'. Neither is
    * a default anybody chose: there is no requirement that an application exist to publish
    * a package, and 'default' stopped being a scope a principal can write into when scope
    * started coming from the account. Writing them made a placeholder look like a decision,
@@ -41,7 +41,7 @@ export default async (argv: InitArgs) => {
       ...existing,
       registry: registry ?? existing.registry ?? 'http://localhost:7150',
       application: application ?? existing.application,
-      scopeId: scopeId ?? existing.scopeId,
+      defaultScope: defaultScope ?? existing.defaultScope,
       authIssuer: authIssuer ?? existing.authIssuer,
       clientId: clientId ?? existing.clientId ?? 'appshell-cli',
     },

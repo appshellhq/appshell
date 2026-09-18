@@ -20,7 +20,7 @@ import { RegistryClient } from './registry';
  * So the scope is resolved rather than assumed, in the order the answer is most likely to
  * be the one meant:
  *
- *   1. what the caller said, via `--scopeId`, `APPSHELL_SCOPE_ID`, or config
+ *   1. what the caller said, via `--default-scope`, `APPSHELL_DEFAULT_SCOPE`, or config
  *   2. what the package in this directory declares
  *   3. the scope the caller's account owns
  *
@@ -75,15 +75,15 @@ const fromAccount = async (registry: string): Promise<string> => {
   throw new Error(
     `Your account owns ${scopes.length} scopes, so which one is meant is ambiguous: ` +
       `${scopes.map((scope) => scope.id).join(', ')}. Qualify the name as 'scope/name', ` +
-      "pass --scopeId, or set a default with 'appshell config set scopeId <name>'.",
+      "pass --default-scope, or set one with 'appshell config set default-scope <name>'.",
   );
 };
 
 export const resolveScopeId = async (
-  argv: { registry: string; scopeId?: string },
+  argv: { registry: string; defaultScope?: string },
   cwd: string = process.cwd(),
 ): Promise<string> => {
-  if (argv.scopeId) return argv.scopeId;
+  if (argv.defaultScope) return argv.defaultScope;
 
   const declared = declaredScope(cwd);
   if (declared) return declared;

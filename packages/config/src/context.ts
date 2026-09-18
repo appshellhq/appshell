@@ -1,7 +1,7 @@
 import os from 'os';
 import path from 'path';
 import { resolveToken } from './credentials';
-import { readConfig } from './utils/config';
+import { readConfig, resolveDefaultScope } from './utils/config';
 
 export type AppshellContext = {
   registry?: string;
@@ -30,7 +30,10 @@ const qualify = (name: string | undefined, scopeId: string): string | undefined 
  */
 export const resolveContext = (): AppshellContext => {
   const config = readConfig(configPath());
-  const scopeId = process.env.APPSHELL_SCOPE_ID || config.scopeId || 'default';
+  // Still falls back to 'default' here, unlike the cli, which stopped doing so in
+  // appshellhq/appshell#3. `qualify` needs a string and the plugin has no account to ask,
+  // so removing it changes behaviour rather than a name — tracked separately.
+  const scopeId = resolveDefaultScope(config) || 'default';
   const application = qualify(process.env.APPSHELL_APPLICATION || config.application, scopeId);
   const registry = process.env.APPSHELL_REGISTRY || config.registry;
   const token = registry ? resolveToken(registry) : process.env.APPSHELL_TOKEN;
@@ -44,7 +47,7 @@ export const resolveContext = (): AppshellContext => {
  */
 export const persistedContext = (): { registry?: string; application?: string } => {
   const config = readConfig(configPath());
-  const scopeId = config.scopeId || 'default';
+  const scopeId = resolveDefaultScope(config, {}) || 'default';
 
   return { registry: config.registry, application: qualify(config.application, scopeId) };
 };

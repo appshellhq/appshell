@@ -45,9 +45,9 @@ describe('resolveScopeId', () => {
   it('should take what the caller said, without asking anything else', async () => {
     const listScopes = listing(['owned']);
 
-    await expect(resolveScopeId({ registry: 'r', scopeId: 'said' }, dirWith(null))).resolves.toBe(
-      'said',
-    );
+    await expect(
+      resolveScopeId({ registry: 'r', defaultScope: 'said' }, dirWith(null)),
+    ).resolves.toBe('said');
     expect(listScopes).not.toHaveBeenCalled();
   });
 
@@ -64,7 +64,9 @@ describe('resolveScopeId', () => {
   it('should let an explicit scope override the one the package declares', async () => {
     const cwd = dirWith({ name: '@acme/checkout', version: '1.0.0' });
 
-    await expect(resolveScopeId({ registry: 'r', scopeId: 'other' }, cwd)).resolves.toBe('other');
+    await expect(resolveScopeId({ registry: 'r', defaultScope: 'other' }, cwd)).resolves.toBe(
+      'other',
+    );
   });
 
   it('should fall back to the one scope the account owns', async () => {

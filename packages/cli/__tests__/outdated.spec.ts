@@ -49,7 +49,7 @@ describe('cli outdated', () => {
       workingDir,
       registry,
       application,
-      scopeId,
+      defaultScope: scopeId,
       manager: 'npm',
     });
 
@@ -72,7 +72,7 @@ describe('cli outdated', () => {
       workingDir,
       registry,
       application,
-      scopeId,
+      defaultScope: scopeId,
       manager: 'npm',
     });
 
@@ -93,7 +93,7 @@ describe('cli outdated', () => {
       workingDir,
       registry,
       application,
-      scopeId,
+      defaultScope: scopeId,
       manager: 'npm',
     });
 
@@ -114,7 +114,7 @@ describe('cli outdated', () => {
       workingDir,
       registry,
       application,
-      scopeId,
+      defaultScope: scopeId,
       manager: 'npm',
     });
 

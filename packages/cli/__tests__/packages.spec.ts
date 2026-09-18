@@ -63,7 +63,7 @@ describe('packages', () => {
 
   const output = () => logged.join('\n');
 
-  const argv = { registry: 'https://r', scopeId: 'appshell' } as never;
+  const argv = { registry: 'https://r', defaultScope: 'appshell' } as never;
 
   it('should say which version an application has activated', async () => {
     await list(argv);

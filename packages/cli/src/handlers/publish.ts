@@ -11,7 +11,7 @@ export type PublishArgs = {
   registry: string;
   /* Unused: the scope comes from the package name, or the registry falls back to the
    * publisher's own. Declared because it is a global option every handler receives. */
-  scopeId?: string;
+  defaultScope?: string;
   template?: string;
   name?: string;
   packageVersion?: string;
