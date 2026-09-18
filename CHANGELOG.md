@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.92](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.91...v1.0.0-alpha.92) (2026-09-18)
+
+### Bug Fixes
+
+- **cli:** resolve the scope to address instead of defaulting it ([c2ebc5e](https://github.com/appshellhq/appshell/commit/c2ebc5e2f8c4ebfb5594c54f07c6f7a9bd0d0f59)), closes [appshellhq/appshell#3](https://github.com/appshellhq/appshell/issues/3)
+- **config:** stop inventing a scope when none is configured ([2867adc](https://github.com/appshellhq/appshell/commit/2867adc9123f95170dca0fe4c3e70caf22879442)), closes [appshellhq/appshell#3](https://github.com/appshellhq/appshell/issues/3)
+
+### Features
+
+- **cli:** add packages visibility, and stop publish pretending to set it ([af36fbb](https://github.com/appshellhq/appshell/commit/af36fbb007a511ca0573d94da939837d6772fb53))
+- **cli:** read the publisher as a subject and a name ([6c58b28](https://github.com/appshellhq/appshell/commit/6c58b28836c80ec536f37bea50207008265eb715))
+
 # [1.0.0-alpha.91](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.90...v1.0.0-alpha.91) (2026-09-12)
 
 ### Bug Fixes
