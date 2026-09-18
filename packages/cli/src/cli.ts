@@ -247,7 +247,7 @@ const scopesCommand: yargs.CommandModule<GlobalArgs, GlobalArgs> = {
       .command({
         command: 'list',
         aliases: ['ls', '$0'],
-        describe: 'List the scopes you own',
+        describe: 'List the scopes you can publish into',
         handler: scopesList as never,
       })
       .command({

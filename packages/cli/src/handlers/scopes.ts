@@ -38,10 +38,18 @@ export const list = async (argv: GlobalArgs) => {
 
   const width = Math.max(...scopes.map((s) => s.id.length));
 
-  console.log(`\n${chalk.bold('Scopes you own')}\n`);
+  /*
+   * Not only the scopes you own: the registry lists what you may publish into, which
+   * includes the namespaces of organizations you belong to. Saying "own" here would make a
+   * namespace held by an organization look personal, and there is no way back from that
+   * misreading — an organization-owned scope cannot be transferred away by a member.
+   */
+  console.log(`\n${chalk.bold('Scopes you can publish into')}\n`);
   scopes.forEach((scope) => {
+    const held = scope.owner.kind === 'org' ? chalk.dim(`  via ${ownerOf(scope)}`) : '';
+
     console.log(
-      `  ${scope.id.padEnd(width)}  ${chalk.dim(`since ${scope.createdAt.slice(0, 10)}`)}`,
+      `  ${scope.id.padEnd(width)}  ${chalk.dim(`since ${scope.createdAt.slice(0, 10)}`)}${held}`,
     );
   });
   console.log();
