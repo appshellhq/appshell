@@ -12,7 +12,12 @@
 # gets deactivated.
 apiVersion: registry.appshell.org/v1
 kind: Application
-name: appshell-example
+# Scope-qualified, so this file says where the application belongs rather than
+# landing wherever the applier's token happens to point. Checked in, visible in
+# review, and identical whoever runs it — the same reason a package name carries
+# its scope. Applying it requires owning `appshell`; a scope you do not own is
+# refused rather than quietly swapped for yours.
+name: appshell/appshell-example
 spec:
   shell:
     # Addressed by what the registry knows — scope/package/Component — rather than by the
