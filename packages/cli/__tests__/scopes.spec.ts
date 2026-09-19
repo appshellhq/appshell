@@ -1,4 +1,4 @@
-import { create, get, list } from '../src/handlers/scopes';
+import { create, get, list, transfer } from '../src/handlers/scopes';
 import { RegistryClient } from '../src/util/registry';
 
 jest.mock('../src/util/registry');
@@ -26,6 +26,10 @@ describe('scopes', () => {
           createScope: jest.fn().mockResolvedValue({ scope: scope('acme'), created: true }),
           listScopes: jest.fn().mockResolvedValue([scope('acme'), scope('other')]),
           getScope: jest.fn().mockResolvedValue(scope('acme')),
+          transferScope: jest.fn().mockResolvedValue({
+            ...scope('acme'),
+            owner: { kind: 'org', id: 'acme-inc' },
+          }),
           ...over,
         } as never),
     );
@@ -97,5 +101,54 @@ describe('scopes', () => {
     wire({ getScope: jest.fn().mockRejectedValue(new Error('Failed to get scope: 500 boom')) });
 
     await expect(get({ ...(argv as object), name: 'acme' } as never)).rejects.toThrow(/500/);
+  });
+
+  /*
+   * appshellhq/appshell-services#32. The api could transfer a scope and nothing could
+   * reach it, so the only way to move a namespace was an http request written by hand.
+   */
+  describe('transfer', () => {
+    const args = { ...(argv as object), name: 'acme', organization: 'acme-inc' } as never;
+
+    it('hands the scope to the organization named', async () => {
+      const transferScope = jest.fn().mockResolvedValue({
+        ...scope('acme'),
+        owner: { kind: 'org' as const, id: 'acme-inc' },
+      });
+      wire({ transferScope });
+
+      await transfer(args);
+
+      expect(transferScope).toHaveBeenCalledWith('acme', 'acme-inc');
+    });
+
+    it('names the organization that now owns it', async () => {
+      await transfer(args);
+
+      expect(output()).toContain('org acme-inc');
+    });
+
+    /*
+     * There is no route that returns an organization-owned scope to a person, so somebody
+     * who ran this by mistake needs to know that straight away rather than discover it by
+     * looking for the command that undoes it.
+     */
+    it('says the scope is no longer yours', async () => {
+      await transfer(args);
+
+      expect(output()).toMatch(/no longer by you/i);
+    });
+
+    /* A refusal is the interesting answer here: not a member, or not the owner. */
+    it('surfaces a refusal rather than reporting success', async () => {
+      wire({
+        transferScope: jest
+          .fn()
+          .mockRejectedValue(new Error("403 You are not a member of organization 'acme-inc'")),
+      });
+
+      await expect(transfer(args)).rejects.toThrow(/not a member/);
+      expect(output()).not.toMatch(/Transferred/);
+    });
   });
 });

@@ -4,6 +4,7 @@ import { GlobalArgs } from '../util/args';
 import { RegistryClient, ScopeSummary } from '../util/registry';
 
 type ScopeArgs = GlobalArgs & { name: string };
+type TransferArgs = ScopeArgs & { organization: string };
 
 /**
  * A scope is a namespace someone owns, and it is half of every package address. Publishing
@@ -76,4 +77,26 @@ export const get = async (argv: ScopeArgs) => {
 
     throw error;
   }
+};
+
+/**
+ * Hands a namespace to an organization.
+ *
+ * The api has had this since scopes became transferable and nothing could reach it, so the
+ * only way to move a namespace was an http request written by hand — the same gap
+ * `scopes create` filled for claiming. appshellhq/appshell-services#32.
+ *
+ * Deliberately blunt about being one-way. There is no route that returns an
+ * organization-owned scope to a person, so a transfer made by mistake is not undone by
+ * running something else; it is undone by an administrator of the organization, if there
+ * is one, and by nobody at all if there is not.
+ */
+export const transfer = async (argv: TransferArgs) => {
+  const client = new RegistryClient(argv.registry);
+  const scope = await client.transferScope(argv.name, argv.organization);
+
+  console.log(
+    chalk.green(`Transferred ${scope.id}`) +
+      chalk.dim(` — now owned by ${ownerOf(scope)}, and no longer by you`),
+  );
 };

@@ -24,7 +24,12 @@ import {
   visibility as packagesVisibility,
 } from './handlers/packages';
 import publishHandler from './handlers/publish';
-import { create as scopesCreate, get as scopesGet, list as scopesList } from './handlers/scopes';
+import {
+  create as scopesCreate,
+  get as scopesGet,
+  list as scopesList,
+  transfer as scopesTransfer,
+} from './handlers/scopes';
 import * as theme from './handlers/theme';
 import { ThemeGetArgs, ThemeInitArgs, ThemeListArgs, ThemePublishArgs } from './handlers/theme';
 import { GlobalArgs } from './util/args';
@@ -259,6 +264,11 @@ const scopesCommand: yargs.CommandModule<GlobalArgs, GlobalArgs> = {
         command: 'get <name>',
         describe: 'Show a scope and who owns it, or that it is unclaimed',
         handler: scopesGet as never,
+      })
+      .command({
+        command: 'transfer <name> <organization>',
+        describe: 'Hand a scope to an organization you belong to (one way)',
+        handler: scopesTransfer as never,
       }),
   handler: () => undefined,
 };

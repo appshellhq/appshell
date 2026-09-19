@@ -431,6 +431,23 @@ export class RegistryClient {
     return this.send<ScopeSummary[]>('get', '/v1/scopes', 'list scopes');
   }
 
+  /**
+   * Hands a namespace to an organization.
+   *
+   * One direction only, and no way back: an organization-owned scope has no route that
+   * returns it to a person. The registry refuses unless the caller owns the scope *and*
+   * belongs to the organization receiving it — the second half being the thing that stops
+   * a namespace being handed somewhere nobody who wanted it can administer.
+   */
+  transferScope(id: string, organizationId: string) {
+    return this.send<ScopeSummary>(
+      'post',
+      `/v1/scopes/${id}/ownership`,
+      `transfer scope ${id} to ${organizationId}`,
+      { organizationId },
+    );
+  }
+
   /** 404 when the name is unclaimed, which is the question this usually answers. */
   getScope(id: string) {
     return this.send<ScopeSummary>('get', `/v1/scopes/${id}`, `get scope ${id}`);
