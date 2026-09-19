@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.96](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.95...v1.0.0-alpha.96) (2026-09-19)
+
+### Features
+
+- **cli:** hand a scope to an organization ([7b70e89](https://github.com/appshellhq/appshell/commit/7b70e894509b0b72035205c274b27845c5b2b9fb)), closes [appshellhq/appshell-services#32](https://github.com/appshellhq/appshell-services/issues/32)
+
 # [1.0.0-alpha.95](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.94...v1.0.0-alpha.95) (2026-09-19)
 
 **Note:** Version bump only for package @appshell/cli
