@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.94](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.93...v1.0.0-alpha.94) (2026-09-19)
+
+### Bug Fixes
+
+- **cli:** stop calling an organization's namespace one you own ([4070a65](https://github.com/appshellhq/appshell/commit/4070a65b64d027a17dfe38157bfde671e2160471))
+
 # [1.0.0-alpha.93](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.92...v1.0.0-alpha.93) (2026-09-18)
 
 **Note:** Version bump only for package appshell
