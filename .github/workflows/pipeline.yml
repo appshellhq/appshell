@@ -483,9 +483,11 @@ jobs:
       - name: Build
         run: npm run build
 
-      # Trusted publishing (OIDC) auto-generates provenance; setting
-      # NPM_CONFIG_PROVENANCE on top of it submits a duplicate attestation and
-      # Rekor rejects it with a 409. --concurrency 1 avoids any tlog race.
+      # Trusted publishing (OIDC) generates provenance on its own, and Rekor
+      # intermittently rejects an attestation with a 409 saying an equivalent entry already
+      # exists. It hits a package or two out of eight and the rest publish fine, so the
+      # release ends up split across two versions rather than failing outright.
+      # --concurrency 1 avoids any tlog race between packages.
       - name: Publish
         shell: bash
         run: |
@@ -496,13 +498,26 @@ jobs:
             exit 0
           fi
 
-          if grep -q "TLOG_CREATE_ENTRY_ERROR" "$publish_log"; then
-            echo "::warning::npm transparency log returned 409; retrying publish with provenance disabled."
-            NPM_CONFIG_PROVENANCE=false npx lerna publish --yes --concurrency 1 from-git
-            exit $?
+          if ! grep -q "TLOG_CREATE_ENTRY_ERROR" "$publish_log"; then
+            exit 1
           fi
 
-          exit 1
+          echo "::warning::npm transparency log returned 409; retrying whatever did not land."
+
+          # A failed publish leaves lerna's own work in the tree: it rewrites internal
+          # workspace dependency ranges to concrete versions before packing and restores
+          # them afterwards, so a mid-run exit leaves every package.json modified. lerna
+          # then refuses to publish from a dirty tree, which is how the previous retry
+          # died in under a second with EUNCOMMIT having published nothing at all.
+          git checkout -- .
+
+          # from-package, not from-git. from-git publishes everything the tag names without
+          # asking npm what is already there, so a retry re-attempts the packages that
+          # already succeeded and fails on them. from-package reads each package's version
+          # and queries the registry, so it publishes only what is genuinely missing —
+          # which is the property a retry needs and the reason one attempt could leave six
+          # packages on the new version and two on the old.
+          npx lerna publish --yes --concurrency 1 from-package
 
       - name: Push CI commit
         run: git push --follow-tags
