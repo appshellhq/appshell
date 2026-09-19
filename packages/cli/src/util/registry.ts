@@ -448,6 +448,21 @@ export class RegistryClient {
     );
   }
 
+  /**
+   * Gives up a namespace.
+   *
+   * The registry decides whether the name returns to the pool or is spent for good, and
+   * says which in `outcome` — a scope that never published anything is *released* and can
+   * be claimed again; one that published is *retired* and its name never can.
+   */
+  releaseScope(id: string) {
+    return this.send<{ scopeId: string; outcome: 'released' | 'retired'; message: string }>(
+      'delete',
+      `/v1/scopes/${id}`,
+      `release scope ${id}`,
+    );
+  }
+
   /** 404 when the name is unclaimed, which is the question this usually answers. */
   getScope(id: string) {
     return this.send<ScopeSummary>('get', `/v1/scopes/${id}`, `get scope ${id}`);

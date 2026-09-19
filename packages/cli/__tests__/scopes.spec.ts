@@ -1,4 +1,4 @@
-import { create, get, list, transfer } from '../src/handlers/scopes';
+import { create, get, list, release, transfer } from '../src/handlers/scopes';
 import { RegistryClient } from '../src/util/registry';
 
 jest.mock('../src/util/registry');
@@ -26,6 +26,9 @@ describe('scopes', () => {
           createScope: jest.fn().mockResolvedValue({ scope: scope('acme'), created: true }),
           listScopes: jest.fn().mockResolvedValue([scope('acme'), scope('other')]),
           getScope: jest.fn().mockResolvedValue(scope('acme')),
+          releaseScope: jest
+            .fn()
+            .mockResolvedValue({ scopeId: 'acme', outcome: 'released', message: 'free again' }),
           transferScope: jest.fn().mockResolvedValue({
             ...scope('acme'),
             owner: { kind: 'org', id: 'acme-inc' },
@@ -149,6 +152,58 @@ describe('scopes', () => {
 
       await expect(transfer(args)).rejects.toThrow(/not a member/);
       expect(output()).not.toMatch(/Transferred/);
+    });
+  });
+
+  /*
+   * appshellhq/appshell-services#32. The caller does not choose the outcome — a scope that
+   * never published is released and its name returns to the pool, one that published is
+   * retired and the name is spent — so the command must report which happened rather than
+   * claim either.
+   */
+  describe('release', () => {
+    const args = { ...(argv as object), name: 'acme' } as never;
+
+    it('should ask the registry to give up the scope', async () => {
+      const releaseScope = jest
+        .fn()
+        .mockResolvedValue({ scopeId: 'acme', outcome: 'released', message: 'free again' });
+      wire({ releaseScope });
+
+      await release(args);
+
+      expect(releaseScope).toHaveBeenCalledWith('acme');
+    });
+
+    it('should say the name is free when it was released', async () => {
+      await release(args);
+
+      expect(output()).toMatch(/free again/i);
+      expect(output()).not.toMatch(/spent/i);
+    });
+
+    /* The outcomes are not interchangeable, and a retirement reported as a release would
+     * tell somebody they could reclaim a name that is gone for good. */
+    it('should say the name is spent when it was retired', async () => {
+      wire({
+        releaseScope: jest
+          .fn()
+          .mockResolvedValue({ scopeId: 'acme', outcome: 'retired', message: 'cannot be reused' }),
+      });
+
+      await release(args);
+
+      expect(output()).toMatch(/Retired acme/);
+      expect(output()).toMatch(/spent/i);
+    });
+
+    it('should surface a refusal rather than reporting success', async () => {
+      wire({
+        releaseScope: jest.fn().mockRejectedValue(new Error('422 Scope still holds 2 packages')),
+      });
+
+      await expect(release(args)).rejects.toThrow(/still holds/);
+      expect(output()).not.toMatch(/Released|Retired/);
     });
   });
 });

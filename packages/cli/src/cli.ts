@@ -28,6 +28,7 @@ import {
   create as scopesCreate,
   get as scopesGet,
   list as scopesList,
+  release as scopesRelease,
   transfer as scopesTransfer,
 } from './handlers/scopes';
 import * as theme from './handlers/theme';
@@ -264,6 +265,11 @@ const scopesCommand: yargs.CommandModule<GlobalArgs, GlobalArgs> = {
         command: 'get <name>',
         describe: 'Show a scope and who owns it, or that it is unclaimed',
         handler: scopesGet as never,
+      })
+      .command({
+        command: 'release <name>',
+        describe: 'Give up a scope; the name is freed only if it never published',
+        handler: scopesRelease as never,
       })
       .command({
         command: 'transfer <name> <organization>',

@@ -100,3 +100,27 @@ export const transfer = async (argv: TransferArgs) => {
       chalk.dim(` — now owned by ${ownerOf(scope)}, and no longer by you`),
   );
 };
+
+/**
+ * Gives up a namespace.
+ *
+ * Two outcomes, and the caller does not choose between them: a scope that never published
+ * anything is released and its name returns to the pool, and one that published is retired
+ * with its name spent for good. Reported afterwards rather than asked about beforehand,
+ * because which applies is a fact about the scope — and the command is the same either way.
+ *
+ * appshellhq/appshell-services#32, which was filed after claiming `navaris-labs` by mistake
+ * and finding that the only way to remove it was to edit the database by hand.
+ */
+export const release = async (argv: ScopeArgs) => {
+  const client = new RegistryClient(argv.registry);
+  const { outcome, message } = await client.releaseScope(argv.name);
+
+  console.log(
+    outcome === 'released'
+      ? chalk.green(`Released ${argv.name}`) + chalk.dim(' — the name is free again')
+      : chalk.yellow(`Retired ${argv.name}`) +
+          chalk.dim(' — it published before, so the name is spent'),
+  );
+  console.log(chalk.dim(message));
+};
