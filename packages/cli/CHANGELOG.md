@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.98](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.97...v1.0.0-alpha.98) (2026-10-09)
+
+### Bug Fixes
+
+- **cli:** the device grant sends PKCE, as appshell's realm requires ([6ff25e0](https://github.com/appshellhq/appshell/commit/6ff25e08635744fbc5ca0c6ab718e5df37691dd6)), closes [navaris/argocd-deployment-repo#208](https://github.com/navaris/argocd-deployment-repo/issues/208)
+
 # [1.0.0-alpha.97](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.96...v1.0.0-alpha.97) (2026-09-19)
 
 ### Features
