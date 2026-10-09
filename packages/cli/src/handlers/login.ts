@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import chalk from 'chalk';
+import { createHash, randomBytes } from 'crypto';
 import axios from '../util/axios';
 import { clearCredential, saveCredential } from '../util/credentials';
 
@@ -41,6 +42,31 @@ const discover = async (issuer: string) => {
   return data;
 };
 
+/**
+ * PKCE (RFC 7636) for the device grant. The client is public, so nothing but the device code
+ * ties the token to the process that asked for it: anyone who reads that off the wire, or the
+ * user code off a screen, could poll for the token. With a challenge sent at authorization and
+ * the verifier only at redemption, the token goes to this process alone. Keycloak enforces it
+ * on any client that requires S256, as appshell-cli in the appshell realm does.
+ */
+export const pkcePair = () => {
+  const verifier = randomBytes(32).toString('base64url');
+  const challenge = createHash('sha256').update(verifier).digest('base64url');
+
+  return { verifier, challenge };
+};
+
+/** What the authorization server said, rather than axios's "status code 400". */
+const oauthError = (err: unknown) => {
+  const data = (err as { response?: { data?: { error?: string; error_description?: string } } })
+    .response?.data;
+
+  return {
+    error: data?.error,
+    message: data?.error_description ?? data?.error ?? (err as Error).message,
+  };
+};
+
 const form = (fields: Record<string, string | undefined>) =>
   new URLSearchParams(
     Object.entries(fields).filter(([, value]) => value !== undefined) as [string, string][],
@@ -72,10 +98,22 @@ const deviceGrant = async (
   clientId: string,
   scope: string,
 ): Promise<TokenResponse> => {
-  const { data: authorization } = await axios.post<DeviceAuthorization>(
-    deviceEndpoint,
-    form({ client_id: clientId, scope }),
-  );
+  const { verifier, challenge } = pkcePair();
+
+  let authorization: DeviceAuthorization;
+  try {
+    ({ data: authorization } = await axios.post<DeviceAuthorization>(
+      deviceEndpoint,
+      form({
+        client_id: clientId,
+        scope,
+        code_challenge: challenge,
+        code_challenge_method: 'S256',
+      }),
+    ));
+  } catch (err) {
+    throw new Error(`Device authorization failed: ${oauthError(err).message}`);
+  }
 
   console.log(
     `\nTo sign in, visit ${chalk.cyan(
@@ -103,17 +141,18 @@ const deviceGrant = async (
           grant_type: 'urn:ietf:params:oauth:grant-type:device_code',
           device_code: authorization.device_code,
           client_id: clientId,
+          code_verifier: verifier,
         }),
       );
 
       return data;
     } catch (err) {
-      const error = (err as { response?: { data?: { error?: string } } }).response?.data?.error;
+      const { error, message } = oauthError(err);
 
       if (error === 'slow_down') {
         interval += 5;
       } else if (error !== 'authorization_pending') {
-        throw new Error(`Authorization failed: ${error ?? (err as Error).message}`);
+        throw new Error(`Authorization failed: ${message}`);
       }
     }
   }
