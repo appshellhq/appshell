@@ -75,6 +75,7 @@ export const CLI_SETTINGS = [
   'apiKey',
   'apiKeyHeader',
   'caFile',
+  'api',
 ] as const;
 
 export type CliSetting = (typeof CLI_SETTINGS)[number];
@@ -87,6 +88,12 @@ export type CliConfig = Record<string, string> & {
    * worth writing, and its absence means "use Node's defaults".
    */
   caFile?: string;
+  /**
+   * The platform api the registry's organizations live on, e.g. https://api.appshell.org.
+   * Optional: absent, `appshell org` derives it from the auth issuer's host (auth.<domain> →
+   * api.<domain>), and a registry run without a platform behind it has no organizations.
+   */
+  api?: string;
   registry: string;
   application: string;
   /**
