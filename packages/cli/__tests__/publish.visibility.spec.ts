@@ -20,6 +20,13 @@ jest.mock('@appshell/config', () => ({
 describe('declared visibility', () => {
   let dir: string;
   const original = process.env.APPSHELL_CREDENTIALS;
+  /*
+   * Cleared so a CI job granted `id-token: write` — this repository's own pipeline grants
+   * it workflow-wide — does not have publish ask the real runner for a token mid-test.
+   */
+  const ambient = ['ACTIONS_ID_TOKEN_REQUEST_URL', 'ACTIONS_ID_TOKEN_REQUEST_TOKEN'].map(
+    (name) => [name, process.env[name]] as const,
+  );
 
   const template = (visibility?: string) =>
     fs.writeFileSync(
@@ -30,6 +37,7 @@ describe('declared visibility', () => {
   beforeEach(() => {
     dir = fs.mkdtempSync(path.join(os.tmpdir(), 'appshell-vis-'));
     process.env.APPSHELL_CREDENTIALS = path.join(dir, 'credentials');
+    ambient.forEach(([name]) => delete process.env[name]);
     fs.writeFileSync(
       path.join(dir, 'package.json'),
       JSON.stringify({ name: '@scope/thing', version: '1.2.3' }),
@@ -43,6 +51,9 @@ describe('declared visibility', () => {
 
   afterEach(() => {
     process.env.APPSHELL_CREDENTIALS = original;
+    ambient.forEach(([name, value]) => {
+      if (value !== undefined) process.env[name] = value;
+    });
     fs.rmSync(dir, { recursive: true, force: true });
     jest.restoreAllMocks();
     jest.clearAllMocks();

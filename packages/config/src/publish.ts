@@ -19,7 +19,27 @@ export type PublishOptions = {
   metadata?: Metadata;
   /** Ask the registry to overwrite an existing version whose content differs. */
   force?: boolean;
+  /**
+   * What a refusal goes on to say, in place of the default advice to log in.
+   *
+   * That advice is right for a person and wrong for a CI workflow publishing as itself
+   * with trusted publishing: it cannot log in, and what refused it is a trust record on
+   * the scope or the registry's own settings. Given the status and the registry's reason;
+   * returning nothing keeps the default.
+   */
+  advise?: Advise;
 };
+
+/** Advice to follow a refusal with. Nothing keeps the default. */
+export type Advise = (status: number, reason: string) => string | undefined;
+
+/**
+ * A refused publish, carrying the status the registry answered with when it answered.
+ *
+ * The message is still the whole story for a person reading it; the status is for a
+ * caller that decides what to do next by it, rather than by matching the message.
+ */
+export type PublishError = Error & { status?: number };
 
 export type PublishResult = {
   /** `scope/name@version`. From the package name where it declares one, else the token. */
@@ -32,7 +52,7 @@ export type PublishResult = {
 const authorization = (token?: string) =>
   token ? { Authorization: `Bearer ${token}` } : undefined;
 
-const describe = (error: unknown) => {
+const describe = (error: unknown, advise?: Advise) => {
   const { response } = error as {
     response?: { status: number; data?: { message?: unknown } };
   };
@@ -42,13 +62,13 @@ const describe = (error: unknown) => {
   }
 
   const { message } = response.data ?? {};
-  const detail = `${response.status} ${
-    Array.isArray(message) ? message.join(', ') : message ?? ''
-  }`.trim();
+  const reason = `${Array.isArray(message) ? message.join(', ') : message ?? ''}`.trim();
+  const detail = `${response.status} ${reason}`.trim();
+  const advice =
+    advise?.(response.status, reason) ??
+    (response.status === 401 ? 'Run `appshell login` or set APPSHELL_TOKEN.' : '');
 
-  return response.status === 401
-    ? `${detail} Run \`appshell login\` or set APPSHELL_TOKEN.`
-    : detail;
+  return `${detail} ${advice}`.trim();
 };
 
 /**
@@ -66,6 +86,7 @@ export const publish = async ({
   visibility,
   metadata,
   force,
+  advise,
 }: PublishOptions): Promise<PublishResult> => {
   /*
    * An exposed entrypoint describes the artifact, so nothing on one may still be a
@@ -102,7 +123,13 @@ export const publish = async ({
 
     return data;
   } catch (error) {
-    throw new Error(`Failed to publish ${name}@${version}: ${describe(error)}`);
+    const refused: PublishError = new Error(
+      `Failed to publish ${name}@${version}: ${describe(error, advise)}`,
+    );
+
+    refused.status = (error as { response?: { status: number } }).response?.status;
+
+    throw refused;
   }
 };
 
