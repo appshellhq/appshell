@@ -50,6 +50,8 @@ Commands:
   appshell logout                      Discard the stored credential for a registry
   appshell publish                     Publish a package to the appshell registry
   appshell unpublish <name> <version>  Remove a published package version
+  appshell trust                       Trust CI workflows to publish into a scope
+                                       without a stored secret
   appshell outdated                    Analyzes shared dependencies for outdated versions
 ```
 
@@ -92,7 +94,8 @@ appshell logout
 
 The token is stored per registry. A registry running `AUTH_MODE=none` needs none —
 commands only fail when the registry says so, and a 401 tells you to log in.
-`APPSHELL_TOKEN` overrides the stored credential.
+`APPSHELL_TOKEN` overrides the stored credential. A GitHub Actions job can publish with
+neither — see [Trusted publishing](#trusted-publishing).
 
 ## Publishing a package
 
@@ -115,6 +118,51 @@ forcing. When `--application` resolves, publish also **activates** the version t
 ```bash
 appshell unpublish checkout 1.5.0
 ```
+
+## Trusted publishing
+
+A GitHub Actions workflow can publish into a scope with its own OIDC identity, so no
+secret is stored anywhere. The scope's owner — or an organization admin, for a scope an
+organization owns — records which workflow may:
+
+```bash
+appshell trust add acme --github acme/widgets --workflow pipeline.yml --environment production
+appshell trust list acme
+appshell trust remove acme 1b2c3d4e     # the id as `list` shows it
+```
+
+`trust add` looks the repository up on GitHub and records it by its immutable ids, so a
+renamed or transferred repository, or a new one taking the old name, does not inherit the
+trust. Set `GITHUB_TOKEN` (or `GH_TOKEN`) to look up a private repository; `--github-api
+https://<host>/api/v3` and `--issuer` cover GitHub Enterprise Server. Naming an
+`--environment` is recommended: its protection rules then decide which branches and
+reviewers can publish.
+
+The workflow needs `id-token: write` and the registry's address, nothing else:
+
+```yaml
+permissions: { id-token: write, contents: read }
+env: { APPSHELL_REGISTRY: https://registry.appshell.org }
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      # ...build...
+      - run: npx appshell publish
+```
+
+With no `APPSHELL_TOKEN` and no stored login for the registry, `appshell publish` asks the
+runner for a token whose audience is the registry url as configured, without a trailing
+slash — the registry's `TRUSTED_PUBLISHING_AUDIENCE` must be exactly that — and presents
+it for that one request. Each publish mints its own and none is stored. An explicit
+`APPSHELL_TOKEN` or stored login wins, so a job that sets one publishes as that account.
+
+The package must name its scope, as `@acme/widgets`: a workflow has no namespace of its
+own. A refusal says what to check — `appshell trust list <scope>` and the job's
+environment, or that the registry does not have trusted publishing enabled, in which case
+publish retries once without a token for a registry that needs none (`AUTH_MODE=none`).
 
 ## Declaring an application
 

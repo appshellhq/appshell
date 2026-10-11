@@ -18,7 +18,14 @@ export { default as outdated } from './outdated';
 export { parsePackageName } from './package-name';
 export type { PackageName } from './package-name';
 export { activate, openOverlay, publish } from './publish';
-export type { OpenedOverlay, OverlayRemotePatch, PublishOptions, PublishResult } from './publish';
+export type {
+  Advise,
+  OpenedOverlay,
+  OverlayRemotePatch,
+  PublishError,
+  PublishOptions,
+  PublishResult,
+} from './publish';
 export { default as sync } from './sync';
 export { caFile, httpsAgent } from './tls';
 export type {

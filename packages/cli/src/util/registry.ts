@@ -263,6 +263,29 @@ export type ScopeSummary = {
   createdAt: string;
 };
 
+/** A workflow to trust, with the repository already resolved to GitHub's ids. */
+export type AddTrustedPublisherBody = {
+  provider: 'github';
+  /** `owner/repo`, for display. The registry matches on the ids. */
+  repository: string;
+  repositoryId: string;
+  repositoryOwnerId: string;
+  /** The full path, `.github/workflows/<file>.yml`. */
+  workflow: string;
+  environment?: string;
+  /** Omitted means GitHub Actions on github.com. */
+  issuer?: string;
+};
+
+/** A workflow trusted to publish into a scope. appshellhq/appshell-services#51. */
+export type TrustedPublisher = AddTrustedPublisherBody & {
+  id: string;
+  scopeId: string;
+  issuer: string;
+  createdAt: string;
+  createdBy: Actor;
+};
+
 export class RegistryClient {
   readonly baseUrl: string;
 
@@ -466,6 +489,41 @@ export class RegistryClient {
   /** 404 when the name is unclaimed, which is the question this usually answers. */
   getScope(id: string) {
     return this.send<ScopeSummary>('get', `/v1/scopes/${id}`, `get scope ${id}`);
+  }
+
+  /**
+   * Trusts a CI workflow to publish into a scope, presenting its own OIDC token instead of
+   * a stored secret.
+   *
+   * Idempotent: a record matching one already there is reported with `created: false`
+   * rather than duplicated. The scope's owner, or an organization admin for an
+   * organization-owned scope, is who may — the question is who decides who else writes,
+   * not who may write.
+   */
+  addTrustedPublisher(scopeId: string, body: AddTrustedPublisherBody) {
+    return this.send<{ publisher: TrustedPublisher; created: boolean; message: string }>(
+      'post',
+      `/v1/scopes/${scopeId}/trusted-publishers`,
+      `trust ${body.repository} to publish into ${scopeId}`,
+      body,
+    );
+  }
+
+  listTrustedPublishers(scopeId: string) {
+    return this.send<TrustedPublisher[]>(
+      'get',
+      `/v1/scopes/${scopeId}/trusted-publishers`,
+      `list trusted publishers of ${scopeId}`,
+    );
+  }
+
+  /** Revocation is this and nothing else: there is no secret to rotate. */
+  removeTrustedPublisher(scopeId: string, id: string) {
+    return this.send<{ id: string; message: string }>(
+      'delete',
+      `/v1/scopes/${scopeId}/trusted-publishers/${encodeURIComponent(id)}`,
+      `remove trusted publisher ${id} from ${scopeId}`,
+    );
   }
 
   createApplication(body: CreateApplicationBody) {

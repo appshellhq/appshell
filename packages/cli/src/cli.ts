@@ -15,6 +15,7 @@ import * as dev from './handlers/dev';
 import { DevStartArgs, DevStatusArgs, DevStopArgs } from './handlers/dev';
 import generateManifestHandler, { GenerateManifestArgs } from './handlers/generate.manifest';
 import loginHandler, { LoginArgs, logout } from './handlers/login';
+import { membersAdd, membersList, create as orgCreate } from './handlers/org';
 import outdatedHandler, { OutdatedArgs } from './handlers/outdated';
 import {
   deprecate as packagesDeprecate,
@@ -31,11 +32,12 @@ import {
   release as scopesRelease,
   transfer as scopesTransfer,
 } from './handlers/scopes';
-import { create as orgCreate, membersAdd, membersList } from './handlers/org';
-import whoami from './handlers/whoami';
 import * as theme from './handlers/theme';
 import { ThemeGetArgs, ThemeInitArgs, ThemeListArgs, ThemePublishArgs } from './handlers/theme';
+import { add as trustAdd, list as trustList, remove as trustRemove } from './handlers/trust';
+import whoami from './handlers/whoami';
 import { GlobalArgs } from './util/args';
+import { GITHUB_API } from './util/github';
 
 // readConfig is quiet now, so there is nothing left to suppress here.
 const loadConfig = (cPath: string) => readConfig(cPath);
@@ -333,6 +335,76 @@ const orgCommand: yargs.CommandModule<GlobalArgs, GlobalArgs> = {
             })
             .demandCommand(),
         handler: () => undefined,
+      })
+      .demandCommand(),
+  handler: () => undefined,
+};
+
+/**
+ * Trusted publishing: which CI workflows may publish into a scope with their own OIDC
+ * identity, so no secret is stored anywhere. `publish` presents the token; this manages the
+ * records the registry checks it against. appshellhq/appshell-services#51.
+ *
+ * The scope is a positional, never resolved from config or the working directory: this
+ * decides who else can publish into a namespace, and that is not something to aim by
+ * default.
+ */
+const trustCommand: yargs.CommandModule<GlobalArgs, GlobalArgs> = {
+  command: 'trust',
+  describe: 'Trust CI workflows to publish into a scope without a stored secret',
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  builder: (yargs) =>
+    yargs
+      .command({
+        command: 'add <scope>',
+        describe: 'Trust a GitHub Actions workflow to publish into a scope',
+        builder: (y) =>
+          y
+            .positional('scope', {
+              type: 'string',
+              describe: 'Scope the workflow may publish into',
+            })
+            .option('github', {
+              type: 'string',
+              demandOption: true,
+              requiresArg: true,
+              describe: 'Repository the workflow runs in, as owner/repo',
+            })
+            .option('workflow', {
+              type: 'string',
+              demandOption: true,
+              requiresArg: true,
+              describe: 'Workflow file, as pipeline.yml or .github/workflows/pipeline.yml',
+            })
+            .option('environment', {
+              type: 'string',
+              describe:
+                'Deployment environment the job must run in. Recommended: its protection rules then decide which runs can publish',
+            })
+            .option('issuer', {
+              type: 'string',
+              describe:
+                "OIDC issuer the workflow's tokens come from, for GitHub Enterprise Server. Defaults to github.com's",
+            })
+            .option('github-api', {
+              type: 'string',
+              default: GITHUB_API,
+              describe:
+                'GitHub api the repository is looked up on; https://<host>/api/v3 for Enterprise Server',
+            }),
+        handler: trustAdd as never,
+      })
+      .command({
+        command: 'list <scope>',
+        aliases: ['ls'],
+        describe: 'List the workflows trusted to publish into a scope',
+        handler: trustList as never,
+      })
+      .command({
+        command: 'remove <scope> <id>',
+        aliases: ['rm'],
+        describe: 'Stop trusting a workflow, by the id `trust list` shows',
+        handler: trustRemove as never,
       })
       .demandCommand(),
   handler: () => undefined,
@@ -943,6 +1015,7 @@ export const buildCli = (args: string[]) => {
       .command(packagesCommand)
       .command(scopesCommand)
       .command(orgCommand)
+      .command(trustCommand)
       .command(whoamiCommand)
       .command(loginCommand)
       .command(logoutCommand)

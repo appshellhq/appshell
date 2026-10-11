@@ -4,6 +4,7 @@ import * as app from '../src/handlers/app';
 import * as dev from '../src/handlers/dev';
 import * as packages from '../src/handlers/packages';
 import * as theme from '../src/handlers/theme';
+import * as trust from '../src/handlers/trust';
 
 /*
  * Every handler is replaced, so parsing is exercised for real while nothing reaches a
@@ -20,6 +21,7 @@ jest.mock('../src/handlers/app');
 jest.mock('../src/handlers/dev');
 jest.mock('../src/handlers/theme');
 jest.mock('../src/handlers/packages');
+jest.mock('../src/handlers/trust');
 jest.mock('../src/handlers/publish');
 jest.mock('../src/handlers/login');
 jest.mock('../src/handlers/outdated');
@@ -224,6 +226,48 @@ describe('packages visibility', () => {
 
   it('should require the visibility positional', () => {
     expect(run('packages visibility acme/checkout').error).toBeTruthy();
+  });
+});
+
+describe('trust', () => {
+  it('should hand add the scope positionally, with --github, --workflow and --environment', () => {
+    run('trust add acme --github acme/widgets --workflow pipeline.yml --environment production');
+
+    expect(handedTo(trust.add)).toMatchObject({
+      scope: 'acme',
+      github: 'acme/widgets',
+      workflow: 'pipeline.yml',
+      environment: 'production',
+    });
+  });
+
+  it('should default --github-api to github.com, and pass an Enterprise Server one through', () => {
+    run('trust add acme --github acme/widgets --workflow pipeline.yml');
+    run(
+      'trust add acme --github acme/widgets --workflow pipeline.yml --github-api https://ghes.test/api/v3',
+    );
+
+    const [[first], [second]] = (trust.add as jest.Mock).mock.calls;
+    expect(first.githubApi).toBe('https://api.github.com');
+    expect(second.githubApi).toBe('https://ghes.test/api/v3');
+  });
+
+  it('should require --github and --workflow rather than calling add without them', () => {
+    expect(run('trust add acme --workflow pipeline.yml').error).toMatch(/github/);
+    expect(run('trust add acme --github acme/widgets').error).toMatch(/workflow/);
+    expect(trust.add).not.toHaveBeenCalled();
+  });
+
+  it('should route list and remove, taking the scope and the id positionally', () => {
+    run('trust ls acme');
+    run('trust rm acme 1b2c3d4e');
+
+    expect(handedTo(trust.list)?.scope).toBe('acme');
+    expect(handedTo(trust.remove)).toMatchObject({ scope: 'acme', id: '1b2c3d4e' });
+  });
+
+  it('should demand a subcommand', () => {
+    expect(run('trust').error).toBeDefined();
   });
 });
 
