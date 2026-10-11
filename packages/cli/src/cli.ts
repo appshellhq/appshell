@@ -37,7 +37,6 @@ import { ThemeGetArgs, ThemeInitArgs, ThemeListArgs, ThemePublishArgs } from './
 import { add as trustAdd, list as trustList, remove as trustRemove } from './handlers/trust';
 import whoami from './handlers/whoami';
 import { GlobalArgs } from './util/args';
-import { GITHUB_API } from './util/github';
 
 // readConfig is quiet now, so there is nothing left to suppress here.
 const loadConfig = (cPath: string) => readConfig(cPath);
@@ -381,16 +380,18 @@ const trustCommand: yargs.CommandModule<GlobalArgs, GlobalArgs> = {
               describe:
                 'Deployment environment the job must run in. Recommended: its protection rules then decide which runs can publish',
             })
+            // No defaults here: githubInstance supplies github.com's pair when neither is given,
+            // and refuses one without the other, so the ids and the issuer can't come from two
+            // different GitHub instances.
             .option('issuer', {
               type: 'string',
               describe:
-                "OIDC issuer the workflow's tokens come from, for GitHub Enterprise Server. Defaults to github.com's",
+                "OIDC issuer the workflow's tokens come from: https://<host>/_services/token for Enterprise Server, given with --github-api. github.com's when both are left out",
             })
             .option('github-api', {
               type: 'string',
-              default: GITHUB_API,
               describe:
-                'GitHub api the repository is looked up on; https://<host>/api/v3 for Enterprise Server',
+                "GitHub api the repository is looked up on: https://<host>/api/v3 for Enterprise Server, given with --issuer. github.com's when both are left out",
             }),
         handler: trustAdd as never,
       })

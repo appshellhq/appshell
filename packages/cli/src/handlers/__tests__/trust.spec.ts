@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import axios from '../../util/axios';
 import { ensureToken } from '../../util/credentials';
-import { add, list, remove, workflowPath } from '../trust';
+import { add, githubInstance, list, remove, workflowPath } from '../trust';
 
 jest.mock('../../util/axios', () => ({
   __esModule: true,
@@ -78,10 +78,67 @@ describe('appshell trust', () => {
       );
     });
 
+    /* GitHub runs workflows from .github/workflows itself, not below it. */
+    it('refuses a subdirectory or a traversal, which no workflow token could name', () => {
+      expect(() => workflowPath('.github/workflows/sub/release.yml')).toThrow(
+        /--workflow names a workflow file/,
+      );
+      expect(() => workflowPath('.github/workflows/../release.yml')).toThrow(
+        /--workflow names a workflow file/,
+      );
+    });
+
     /* GitHub runs nothing from anywhere else, so such a record could never match. */
     it('refuses a path outside .github/workflows, or a name that is not a workflow file', () => {
       expect(() => workflowPath('ci/pipeline.yml')).toThrow(/--workflow names a workflow file/);
       expect(() => workflowPath('pipeline')).toThrow(/--workflow names a workflow file/);
+    });
+  });
+
+  /*
+   * Repository ids mean something only on the instance that issued them, so the api they
+   * are looked up on and the issuer the record trusts must be one instance.
+   */
+  describe('githubInstance', () => {
+    it("is github.com's when neither is given", () => {
+      expect(githubInstance()).toEqual({ api: 'https://api.github.com' });
+    });
+
+    it('takes an Enterprise Server when both name its host', () => {
+      expect(
+        githubInstance(
+          'https://ghes.example.test/api/v3/',
+          'https://ghes.example.test/_services/token',
+        ),
+      ).toEqual({
+        api: 'https://ghes.example.test/api/v3',
+        issuer: 'https://ghes.example.test/_services/token',
+      });
+    });
+
+    it("accepts github.com's api and issuer named explicitly", () => {
+      expect(
+        githubInstance('https://api.github.com', 'https://token.actions.githubusercontent.com'),
+      ).toEqual({
+        api: 'https://api.github.com',
+        issuer: 'https://token.actions.githubusercontent.com',
+      });
+    });
+
+    it('refuses one without the other', () => {
+      expect(() => githubInstance('https://ghes.example.test/api/v3')).toThrow(/give both/);
+      expect(() => githubInstance(undefined, 'https://ghes.example.test/_services/token')).toThrow(
+        /give both/,
+      );
+    });
+
+    it('refuses two different instances', () => {
+      expect(() =>
+        githubInstance(
+          'https://ghes.example.test/api/v3',
+          'https://token.actions.githubusercontent.com',
+        ),
+      ).toThrow(/different GitHub instances/);
     });
   });
 

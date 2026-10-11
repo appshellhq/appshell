@@ -241,15 +241,19 @@ describe('trust', () => {
     });
   });
 
-  it('should default --github-api to github.com, and pass an Enterprise Server one through', () => {
+  // No default at the parser: githubInstance supplies github.com's api and issuer as a pair, and
+  // refuses one without the other, which a defaulted --github-api would make impossible to tell.
+  it('should leave --github-api and --issuer unset unless given, and pass both through', () => {
     run('trust add acme --github acme/widgets --workflow pipeline.yml');
     run(
-      'trust add acme --github acme/widgets --workflow pipeline.yml --github-api https://ghes.test/api/v3',
+      'trust add acme --github acme/widgets --workflow pipeline.yml --github-api https://ghes.test/api/v3 --issuer https://ghes.test/_services/token',
     );
 
     const [[first], [second]] = (trust.add as jest.Mock).mock.calls;
-    expect(first.githubApi).toBe('https://api.github.com');
+    expect(first.githubApi).toBeUndefined();
+    expect(first.issuer).toBeUndefined();
     expect(second.githubApi).toBe('https://ghes.test/api/v3');
+    expect(second.issuer).toBe('https://ghes.test/_services/token');
   });
 
   it('should require --github and --workflow rather than calling add without them', () => {

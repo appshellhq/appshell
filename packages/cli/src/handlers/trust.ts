@@ -28,14 +28,15 @@ export type TrustRemoveArgs = TrustArgs & { id: string };
  * The workflow as the registry stores it: its path within the repository.
  *
  * Taken bare as well, because the file name is what anyone has in mind — and GitHub runs
- * workflows only from `.github/workflows`, so a bare name can only mean one place. A path
- * anywhere else could never match a token, so it is refused here rather than stored.
+ * workflows only from `.github/workflows` — that directory itself, not below it — so a bare
+ * name can only mean one place. Anything else, a subdirectory or a `..`, could never match a
+ * token, so it is refused here rather than stored.
  */
 export const workflowPath = (workflow: string): string => {
   const given = workflow.trim().replace(/^\.\//, '');
   const full = given.includes('/') ? given : `.github/workflows/${given}`;
 
-  if (!/^\.github\/workflows\/[A-Za-z0-9._\-/]+\.ya?ml$/.test(full)) {
+  if (!/^\.github\/workflows\/[A-Za-z0-9._-]+\.ya?ml$/.test(full)) {
     throw new Error(
       `--workflow names a workflow file, as pipeline.yml or .github/workflows/pipeline.yml; ` +
         `got '${workflow}'.`,
@@ -46,6 +47,54 @@ export const workflowPath = (workflow: string): string => {
 };
 
 const shortId = (id: string) => id.slice(0, 8);
+
+/**
+ * The GitHub instance a record is for: the api its ids are looked up on, and the issuer its
+ * tokens come from. One instance, never a mix.
+ *
+ * Repository and owner ids mean something only within the instance that issued them. Taken
+ * separately, an Enterprise Server api with github.com's issuer would store that server's ids
+ * against github.com's tokens, and the github.com repository that happens to share them would
+ * be trusted. So the two are both left at github.com's, or both given and naming one host:
+ * an Enterprise Server's api is https://<host>/api/v3 and its issuer
+ * https://<host>/_services/token.
+ */
+export const githubInstance = (
+  githubApi?: string,
+  issuer?: string,
+): { api: string; issuer?: string } => {
+  const api = githubApi?.replace(/\/+$/, '');
+
+  if (!api && !issuer) {
+    return { api: GITHUB_API };
+  }
+
+  if (!api || !issuer) {
+    throw new Error(
+      '--github-api and --issuer name one GitHub instance together; give both, or neither for ' +
+        'github.com. An Enterprise Server is https://<host>/api/v3 with ' +
+        'https://<host>/_services/token.',
+    );
+  }
+
+  const github = api === GITHUB_API && issuer === GITHUB_ACTIONS_ISSUER;
+  const sameHost = (() => {
+    try {
+      return new URL(api).host === new URL(issuer).host;
+    } catch {
+      return false;
+    }
+  })();
+
+  if (!github && !sameHost) {
+    throw new Error(
+      `--github-api (${api}) and --issuer (${issuer}) are different GitHub instances. ` +
+        "A repository's ids mean something only on the instance that issued them.",
+    );
+  }
+
+  return { api, issuer };
+};
 
 /** Only worth saying when it is not GitHub's own: that is the case someone set on purpose. */
 const customIssuer = (publisher: TrustedPublisher) =>
@@ -73,7 +122,8 @@ export const add = async (argv: TrustAddArgs) => {
     throw new Error('--environment needs a name. Leave it out to trust any environment.');
   }
 
-  const ids = await repositoryIds(argv.github, argv.githubApi ?? GITHUB_API);
+  const instance = githubInstance(argv.githubApi, argv.issuer);
+  const ids = await repositoryIds(argv.github, instance.api);
 
   const client = new RegistryClient(argv.registry);
   const { publisher, created } = await client.addTrustedPublisher(argv.scope, {
@@ -81,7 +131,7 @@ export const add = async (argv: TrustAddArgs) => {
     ...ids,
     workflow,
     ...(environment ? { environment } : {}),
-    ...(argv.issuer ? { issuer: argv.issuer } : {}),
+    ...(instance.issuer ? { issuer: instance.issuer } : {}),
   });
 
   console.log(
