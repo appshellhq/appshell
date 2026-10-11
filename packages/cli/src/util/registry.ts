@@ -233,7 +233,7 @@ export type ApplyResult = {
   message: string;
 };
 
-const describe = (error: unknown) => {
+export const describe = (error: unknown) => {
   const { response } = error as { response?: { status: number; data?: { message?: unknown } } };
   if (!response) {
     return (error as Error).message;

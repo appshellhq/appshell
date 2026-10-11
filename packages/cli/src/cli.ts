@@ -31,6 +31,8 @@ import {
   release as scopesRelease,
   transfer as scopesTransfer,
 } from './handlers/scopes';
+import { create as orgCreate, membersAdd, membersList } from './handlers/org';
+import whoami from './handlers/whoami';
 import * as theme from './handlers/theme';
 import { ThemeGetArgs, ThemeInitArgs, ThemeListArgs, ThemePublishArgs } from './handlers/theme';
 import { GlobalArgs } from './util/args';
@@ -277,6 +279,69 @@ const scopesCommand: yargs.CommandModule<GlobalArgs, GlobalArgs> = {
         handler: scopesTransfer as never,
       }),
   handler: () => undefined,
+};
+
+/**
+ * Organizations, on the platform the registry asks about membership: the way a namespace
+ * comes to have more than one person who can publish into it, by `scopes transfer` to one.
+ */
+const orgCommand: yargs.CommandModule<GlobalArgs, GlobalArgs> = {
+  command: 'org',
+  aliases: ['orgs', 'organization'],
+  describe: 'Create organizations and manage who belongs to them',
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  builder: (yargs) =>
+    yargs
+      .option('api', {
+        describe: 'Platform api organizations live on; derived from the auth issuer when unset',
+        default: process.env.APPSHELL_API || config.api,
+        type: 'string',
+      })
+      .option('authIssuer', {
+        describe: 'Auth issuer, from which the platform api is derived',
+        default: process.env.APPSHELL_AUTH_ISSUER || config.authIssuer,
+        type: 'string',
+      })
+      .command({
+        command: 'create <slug>',
+        describe: 'Create an organization; you own it',
+        builder: (y) =>
+          y.option('displayName', { type: 'string', describe: 'Human-readable name' }),
+        handler: orgCreate as never,
+      })
+      .command({
+        command: 'members',
+        describe: 'List and add the members of an organization',
+        builder: (y) =>
+          y
+            .command({
+              command: 'list <organization>',
+              aliases: ['ls'],
+              describe: 'List the members of an organization',
+              handler: membersList as never,
+            })
+            .command({
+              command: 'add <organization> <userId>',
+              describe: 'Add a member by user id (theirs from `appshell whoami`)',
+              builder: (z) =>
+                z.option('role', {
+                  choices: ['member', 'admin'] as const,
+                  default: 'member' as const,
+                  describe: 'Admins can add and remove members',
+                }),
+              handler: membersAdd as never,
+            })
+            .demandCommand(),
+        handler: () => undefined,
+      })
+      .demandCommand(),
+  handler: () => undefined,
+};
+
+const whoamiCommand: yargs.CommandModule<GlobalArgs, GlobalArgs> = {
+  command: 'whoami',
+  describe: 'Show who you are logged in as, including the user id organizations add members by',
+  handler: whoami as never,
 };
 
 const generateManifestCommand: yargs.CommandModule<unknown, GenerateManifestArgs> = {
@@ -877,6 +942,8 @@ export const buildCli = (args: string[]) => {
       .command(devCommand)
       .command(packagesCommand)
       .command(scopesCommand)
+      .command(orgCommand)
+      .command(whoamiCommand)
       .command(loginCommand)
       .command(logoutCommand)
       .command(publishCommand)
