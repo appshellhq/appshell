@@ -48,6 +48,9 @@ export const workflowPath = (workflow: string): string => {
 
 const shortId = (id: string) => id.slice(0, 8);
 
+/** How `list` shows a record that names no environment, explained under the table. */
+const UNRESTRICTED = '*';
+
 /**
  * The GitHub instance a record is for: the api its ids are looked up on, and the issuer its
  * tokens come from. One instance, never a mix.
@@ -61,9 +64,12 @@ const shortId = (id: string) => id.slice(0, 8);
  */
 export const githubInstance = (
   githubApi?: string,
-  issuer?: string,
+  issuerGiven?: string,
 ): { api: string; issuer?: string } => {
   const api = githubApi?.replace(/\/+$/, '');
+  // Without its trailing slash, as tokens carry it: the registry compares issuers exactly, so
+  // `…/_services/token/` would store a record no token could ever match.
+  const issuer = issuerGiven?.replace(/\/+$/, '');
 
   if (!api && !issuer) {
     return { api: GITHUB_API };
@@ -178,7 +184,9 @@ export const list = async (argv: TrustArgs) => {
     shortId(publisher.id),
     publisher.repository,
     publisher.workflow,
-    publisher.environment ?? 'any',
+    // `*`, not "any": a record restricted to an environment named `any` has to look different
+    // from one restricted to none, since this table is where a refused publish is diagnosed.
+    publisher.environment ?? UNRESTRICTED,
     ...(showIssuer ? [customIssuer(publisher) ?? 'github.com'] : []),
     publisher.createdAt.slice(0, 10),
   ]);
@@ -199,6 +207,9 @@ export const list = async (argv: TrustArgs) => {
   console.log(`\n${chalk.bold(`Workflows trusted to publish into ${argv.scope}`)}\n`);
   console.log(chalk.dim(line(header)));
   rows.forEach((row) => console.log(line(row)));
+  if (publishers.some((publisher) => !publisher.environment)) {
+    console.log(chalk.dim(`\n  ${UNRESTRICTED}  any environment, or none: not restricted to one`));
+  }
   console.log();
 };
 

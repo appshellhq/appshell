@@ -125,6 +125,19 @@ describe('appshell trust', () => {
       });
     });
 
+    /* Tokens carry the issuer without one, and the registry compares exactly. */
+    it("drops the issuer's trailing slash, as its tokens carry it", () => {
+      expect(
+        githubInstance(
+          'https://ghes.example.test/api/v3',
+          'https://ghes.example.test/_services/token/',
+        ).issuer,
+      ).toBe('https://ghes.example.test/_services/token');
+      expect(() =>
+        githubInstance('https://api.github.com', 'https://token.actions.githubusercontent.com/'),
+      ).not.toThrow();
+    });
+
     it('refuses one without the other', () => {
       expect(() => githubInstance('https://ghes.example.test/api/v3')).toThrow(/give both/);
       expect(() => githubInstance(undefined, 'https://ghes.example.test/_services/token')).toThrow(
@@ -306,9 +319,9 @@ describe('appshell trust', () => {
       expect(output()).toMatch(
         /1b2c3d4e\s+acme\/widgets\s+\.github\/workflows\/pipeline\.yml\s+production\s+2026-10-11/,
       );
-      expect(output()).toMatch(
-        /ffffeeee\s+acme\/widgets\s+\.github\/workflows\/release\.yml\s+any/,
-      );
+      expect(output()).toMatch(/ffffeeee\s+acme\/widgets\s+\.github\/workflows\/release\.yml\s+\*/);
+      // `*`, explained: an environment literally named `any` must not read as unrestricted.
+      expect(output()).toContain('any environment, or none');
       // GitHub's own issuer on every row says nothing, so there is no column for it.
       expect(output()).not.toContain('ISSUER');
       expect(output()).not.toContain(ID);
