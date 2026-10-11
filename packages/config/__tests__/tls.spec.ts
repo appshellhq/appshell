@@ -1,6 +1,7 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import tls from 'tls';
 import yaml from 'yaml';
 import { caFile, httpsAgent } from '../src/tls';
 
@@ -64,10 +65,36 @@ describe('ca-file', () => {
     expect(httpsAgent()).toBeUndefined();
   });
 
-  it('builds an agent carrying the configured bundle', () => {
+  /*
+   * In addition to Node's roots, not instead of them. This used to assert that `ca` was the
+   * bundle alone, which is the bug it now guards against: `ca` replaces the trust store, so a
+   * config trusting a local mkcert root could no longer reach a registry with a public
+   * certificate ("unable to get local issuer certificate").
+   */
+  it("builds an agent trusting the configured bundle and Node's own roots", () => {
     configured(pem());
 
-    expect(httpsAgent()?.options.ca).toEqual(fs.readFileSync(path.join(dir, 'root.pem')));
+    const ca = httpsAgent()?.options.ca as string[];
+
+    expect(ca).toContain(fs.readFileSync(path.join(dir, 'root.pem'), 'utf-8'));
+    expect(ca).toEqual(expect.arrayContaining([...tls.rootCertificates]));
+  });
+
+  /*
+   * Node's *effective* defaults, so a root a user added through NODE_EXTRA_CA_CERTS or
+   * --use-system-ca survives a ca-file too. tls.rootCertificates is the bundled roots alone.
+   */
+  it('keeps the roots Node was given at runtime, not only its bundled ones', () => {
+    const runtime = '-----BEGIN CERTIFICATE-----\nfrom NODE_EXTRA_CA_CERTS\n-----END CERTIFICATE-----';
+    const effective = jest
+      .spyOn(tls as unknown as { getCACertificates: (t: string) => string[] }, 'getCACertificates')
+      .mockReturnValue([...tls.rootCertificates, runtime]);
+    configured(pem());
+
+    const ca = httpsAgent()?.options.ca as string[];
+
+    expect(effective).toHaveBeenCalledWith('default');
+    expect(ca).toContain(runtime);
   });
 
   /*

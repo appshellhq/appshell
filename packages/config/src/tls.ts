@@ -2,6 +2,7 @@ import fs from 'fs';
 import https from 'https';
 import os from 'os';
 import path from 'path';
+import tls from 'tls';
 import { readConfig } from './utils/config';
 
 const configPath = () =>
@@ -19,6 +20,19 @@ const configPath = () =>
  * npm draws the same conclusion with `cafile` in .npmrc: trust is configuration of the
  * registry you talk to, not of the shell you happen to be in.
  */
+/*
+ * Node's effective default trust: its bundled roots plus whatever NODE_EXTRA_CA_CERTS or
+ * --use-system-ca added. tls.getCACertificates('default') says exactly that (Node 22.15+,
+ * 23.10+). tls.rootCertificates, the fallback for older runtimes, is the bundled roots alone,
+ * so on those an extra root from the environment is not carried over.
+ */
+const defaultRoots = (): readonly string[] => {
+  const effective = (tls as { getCACertificates?: (type: string) => string[] })
+    .getCACertificates;
+
+  return typeof effective === 'function' ? effective('default') : tls.rootCertificates;
+};
+
 export const caFile = () => process.env.APPSHELL_CA_FILE || readConfig(configPath()).caFile;
 
 /**
@@ -42,5 +56,12 @@ export const httpsAgent = () => {
     );
   }
 
-  return new https.Agent({ ca: fs.readFileSync(file) });
+  /*
+   * Added to what Node already trusts, not instead of it. `ca` replaces the trust store
+   * wholesale, so a bundle configured for a local registry (mkcert, a corporate root) left
+   * nothing else trusted: production's public certificate then failed with "unable to get
+   * local issuer certificate", and one config could not serve both — which is what
+   * `ca-file` exists for.
+   */
+  return new https.Agent({ ca: [...defaultRoots(), fs.readFileSync(file, 'utf-8')] });
 };
