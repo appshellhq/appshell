@@ -2,6 +2,7 @@ import fs from 'fs';
 import https from 'https';
 import os from 'os';
 import path from 'path';
+import tls from 'tls';
 import { readConfig } from './utils/config';
 
 const configPath = () =>
@@ -42,5 +43,11 @@ export const httpsAgent = () => {
     );
   }
 
-  return new https.Agent({ ca: fs.readFileSync(file) });
+  /*
+   * Added to Node's roots, not instead of them. `ca` replaces the trust store wholesale, so a
+   * bundle configured for a local registry (mkcert, a corporate root) left nothing else
+   * trusted: production's public certificate then failed with "unable to get local issuer
+   * certificate", and one config could not serve both — which is what `ca-file` exists for.
+   */
+  return new https.Agent({ ca: [...tls.rootCertificates, fs.readFileSync(file, 'utf-8')] });
 };

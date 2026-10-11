@@ -1,6 +1,7 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import tls from 'tls';
 import yaml from 'yaml';
 import { caFile, httpsAgent } from '../src/tls';
 
@@ -64,10 +65,19 @@ describe('ca-file', () => {
     expect(httpsAgent()).toBeUndefined();
   });
 
-  it('builds an agent carrying the configured bundle', () => {
+  /*
+   * In addition to Node's roots, not instead of them. This used to assert that `ca` was the
+   * bundle alone, which is the bug it now guards against: `ca` replaces the trust store, so a
+   * config trusting a local mkcert root could no longer reach a registry with a public
+   * certificate ("unable to get local issuer certificate").
+   */
+  it("builds an agent trusting the configured bundle and Node's own roots", () => {
     configured(pem());
 
-    expect(httpsAgent()?.options.ca).toEqual(fs.readFileSync(path.join(dir, 'root.pem')));
+    const ca = httpsAgent()?.options.ca as string[];
+
+    expect(ca).toContain(fs.readFileSync(path.join(dir, 'root.pem'), 'utf-8'));
+    expect(ca).toEqual(expect.arrayContaining([...tls.rootCertificates]));
   });
 
   /*
