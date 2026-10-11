@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.99](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.98...v1.0.0-alpha.99) (2026-10-11)
+
+### Features
+
+- **cli:** appshell org create | members add | members list, and appshell whoami ([d1b2052](https://github.com/appshellhq/appshell/commit/d1b2052ad096a308251329e43b4962557874f769)), closes [appshellhq/appshell#15](https://github.com/appshellhq/appshell/issues/15) [navaris/argocd-deployment-repo#236](https://github.com/navaris/argocd-deployment-repo/issues/236)
+
 # [1.0.0-alpha.98](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.97...v1.0.0-alpha.98) (2026-10-09)
 
 **Note:** Version bump only for package @appshell/config
