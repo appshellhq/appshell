@@ -81,6 +81,23 @@ describe('ca-file', () => {
   });
 
   /*
+   * Node's *effective* defaults, so a root a user added through NODE_EXTRA_CA_CERTS or
+   * --use-system-ca survives a ca-file too. tls.rootCertificates is the bundled roots alone.
+   */
+  it('keeps the roots Node was given at runtime, not only its bundled ones', () => {
+    const runtime = '-----BEGIN CERTIFICATE-----\nfrom NODE_EXTRA_CA_CERTS\n-----END CERTIFICATE-----';
+    const effective = jest
+      .spyOn(tls as unknown as { getCACertificates: (t: string) => string[] }, 'getCACertificates')
+      .mockReturnValue([...tls.rootCertificates, runtime]);
+    configured(pem());
+
+    const ca = httpsAgent()?.options.ca as string[];
+
+    expect(effective).toHaveBeenCalledWith('default');
+    expect(ca).toContain(runtime);
+  });
+
+  /*
    * Skipping a missing file would reproduce the certificate error it was set to avoid,
    * which is the one failure the user has already tried to fix.
    */
