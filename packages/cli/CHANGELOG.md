@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.100](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.99...v1.0.0-alpha.100) (2026-10-11)
+
+### Bug Fixes
+
+- **cli:** normalize the issuer, and show an unrestricted record unmistakably ([2cda7f7](https://github.com/appshellhq/appshell/commit/2cda7f70ff0674cc87661ce6f8db79fd9cb458c9)), closes [#19](https://github.com/appshellhq/appshell/issues/19)
+- **cli:** trust records name one GitHub instance, and only workflows GitHub can run ([cc32b5c](https://github.com/appshellhq/appshell/commit/cc32b5c3e7d4f1c9f5d062fc111dd42091ee38cb)), closes [#19](https://github.com/appshellhq/appshell/issues/19)
+
+### Features
+
+- **cli:** appshell trust, and publishing from GitHub Actions through trusted publishing ([0bd1758](https://github.com/appshellhq/appshell/commit/0bd1758f55243fd00ec54abfdd8d9d5a1fafd820)), closes [appshellhq/appshell-services#51](https://github.com/appshellhq/appshell-services/issues/51)
+
 # [1.0.0-alpha.99](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.98...v1.0.0-alpha.99) (2026-10-11)
 
 ### Features

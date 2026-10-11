@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.100](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.99...v1.0.0-alpha.100) (2026-10-11)
+
+### Bug Fixes
+
+- **config:** ca-file adds to Node's roots instead of replacing them ([455d852](https://github.com/appshellhq/appshell/commit/455d85241432ab6315e9e4f57819ae5b765a0f3b))
+- **config:** ca-file keeps the roots Node was given at runtime too ([c86442c](https://github.com/appshellhq/appshell/commit/c86442cda9767c875052a5845d456e72edc39016)), closes [#18](https://github.com/appshellhq/appshell/issues/18)
+
+### Features
+
+- **cli:** appshell trust, and publishing from GitHub Actions through trusted publishing ([0bd1758](https://github.com/appshellhq/appshell/commit/0bd1758f55243fd00ec54abfdd8d9d5a1fafd820)), closes [appshellhq/appshell-services#51](https://github.com/appshellhq/appshell-services/issues/51)
+
 # [1.0.0-alpha.99](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.98...v1.0.0-alpha.99) (2026-10-11)
 
 ### Features
