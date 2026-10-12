@@ -351,7 +351,9 @@ jobs:
   publish_examples:
     name: Publish the examples
     needs: [publish_npm_packages, example]
-    if: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feat/registry-composition') }}
+    # The branch alone, as the npm release decides it, so a manual run that releases also
+    # publishes the examples. A pull request's ref (refs/pull/N/merge) never matches.
+    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feat/registry-composition' }}
     runs-on: ubuntu-latest
     environment: production
     permissions:
