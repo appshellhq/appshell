@@ -242,6 +242,22 @@ jobs:
           echo "::error::$VERSION did not become installable within fifteen minutes."
           exit 1
 
+      # Lockstep with the release (appshellhq/appshell#16): each example is published at the
+      # version this run released, so a published example says which appshell release it was
+      # built against, and every release's bytes are a new version. They have to be: a
+      # version's bytes are written once to the bucket and served as immutable, so a code
+      # change under an unchanged version would never reach anyone. Before the build, because
+      # the badge renders the version. The apps only: the shared components package is private
+      # and the apps take it at any version.
+      - name: Version the examples with this release
+        env:
+          VERSION: ${{ needs.publish_npm_packages.outputs.version }}
+        run: |
+          set -euo pipefail
+          for dir in apps/*/; do
+            npm version "$VERSION" --no-git-tag-version --allow-same-version -w "${dir%/}" >/dev/null
+          done
+
       # `.env` is git-ignored; sample.env carries the same keys and is what a developer is
       # told to copy.
       - name: Provide the environment the build expects
@@ -259,6 +275,18 @@ jobs:
       - name: Test
         run: npm test
 
+      # What was built and tested is what gets published: the release job takes these bytes
+      # rather than building its own.
+      - name: Keep the built examples for the release job
+        uses: actions/upload-artifact@v4
+        with:
+          name: examples
+          path: |
+            examples/appshell-react-host/apps/*/dist
+            examples/appshell-react-host/apps/*/package.json
+          if-no-files-found: error
+          retention-days: 7
+
       # Committed so the repository says what was built, and so a developer cloning it
       # gets the same versions without waiting for the next release to bump them.
       #
@@ -273,16 +301,104 @@ jobs:
         run: |
           set -euo pipefail
 
-          if git diff --quiet -- package-lock.json; then
+          if git diff --quiet -- package-lock.json apps/*/package.json; then
             echo "Already building against $VERSION; nothing to record."
             exit 0
           fi
 
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
-          git add package-lock.json
-          git commit -m "chore(example): build against $VERSION"
+          git add package-lock.json apps/*/package.json
+          git commit -m "chore(example): build against, and version as, $VERSION"
           git push origin HEAD:${GITHUB_REF#refs/heads/}
+
+  # Publishes the examples the way a third party publishes its own packages: from CI, with
+  # the workflow's own identity, never a stored token (appshellhq/appshell#16).
+  #
+  # Under the production environment, which only main and feat/registry-composition may
+  # deploy from (platform-terragrunt github/appshellhq/appshell). The appshell scope's trusted
+  # publisher names that environment, so a run on any other branch couldn't mint a token the
+  # registry accepts; the `if` keeps those runs from trying. The environment also carries the
+  # bucket's key and whereabouts, which Terraform writes there (spaces-keys/navaris/appshell-prod).
+  publish_examples:
+    name: Publish the examples
+    needs: [publish_npm_packages, example]
+    if: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feat/registry-composition') }}
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      VERSION: ${{ needs.publish_npm_packages.outputs.version }}
+      APPSHELL_REGISTRY: https://registry.appshell.org
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: examples
+          path: apps
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+
+      # Each version's bytes go to {scope}/{name}/{version}/, which the registry serves as
+      # immutable, so a version is uploaded once and never replaced: a later upload over it
+      # would be invisible to every browser that already cached it. remoteEntry.js goes last,
+      # so a version whose remoteEntry.js is there is complete, and a run cut short leaves one
+      # the next attempt finishes rather than skips.
+      - name: Upload each version's bytes, once
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.SPACES_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.SPACES_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ vars.SPACES_REGION }}
+          BUCKET: ${{ vars.SPACES_BUCKET }}
+          ENDPOINT: ${{ vars.SPACES_ENDPOINT }}
+        run: |
+          set -euo pipefail
+          test -n "$BUCKET" && test -n "$ENDPOINT"
+
+          for dir in apps/*/; do
+            dir=${dir%/}
+            name=$(node -p "require('./$dir/package.json').name")
+            version=$(node -p "require('./$dir/package.json').version")
+            if [ "$version" != "$VERSION" ]; then
+              echo "::error::$name is at $version, not this release's $VERSION"
+              exit 1
+            fi
+
+            scope=${name#@}; scope=${scope%%/*}
+            prefix="$scope/${name#*/}/$version"
+
+            # Read anonymously, as the registry reads it: the bucket is public-read and
+            # answers 404 for a key that isn't there.
+            status=$(curl -s -o /dev/null -w '%{http_code}' "https://$BUCKET.${ENDPOINT#https://}/$prefix/remoteEntry.js")
+            case "$status" in
+              200) echo "$prefix: already there; a version's bytes are written once"; continue ;;
+              404) ;;
+              *) echo "::error::reading $prefix/remoteEntry.js answered $status"; exit 1 ;;
+            esac
+
+            # appshell.template.json is what publish reads, not something a browser loads.
+            aws s3 cp "$dir/dist" "s3://$BUCKET/$prefix/" --recursive --acl public-read \
+              --endpoint-url "$ENDPOINT" --only-show-errors \
+              --exclude remoteEntry.js --exclude appshell.template.json
+            aws s3 cp "$dir/dist/remoteEntry.js" "s3://$BUCKET/$prefix/remoteEntry.js" --acl public-read \
+              --endpoint-url "$ENDPOINT" --only-show-errors --content-type text/javascript
+            echo "$prefix: uploaded"
+          done
+
+      # The cli at this release, which presents the runner's OIDC token: trusted publishing,
+      # verified by the registry against the scope's record. Publishing is inert — nothing is
+      # activated — and republishing a version the registry already holds unchanged is a
+      # no-op, so a re-run is safe.
+      - name: Publish each version
+        run: |
+          set -euo pipefail
+          for dir in apps/*/; do
+            (cd "$dir" && npx --yes "@appshell/cli@$VERSION" publish --template dist/appshell.template.json)
+          done
 
   # Discovers the micro-frontends rather than listing them, after the pattern in
   # navaris/platform-services: adding one needs no workflow change. Scans `apps/` only —
