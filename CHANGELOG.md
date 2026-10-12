@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.101](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.100...v1.0.0-alpha.101) (2026-10-12)
+
+### Bug Fixes
+
+- **ci:** claim a version in git before publishing it, and judge the publish by npm ([e6f951c](https://github.com/appshellhq/appshell/commit/e6f951c6fa6093ff7aea6445bf51b855eda6a3d7)), closes [#20](https://github.com/appshellhq/appshell/issues/20) [#18](https://github.com/appshellhq/appshell/issues/18) [#19](https://github.com/appshellhq/appshell/issues/19)
+- **ci:** claim the version atomically and check npm past the cache ([f17952e](https://github.com/appshellhq/appshell/commit/f17952e2f912f4054dc774e08892c6eab7f29b7d))
+- **ci:** the registry check decides every release, and refuses to check nothing ([9d3175f](https://github.com/appshellhq/appshell/commit/9d3175f19224e9e5d89b8173734a8a2843256b3c)), closes [#21](https://github.com/appshellhq/appshell/issues/21)
+
 # [1.0.0-alpha.100](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.99...v1.0.0-alpha.100) (2026-10-11)
 
 ### Bug Fixes
