@@ -509,11 +509,14 @@ jobs:
             exit 0
           fi
 
-          if ! grep -q "TLOG_CREATE_ENTRY_ERROR" "$publish_log"; then
-            exit 1
+          # Any failure gets the one retry, and this step never decides the release: the
+          # registry check after it does. A failure after uploading — Rekor's 409 above all,
+          # but not only — would otherwise fail a release whose packages all landed.
+          if grep -q "TLOG_CREATE_ENTRY_ERROR" "$publish_log"; then
+            echo "::warning::npm transparency log returned 409; retrying whatever did not land."
+          else
+            echo "::warning::lerna publish failed; retrying whatever did not land. The registry check decides."
           fi
-
-          echo "::warning::npm transparency log returned 409; retrying whatever did not land."
 
           # A failed publish leaves lerna's own work in the tree: it rewrites internal
           # workspace dependency ranges to concrete versions before packing and restores
@@ -538,8 +541,18 @@ jobs:
       - name: Check every package reached npm
         shell: bash
         run: |
+          set -euo pipefail
+
+          # Listed first, and refused if empty: a list that failed or came back with nothing
+          # would make the loop below check nothing and report success.
+          specs=$(npx lerna list --json | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>JSON.parse(s).filter(p=>!p.private).forEach(p=>console.log(`${p.name}@${p.version}`)))')
+          if [ -z "$specs" ]; then
+            echo "::error::Could not list the packages to check, so nothing is known to be on npm."
+            exit 1
+          fi
+
           missing=""
-          for spec in $(npx lerna list --json | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>JSON.parse(s).filter(p=>!p.private).forEach(p=>console.log(`${p.name}@${p.version}`)))'); do
+          for spec in $specs; do
             found=""
             for attempt in 1 2 3 4 5 6; do
               if npm view "$spec" version >/dev/null 2>&1; then found=1; break; fi
