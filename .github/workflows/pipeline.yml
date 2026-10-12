@@ -538,8 +538,7 @@ jobs:
       # Judged by what npm holds, not by lerna's exit code. Rekor's 409 fails a run whose
       # packages all landed (the one that published alpha.100 did), and a retry that finds
       # everything already there says nothing useful either. The release succeeded if and
-      # only if every public package is on npm at the version this run claimed; the registry
-      # can take a moment to show a fresh version, so each is asked a few times.
+      # only if every public package is on npm at the version this run claimed.
       - name: Check every package reached npm
         shell: bash
         run: |
@@ -553,21 +552,31 @@ jobs:
             exit 1
           fi
 
-          missing=""
-          for spec in $specs; do
-            found=""
-            for attempt in 1 2 3 4 5 6; do
-              # --prefer-online: lerna's registry queries above cached these packuments, and a
-              # cached one from before the publish would fail every attempt.
-              if npm view "$spec" version --prefer-online >/dev/null 2>&1; then found=1; break; fi
-              sleep 10
+          # Fifteen minutes in all, the budget the example's install waits on above, for the
+          # same replication lag: ten seconds to five minutes. A minute per package was not
+          # enough — alpha.101 published all eight, and the check gave up on @appshell/cli
+          # while npm was still catching up. Each round asks only for what is still missing.
+          #
+          # --prefer-online: lerna's registry queries above cached these packuments, and a
+          # cached one from before the publish would fail every attempt. The answer is
+          # compared rather than trusted by exit code, so an empty one is never a yes.
+          pending="$specs"
+          for attempt in $(seq 1 90); do
+            still=""
+            for spec in $pending; do
+              seen=$(npm view "$spec" version --prefer-online 2>/dev/null || true)
+              [ "$seen" = "${spec##*@}" ] || still="$still $spec"
             done
-            [ -n "$found" ] || missing="$missing $spec"
+            pending=$still
+
+            if [ -z "$pending" ]; then
+              echo "Every package is on npm at ${{ steps.published.outputs.version }}."
+              exit 0
+            fi
+
+            echo "Not on npm yet:$pending (attempt $attempt/90)"
+            sleep 10
           done
 
-          if [ -n "$missing" ]; then
-            echo "::error::Not on npm after publishing:$missing"
-            exit 1
-          fi
-
-          echo "Every package is on npm at ${{ steps.published.outputs.version }}."
+          echo "::error::Not on npm fifteen minutes after publishing:$pending"
+          exit 1
