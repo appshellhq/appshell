@@ -18,9 +18,15 @@ on:
         required: false
         default: 'Manual trigger'
 
+# Pull requests cancel their superseded runs; pushes queue. A push run claims a version and
+# publishes it to npm before the examples follow, so cancelling one mid-way left that release
+# without its examples: the next run releases a new version and nothing goes back for the
+# cancelled one. Queued, a run in progress finishes, and of several waiting, GitHub keeps only
+# the newest, which releases everything the others would have (none of them had claimed a
+# version yet).
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: write
