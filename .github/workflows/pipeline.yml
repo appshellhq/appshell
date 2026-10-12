@@ -487,9 +487,11 @@ jobs:
       # npm (appshellhq/appshell#20). A run cancelled mid-publish (cancel-in-progress) did
       # the same. Now a failed or cancelled publish only spends its number, and the next run
       # takes the one after; and a push that loses a race to another fails here, before
-      # anything is published.
+      # anything is published. Atomic, naming both refs, so the branch and the tag land
+      # together or not at all: a plain push could take one and refuse the other, leaving a
+      # half-claimed version for the next run to number from.
       - name: Push the version before publishing it
-        run: git push --follow-tags
+        run: git push --atomic origin HEAD "refs/tags/v${{ steps.published.outputs.version }}"
 
       - name: Build
         run: npm run build
@@ -555,7 +557,9 @@ jobs:
           for spec in $specs; do
             found=""
             for attempt in 1 2 3 4 5 6; do
-              if npm view "$spec" version >/dev/null 2>&1; then found=1; break; fi
+              # --prefer-online: lerna's registry queries above cached these packuments, and a
+              # cached one from before the publish would fail every attempt.
+              if npm view "$spec" version --prefer-online >/dev/null 2>&1; then found=1; break; fi
               sleep 10
             done
             [ -n "$found" ] || missing="$missing $spec"
