@@ -18,9 +18,15 @@ on:
         required: false
         default: 'Manual trigger'
 
+# Pull requests cancel their superseded runs; pushes queue. A push run claims a version and
+# publishes it to npm before the examples follow, so cancelling one mid-way left that release
+# without its examples: the next run releases a new version and nothing goes back for the
+# cancelled one. Queued, a run in progress finishes, and of several waiting, GitHub keeps only
+# the newest, which releases everything the others would have (none of them had claimed a
+# version yet).
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: write
@@ -92,6 +98,10 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    outputs:
+      # The commit the images build from: what this job recorded, or the release commit when
+      # there was nothing to record. Empty when the branch moved on, and then nothing is imaged.
+      built: ${{ steps.record.outputs.commit }}
     defaults:
       run:
         working-directory: examples/appshell-react-host
@@ -99,9 +109,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # The publish job pushed a release commit; without this the example is built
-          # from the tree as it was before the versions were bumped.
-          ref: ${{ github.ref }}
+          # The release tag, the commit the packages were published from. Not github.sha,
+          # which is from before the versions were bumped; and not the branch head, which a
+          # later push can move while this run is still going, so the examples would be
+          # built from an untested tree and published under this release's version.
+          ref: v${{ needs.publish_npm_packages.outputs.version }}
       - uses: actions/setup-node@v4
         with:
           node-version: 24.x
@@ -242,6 +254,22 @@ jobs:
           echo "::error::$VERSION did not become installable within fifteen minutes."
           exit 1
 
+      # Lockstep with the release (appshellhq/appshell#16): each example is published at the
+      # version this run released, so a published example says which appshell release it was
+      # built against, and every release's bytes are a new version. They have to be: a
+      # version's bytes are written once to the bucket and served as immutable, so a code
+      # change under an unchanged version would never reach anyone. Before the build, because
+      # the badge renders the version. The apps only: the shared components package is private
+      # and the apps take it at any version.
+      - name: Version the examples with this release
+        env:
+          VERSION: ${{ needs.publish_npm_packages.outputs.version }}
+        run: |
+          set -euo pipefail
+          for dir in apps/*/; do
+            npm version "$VERSION" --no-git-tag-version --allow-same-version -w "${dir%/}" >/dev/null
+          done
+
       # `.env` is git-ignored; sample.env carries the same keys and is what a developer is
       # told to copy.
       - name: Provide the environment the build expects
@@ -259,6 +287,18 @@ jobs:
       - name: Test
         run: npm test
 
+      # What was built and tested is what gets published: the release job takes these bytes
+      # rather than building its own.
+      - name: Keep the built examples for the release job
+        uses: actions/upload-artifact@v4
+        with:
+          name: examples
+          path: |
+            examples/appshell-react-host/apps/*/dist
+            examples/appshell-react-host/apps/*/package.json
+          if-no-files-found: error
+          retention-days: 7
+
       # Committed so the repository says what was built, and so a developer cloning it
       # gets the same versions without waiting for the next release to bump them.
       #
@@ -267,22 +307,128 @@ jobs:
       # --force-publish, so a commit that retriggered it would publish another version,
       # which would bump the example again, without end. The non-retriggering push is what
       # makes this bookkeeping rather than a loop.
+      #
+      # On top of the release tag, and only if the branch is still there: a push that isn't a
+      # fast-forward means someone pushed during this run, and their commit's own run, queued
+      # behind this one, will release, record and image its version. Not rebased onto theirs:
+      # a bot commit on top of it would make that queued run, which checks out their commit,
+      # lose its release push. Never fails the job, because the examples' publication depends
+      # on this job and must not wait on bookkeeping.
       - name: Record what was built
+        id: record
         env:
           VERSION: ${{ needs.publish_npm_packages.outputs.version }}
         run: |
           set -euo pipefail
+          branch=${GITHUB_REF#refs/heads/}
 
-          if git diff --quiet -- package-lock.json; then
+          if git diff --quiet -- package-lock.json apps/*/package.json; then
             echo "Already building against $VERSION; nothing to record."
+            echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
-          git add package-lock.json
-          git commit -m "chore(example): build against $VERSION"
-          git push origin HEAD:${GITHUB_REF#refs/heads/}
+          git add package-lock.json apps/*/package.json
+          git commit -m "chore(example): build against, and version as, $VERSION"
+
+          if git push origin "HEAD:refs/heads/$branch"; then
+            echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::$branch moved on during this run, so $VERSION's build isn't recorded or imaged; the newer commit's run releases its own."
+            echo "commit=" >> "$GITHUB_OUTPUT"
+          fi
+
+  # Publishes the examples the way a third party publishes its own packages: from CI, with
+  # the workflow's own identity, never a stored token (appshellhq/appshell#16).
+  #
+  # Under the production environment, which only main and feat/registry-composition may
+  # deploy from (platform-terragrunt github/appshellhq/appshell). The appshell scope's trusted
+  # publisher names that environment, so a run on any other branch couldn't mint a token the
+  # registry accepts; the `if` keeps those runs from trying. The environment also carries the
+  # bucket's key and whereabouts, which Terraform writes there (spaces-keys/navaris/appshell-prod).
+  publish_examples:
+    name: Publish the examples
+    needs: [publish_npm_packages, example]
+    # The branch alone, as the npm release decides it, so a manual run that releases also
+    # publishes the examples. A pull request's ref (refs/pull/N/merge) never matches.
+    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feat/registry-composition' }}
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      VERSION: ${{ needs.publish_npm_packages.outputs.version }}
+      APPSHELL_REGISTRY: https://registry.appshell.org
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: examples
+          path: apps
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+
+      # Each version's bytes go to {scope}/{name}/{version}/, which the registry serves as
+      # immutable, so a version is uploaded once and never replaced: a later upload over it
+      # would be invisible to every browser that already cached it. remoteEntry.js goes last,
+      # so a version whose remoteEntry.js is there is complete, and a run cut short leaves one
+      # the next attempt finishes rather than skips.
+      - name: Upload each version's bytes, once
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.SPACES_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.SPACES_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ vars.SPACES_REGION }}
+          BUCKET: ${{ vars.SPACES_BUCKET }}
+          ENDPOINT: ${{ vars.SPACES_ENDPOINT }}
+        run: |
+          set -euo pipefail
+          test -n "$BUCKET" && test -n "$ENDPOINT"
+
+          for dir in apps/*/; do
+            dir=${dir%/}
+            name=$(node -p "require('./$dir/package.json').name")
+            version=$(node -p "require('./$dir/package.json').version")
+            if [ "$version" != "$VERSION" ]; then
+              echo "::error::$name is at $version, not this release's $VERSION"
+              exit 1
+            fi
+
+            scope=${name#@}; scope=${scope%%/*}
+            prefix="$scope/${name#*/}/$version"
+
+            # Read anonymously, as the registry reads it: the bucket is public-read and
+            # answers 404 for a key that isn't there.
+            status=$(curl -s -o /dev/null -w '%{http_code}' "https://$BUCKET.${ENDPOINT#https://}/$prefix/remoteEntry.js")
+            case "$status" in
+              200) echo "$prefix: already there; a version's bytes are written once"; continue ;;
+              404) ;;
+              *) echo "::error::reading $prefix/remoteEntry.js answered $status"; exit 1 ;;
+            esac
+
+            # appshell.template.json is what publish reads, not something a browser loads.
+            aws s3 cp "$dir/dist" "s3://$BUCKET/$prefix/" --recursive --acl public-read \
+              --endpoint-url "$ENDPOINT" --only-show-errors \
+              --exclude remoteEntry.js --exclude appshell.template.json
+            aws s3 cp "$dir/dist/remoteEntry.js" "s3://$BUCKET/$prefix/remoteEntry.js" --acl public-read \
+              --endpoint-url "$ENDPOINT" --only-show-errors --content-type text/javascript
+            echo "$prefix: uploaded"
+          done
+
+      # The cli at this release, which presents the runner's OIDC token: trusted publishing,
+      # verified by the registry against the scope's record. Publishing is inert — nothing is
+      # activated — and republishing a version the registry already holds unchanged is a
+      # no-op, so a re-run is safe.
+      - name: Publish each version
+        run: |
+          set -euo pipefail
+          for dir in apps/*/; do
+            (cd "$dir" && npx --yes "@appshell/cli@$VERSION" publish --template dist/appshell.template.json)
+          done
 
   # Discovers the micro-frontends rather than listing them, after the pattern in
   # navaris/platform-services: adding one needs no workflow change. Scans `apps/` only —
@@ -290,7 +436,8 @@ jobs:
   example_images_matrix:
     name: Discover example apps
     needs: example
-    if: ${{ github.ref == 'refs/heads/main' || contains(github.ref, 'refs/heads/feat') || contains(github.ref, 'refs/heads/fix') }}
+    # Only what the example job recorded is imaged: the commit it built and pushed.
+    if: ${{ needs.example.outputs.built != '' && (github.ref == 'refs/heads/main' || contains(github.ref, 'refs/heads/feat') || contains(github.ref, 'refs/heads/fix')) }}
     runs-on: ubuntu-latest
     outputs:
       builds: ${{ steps.scan.outputs.builds }}
@@ -298,15 +445,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # The branch head, not the commit that triggered this run. The example job
-          # pushes the version bump it built against, and that commit lands after the
-          # trigger — so checking out github.sha builds the tree from before the bump,
-          # and the image ships a lockfile a release behind. Measured: a run that
-          # published alpha.80 produced images built against alpha.78.
-          #
-          # Safe to take the head here because the example job is upstream of both of
-          # these, so its push has already landed.
-          ref: ${{ github.ref }}
+          # The commit the example job recorded, not the one that triggered this run. The
+          # example job pushes the version bump it built against, and that commit lands
+          # after the trigger — so checking out github.sha builds the tree from before the
+          # bump, and the image ships a lockfile a release behind. Measured: a run that
+          # published alpha.80 produced images built against alpha.78. Not the branch head
+          # either, which a later push can move while this run is still going.
+          ref: ${{ needs.example.outputs.built }}
       - id: scan
         working-directory: examples/appshell-react-host
         run: |
@@ -324,7 +469,7 @@ jobs:
   # undercut that at the infrastructure layer while the registry claims it above.
   example_images:
     name: Image ${{ matrix.app }} (${{ matrix.platform }})
-    needs: example_images_matrix
+    needs: [example, example_images_matrix]
     runs-on: ${{ matrix.platform == 'linux/arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
     permissions:
       contents: read
@@ -335,15 +480,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # The branch head, not the commit that triggered this run. The example job
-          # pushes the version bump it built against, and that commit lands after the
-          # trigger — so checking out github.sha builds the tree from before the bump,
-          # and the image ships a lockfile a release behind. Measured: a run that
-          # published alpha.80 produced images built against alpha.78.
-          #
-          # Safe to take the head here because the example job is upstream of both of
-          # these, so its push has already landed.
-          ref: ${{ github.ref }}
+          # The commit the example job recorded, not the one that triggered this run. The
+          # example job pushes the version bump it built against, and that commit lands
+          # after the trigger — so checking out github.sha builds the tree from before the
+          # bump, and the image ships a lockfile a release behind. Measured: a run that
+          # published alpha.80 produced images built against alpha.78. Not the branch head
+          # either, which a later push can move while this run is still going.
+          ref: ${{ needs.example.outputs.built }}
       - uses: docker/setup-buildx-action@v3
 
       - uses: docker/login-action@v3
