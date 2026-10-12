@@ -98,6 +98,10 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    outputs:
+      # The commit the images build from: what this job recorded, or the release commit when
+      # there was nothing to record. Empty only if recording failed.
+      built: ${{ steps.record.outputs.commit }}
     defaults:
       run:
         working-directory: examples/appshell-react-host
@@ -105,9 +109,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # The publish job pushed a release commit; without this the example is built
-          # from the tree as it was before the versions were bumped.
-          ref: ${{ github.ref }}
+          # The release tag, the commit the packages were published from. Not github.sha,
+          # which is from before the versions were bumped; and not the branch head, which a
+          # later push can move while this run is still going, so the examples would be
+          # built from an untested tree and published under this release's version.
+          ref: v${{ needs.publish_npm_packages.outputs.version }}
       - uses: actions/setup-node@v4
         with:
           node-version: 24.x
@@ -301,14 +307,22 @@ jobs:
       # --force-publish, so a commit that retriggered it would publish another version,
       # which would bump the example again, without end. The non-retriggering push is what
       # makes this bookkeeping rather than a loop.
+      #
+      # The checkout is the release tag, so the branch may have moved on since: the commit is
+      # rebased onto it and retried. Bookkeeping never fails the job, because the examples'
+      # publication depends on this job and must not wait on a race over a lockfile; the next
+      # release records it instead.
       - name: Record what was built
+        id: record
         env:
           VERSION: ${{ needs.publish_npm_packages.outputs.version }}
         run: |
           set -euo pipefail
+          branch=${GITHUB_REF#refs/heads/}
 
           if git diff --quiet -- package-lock.json apps/*/package.json; then
             echo "Already building against $VERSION; nothing to record."
+            echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -316,7 +330,21 @@ jobs:
           git config user.email 'github-actions[bot]@users.noreply.github.com'
           git add package-lock.json apps/*/package.json
           git commit -m "chore(example): build against, and version as, $VERSION"
-          git push origin HEAD:${GITHUB_REF#refs/heads/}
+
+          for _ in 1 2 3; do
+            if git push origin "HEAD:refs/heads/$branch"; then
+              echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            git fetch origin "$branch"
+            if ! git rebase "origin/$branch"; then
+              git rebase --abort
+              break
+            fi
+          done
+
+          echo "::warning::Could not record what was built on $branch; the next release records it."
+          echo "commit=" >> "$GITHUB_OUTPUT"
 
   # Publishes the examples the way a third party publishes its own packages: from CI, with
   # the workflow's own identity, never a stored token (appshellhq/appshell#16).
@@ -420,15 +448,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # The branch head, not the commit that triggered this run. The example job
-          # pushes the version bump it built against, and that commit lands after the
-          # trigger — so checking out github.sha builds the tree from before the bump,
-          # and the image ships a lockfile a release behind. Measured: a run that
-          # published alpha.80 produced images built against alpha.78.
-          #
-          # Safe to take the head here because the example job is upstream of both of
-          # these, so its push has already landed.
-          ref: ${{ github.ref }}
+          # The commit the example job recorded, not the one that triggered this run. The
+          # example job pushes the version bump it built against, and that commit lands
+          # after the trigger — so checking out github.sha builds the tree from before the
+          # bump, and the image ships a lockfile a release behind. Measured: a run that
+          # published alpha.80 produced images built against alpha.78. Not the branch head
+          # either, which a later push can move while this run is still going; the head only
+          # if recording failed.
+          ref: ${{ needs.example.outputs.built || github.ref }}
       - id: scan
         working-directory: examples/appshell-react-host
         run: |
@@ -446,7 +473,7 @@ jobs:
   # undercut that at the infrastructure layer while the registry claims it above.
   example_images:
     name: Image ${{ matrix.app }} (${{ matrix.platform }})
-    needs: example_images_matrix
+    needs: [example, example_images_matrix]
     runs-on: ${{ matrix.platform == 'linux/arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
     permissions:
       contents: read
@@ -457,15 +484,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # The branch head, not the commit that triggered this run. The example job
-          # pushes the version bump it built against, and that commit lands after the
-          # trigger — so checking out github.sha builds the tree from before the bump,
-          # and the image ships a lockfile a release behind. Measured: a run that
-          # published alpha.80 produced images built against alpha.78.
-          #
-          # Safe to take the head here because the example job is upstream of both of
-          # these, so its push has already landed.
-          ref: ${{ github.ref }}
+          # The commit the example job recorded, not the one that triggered this run. The
+          # example job pushes the version bump it built against, and that commit lands
+          # after the trigger — so checking out github.sha builds the tree from before the
+          # bump, and the image ships a lockfile a release behind. Measured: a run that
+          # published alpha.80 produced images built against alpha.78. Not the branch head
+          # either, which a later push can move while this run is still going; the head only
+          # if recording failed.
+          ref: ${{ needs.example.outputs.built || github.ref }}
       - uses: docker/setup-buildx-action@v3
 
       - uses: docker/login-action@v3
