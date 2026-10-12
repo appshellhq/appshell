@@ -494,9 +494,11 @@ jobs:
             -e OTEL_SDK_DISABLED=true \
             "$REGISTRY_IMAGE"
 
+          # Ready means a success status, not just an answer: the registry can answer 503 while
+          # MongoDB starts. Each probe is capped, so one stalled request can't outlast the wait.
           for service in "http://localhost:9090/" "$APPSHELL_REGISTRY/health"; do
             for _ in $(seq 1 60); do
-              curl -s -o /dev/null "$service" && continue 2
+              curl -fs --max-time 5 -o /dev/null "$service" && continue 2
               sleep 2
             done
             echo "::error::$service never answered"
