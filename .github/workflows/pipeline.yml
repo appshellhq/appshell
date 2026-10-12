@@ -480,6 +480,17 @@ jobs:
         id: published
         run: echo "version=$(node -p "require('./packages/config/package.json').version")" >> "$GITHUB_OUTPUT"
 
+      # Pushed before anything is published, so a version number is claimed in git before it
+      # can exist on npm. The other order let a publish that failed after uploading leave git
+      # behind npm, and the next run versioned the same number again over different code:
+      # v1.0.0-alpha.100 was published from #18 and then tagged on #19, which never reached
+      # npm (appshellhq/appshell#20). A run cancelled mid-publish (cancel-in-progress) did
+      # the same. Now a failed or cancelled publish only spends its number, and the next run
+      # takes the one after; and a push that loses a race to another fails here, before
+      # anything is published.
+      - name: Push the version before publishing it
+        run: git push --follow-tags
+
       - name: Build
         run: npm run build
 
@@ -517,7 +528,29 @@ jobs:
           # and queries the registry, so it publishes only what is genuinely missing —
           # which is the property a retry needs and the reason one attempt could leave six
           # packages on the new version and two on the old.
-          npx lerna publish --yes --concurrency 1 from-package
+          npx lerna publish --yes --concurrency 1 from-package || true
 
-      - name: Push CI commit
-        run: git push --follow-tags
+      # Judged by what npm holds, not by lerna's exit code. Rekor's 409 fails a run whose
+      # packages all landed (the one that published alpha.100 did), and a retry that finds
+      # everything already there says nothing useful either. The release succeeded if and
+      # only if every public package is on npm at the version this run claimed; the registry
+      # can take a moment to show a fresh version, so each is asked a few times.
+      - name: Check every package reached npm
+        shell: bash
+        run: |
+          missing=""
+          for spec in $(npx lerna list --json | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>JSON.parse(s).filter(p=>!p.private).forEach(p=>console.log(`${p.name}@${p.version}`)))'); do
+            found=""
+            for attempt in 1 2 3 4 5 6; do
+              if npm view "$spec" version >/dev/null 2>&1; then found=1; break; fi
+              sleep 10
+            done
+            [ -n "$found" ] || missing="$missing $spec"
+          done
+
+          if [ -n "$missing" ]; then
+            echo "::error::Not on npm after publishing:$missing"
+            exit 1
+          fi
+
+          echo "Every package is on npm at ${{ steps.published.outputs.version }}."
