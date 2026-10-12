@@ -480,6 +480,19 @@ jobs:
         id: published
         run: echo "version=$(node -p "require('./packages/config/package.json').version")" >> "$GITHUB_OUTPUT"
 
+      # Pushed before anything is published, so a version number is claimed in git before it
+      # can exist on npm. The other order let a publish that failed after uploading leave git
+      # behind npm, and the next run versioned the same number again over different code:
+      # v1.0.0-alpha.100 was published from #18 and then tagged on #19, which never reached
+      # npm (appshellhq/appshell#20). A run cancelled mid-publish (cancel-in-progress) did
+      # the same. Now a failed or cancelled publish only spends its number, and the next run
+      # takes the one after; and a push that loses a race to another fails here, before
+      # anything is published. Atomic, naming both refs, so the branch and the tag land
+      # together or not at all: a plain push could take one and refuse the other, leaving a
+      # half-claimed version for the next run to number from.
+      - name: Push the version before publishing it
+        run: git push --atomic origin HEAD "refs/tags/v${{ steps.published.outputs.version }}"
+
       - name: Build
         run: npm run build
 
@@ -498,11 +511,14 @@ jobs:
             exit 0
           fi
 
-          if ! grep -q "TLOG_CREATE_ENTRY_ERROR" "$publish_log"; then
-            exit 1
+          # Any failure gets the one retry, and this step never decides the release: the
+          # registry check after it does. A failure after uploading — Rekor's 409 above all,
+          # but not only — would otherwise fail a release whose packages all landed.
+          if grep -q "TLOG_CREATE_ENTRY_ERROR" "$publish_log"; then
+            echo "::warning::npm transparency log returned 409; retrying whatever did not land."
+          else
+            echo "::warning::lerna publish failed; retrying whatever did not land. The registry check decides."
           fi
-
-          echo "::warning::npm transparency log returned 409; retrying whatever did not land."
 
           # A failed publish leaves lerna's own work in the tree: it rewrites internal
           # workspace dependency ranges to concrete versions before packing and restores
@@ -517,7 +533,41 @@ jobs:
           # and queries the registry, so it publishes only what is genuinely missing —
           # which is the property a retry needs and the reason one attempt could leave six
           # packages on the new version and two on the old.
-          npx lerna publish --yes --concurrency 1 from-package
+          npx lerna publish --yes --concurrency 1 from-package || true
 
-      - name: Push CI commit
-        run: git push --follow-tags
+      # Judged by what npm holds, not by lerna's exit code. Rekor's 409 fails a run whose
+      # packages all landed (the one that published alpha.100 did), and a retry that finds
+      # everything already there says nothing useful either. The release succeeded if and
+      # only if every public package is on npm at the version this run claimed; the registry
+      # can take a moment to show a fresh version, so each is asked a few times.
+      - name: Check every package reached npm
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Listed first, and refused if empty: a list that failed or came back with nothing
+          # would make the loop below check nothing and report success.
+          specs=$(npx lerna list --json | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>JSON.parse(s).filter(p=>!p.private).forEach(p=>console.log(`${p.name}@${p.version}`)))')
+          if [ -z "$specs" ]; then
+            echo "::error::Could not list the packages to check, so nothing is known to be on npm."
+            exit 1
+          fi
+
+          missing=""
+          for spec in $specs; do
+            found=""
+            for attempt in 1 2 3 4 5 6; do
+              # --prefer-online: lerna's registry queries above cached these packuments, and a
+              # cached one from before the publish would fail every attempt.
+              if npm view "$spec" version --prefer-online >/dev/null 2>&1; then found=1; break; fi
+              sleep 10
+            done
+            [ -n "$found" ] || missing="$missing $spec"
+          done
+
+          if [ -n "$missing" ]; then
+            echo "::error::Not on npm after publishing:$missing"
+            exit 1
+          fi
+
+          echo "Every package is on npm at ${{ steps.published.outputs.version }}."
