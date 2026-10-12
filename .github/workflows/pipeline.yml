@@ -364,6 +364,12 @@ jobs:
       APPSHELL_REGISTRY: https://registry.appshell.org
 
     steps:
+      # The upload script only; the bytes come from the example job's artifact.
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts
+          sparse-checkout-cone-mode: false
+
       - uses: actions/download-artifact@v4
         with:
           name: examples
@@ -373,51 +379,19 @@ jobs:
         with:
           node-version: 24.x
 
-      # Each version's bytes go to {scope}/{name}/{version}/, which the registry serves as
-      # immutable, so a version is uploaded once and never replaced: a later upload over it
-      # would be invisible to every browser that already cached it. remoteEntry.js goes last,
-      # so a version whose remoteEntry.js is there is complete, and a run cut short leaves one
-      # the next attempt finishes rather than skips.
+      # The bucket's whereabouts: Terraform writes them to the environment. Spaces serves a
+      # bucket at <bucket>.<endpoint host>, which is how the registry reads it.
       - name: Upload each version's bytes, once
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.SPACES_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.SPACES_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ${{ vars.SPACES_REGION }}
           BUCKET: ${{ vars.SPACES_BUCKET }}
-          ENDPOINT: ${{ vars.SPACES_ENDPOINT }}
+          S3_ENDPOINT: ${{ vars.SPACES_ENDPOINT }}
         run: |
           set -euo pipefail
-          test -n "$BUCKET" && test -n "$ENDPOINT"
-
-          for dir in apps/*/; do
-            dir=${dir%/}
-            name=$(node -p "require('./$dir/package.json').name")
-            version=$(node -p "require('./$dir/package.json').version")
-            if [ "$version" != "$VERSION" ]; then
-              echo "::error::$name is at $version, not this release's $VERSION"
-              exit 1
-            fi
-
-            scope=${name#@}; scope=${scope%%/*}
-            prefix="$scope/${name#*/}/$version"
-
-            # Read anonymously, as the registry reads it: the bucket is public-read and
-            # answers 404 for a key that isn't there.
-            status=$(curl -s -o /dev/null -w '%{http_code}' "https://$BUCKET.${ENDPOINT#https://}/$prefix/remoteEntry.js")
-            case "$status" in
-              200) echo "$prefix: already there; a version's bytes are written once"; continue ;;
-              404) ;;
-              *) echo "::error::reading $prefix/remoteEntry.js answered $status"; exit 1 ;;
-            esac
-
-            # appshell.template.json is what publish reads, not something a browser loads.
-            aws s3 cp "$dir/dist" "s3://$BUCKET/$prefix/" --recursive --acl public-read \
-              --endpoint-url "$ENDPOINT" --only-show-errors \
-              --exclude remoteEntry.js --exclude appshell.template.json
-            aws s3 cp "$dir/dist/remoteEntry.js" "s3://$BUCKET/$prefix/remoteEntry.js" --acl public-read \
-              --endpoint-url "$ENDPOINT" --only-show-errors --content-type text/javascript
-            echo "$prefix: uploaded"
-          done
+          test -n "$BUCKET" && test -n "$S3_ENDPOINT"
+          READ_BASE="https://$BUCKET.${S3_ENDPOINT#https://}" scripts/upload-examples.sh apps
 
       # The cli at this release, which presents the runner's OIDC token: trusted publishing,
       # verified by the registry against the scope's record. Publishing is inert — nothing is
@@ -429,6 +403,151 @@ jobs:
           for dir in apps/*/; do
             (cd "$dir" && npx --yes "@appshell/cli@$VERSION" publish --template dist/appshell.template.json)
           done
+
+  # An end-to-end publish on every pull request, with nothing from production (#16): the
+  # registry image production runs, MongoDB, and S3Mock standing in for the bucket, all inside
+  # the job. The examples are built against this pull request's own packages, packed as npm
+  # would publish them, uploaded with the release job's own script and published with this
+  # pull request's cli. A change that breaks a template, a manifest or the bytes fails here.
+  #
+  # S3Mock rather than MinIO, which no longer publishes community images. It ignores
+  # credentials, so it reads anonymously as the public-read bucket does, and answers 404 for a
+  # missing key as Spaces does.
+  examples_e2e:
+    name: Examples, end to end
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    # No id-token: without one the cli publishes with no credential, which AUTH_MODE=none
+    # accepts. packages: read pulls the registry image, which is private; this repository has
+    # read access to it.
+    permissions:
+      contents: read
+      packages: read
+    env:
+      # Production's tag (navaris/argocd-deployment-repo applications/appshell-registry/prod),
+      # rolled forward with it, so this tests the registry users are served by.
+      REGISTRY_IMAGE: ghcr.io/appshellhq/registry:sha-a8625c6
+      APPSHELL_REGISTRY: http://localhost:7150
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            examples/appshell-react-host/package-lock.json
+
+      - name: Build this pull request's packages
+        run: |
+          npm ci
+          npm run build
+
+      # The tarballs npm would publish, so the examples consume exactly what a release ships:
+      # its `files`, its entry points, its dependencies.
+      - name: Pack them as npm would publish them
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/packs"
+          npx lerna exec --no-private --concurrency 1 -- npm pack --pack-destination "$RUNNER_TEMP/packs"
+          ls "$RUNNER_TEMP/packs"
+
+      # The lockfile's versions first, then this pull request's packages over them, unsaved:
+      # the examples build against the change, and nothing is written back.
+      - name: Build and test the examples against them
+        working-directory: examples/appshell-react-host
+        run: |
+          set -euo pipefail
+          npm ci
+          npm install --no-save "$RUNNER_TEMP"/packs/*.tgz
+          cp sample.env .env
+          npm run build
+          npm test
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Start the registry, MongoDB and a stand-in bucket
+        run: |
+          set -euo pipefail
+          docker network create e2e
+          docker run -d --name mongo --network e2e mongo:7
+          docker run -d --name bucket --network e2e -p 9090:9090 adobe/s3mock:5.2.3
+          docker run -d --name registry --network e2e -p 7150:7150 \
+            -e AUTH_MODE=none \
+            -e MONGO_URI=mongodb://mongo:27017/appshell-registry \
+            -e "ARTIFACT_BASE_URL=http://bucket:9090/examples/{scope}/{name}/{version}/" \
+            -e "GRANT_SECRET=$(openssl rand -hex 32)" \
+            -e APPS_BASE_URL=http://localhost:7150 \
+            -e EVENT_BUS=none \
+            -e OTEL_SDK_DISABLED=true \
+            "$REGISTRY_IMAGE"
+
+          for service in "http://localhost:9090/" "$APPSHELL_REGISTRY/health"; do
+            for _ in $(seq 1 60); do
+              curl -s -o /dev/null "$service" && continue 2
+              sleep 2
+            done
+            echo "::error::$service never answered"
+            docker logs registry || true
+            exit 1
+          done
+
+      # AUTH_MODE=none runs every request as one principal, and publishing provisions only
+      # that principal's own scope, so the examples' scope is claimed first, as a person would.
+      - name: Claim the appshell scope
+        run: |
+          curl -fsS -X POST "$APPSHELL_REGISTRY/v1/scopes" -H 'content-type: application/json' -d '{"name":"appshell"}'
+
+      - name: Upload the examples' bytes, with the release job's script
+        env:
+          AWS_ACCESS_KEY_ID: e2e
+          AWS_SECRET_ACCESS_KEY: e2e
+          AWS_DEFAULT_REGION: us-east-1
+          BUCKET: examples
+          S3_ENDPOINT: http://localhost:9090
+          READ_BASE: http://localhost:9090/examples
+        run: |
+          set -euo pipefail
+          aws configure set default.s3.addressing_style path
+          aws --endpoint-url "$S3_ENDPOINT" s3 mb "s3://$BUCKET"
+          scripts/upload-examples.sh examples/appshell-react-host/apps
+
+      - name: Publish them with this pull request's cli
+        working-directory: examples/appshell-react-host
+        run: |
+          set -euo pipefail
+          for dir in apps/*/; do
+            (cd "$dir" && npx appshell publish --template dist/appshell.template.json --registry "$APPSHELL_REGISTRY")
+          done
+
+      # Through the registry, as a browser asks for it: the bytes that were uploaded, cached as
+      # immutable because the address names the version.
+      - name: The registry serves exactly the uploaded bytes
+        working-directory: examples/appshell-react-host
+        run: |
+          set -euo pipefail
+          for dir in apps/*/; do
+            dir=${dir%/}
+            name=$(node -p "require('./$dir/package.json').name")
+            version=$(node -p "require('./$dir/package.json').version")
+            scope=${name#@}; scope=${scope%%/*}
+            url="$APPSHELL_REGISTRY/p/$scope/${name#*/}/$version/remoteEntry.js"
+
+            curl -fsS -D "$RUNNER_TEMP/headers" -o "$RUNNER_TEMP/served" "$url"
+            cmp "$RUNNER_TEMP/served" "$dir/dist/remoteEntry.js"
+            grep -qi '^cache-control: .*immutable' "$RUNNER_TEMP/headers"
+            echo "$name@$version: served, identical, immutable"
+          done
+
+      - name: The registry's log, on failure
+        if: failure()
+        run: docker logs registry 2>&1 | tail -100
 
   # Discovers the micro-frontends rather than listing them, after the pattern in
   # navaris/platform-services: adding one needs no workflow change. Scans `apps/` only —
