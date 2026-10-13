@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.107](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.106...v1.0.0-alpha.107) (2026-10-13)
+
+### Bug Fixes
+
+- **ci:** move the example's lockfile with npm update, and check it reached the release ([7783871](https://github.com/appshellhq/appshell/commit/7783871e0e618a42f9d62e1c44409490abf0067a)), closes [#30](https://github.com/appshellhq/appshell/issues/30)
+
 # [1.0.0-alpha.106](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.105...v1.0.0-alpha.106) (2026-10-13)
 
 **Note:** Version bump only for package appshell
