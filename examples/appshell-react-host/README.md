@@ -102,6 +102,7 @@ cp sample.env .env
 ### 3. Declare the application
 
 ```bash
+set -a; . ./.env; set +a   # appshell.app.yaml expands ${SUPPORT_URL} from your environment
 appshell scopes create appshell
 appshell app apply -f appshell.app.yaml
 ```
