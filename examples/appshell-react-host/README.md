@@ -117,8 +117,23 @@ without which the shell has nothing to mount. Re-running it is safe.
 
 ### 4. Run it — the dev server opens an overlay
 
+On a fresh registry the application has nothing activated yet, and an overlay redirects a package
+the application already runs. So seed it once: build each example, publish it, and activate the
+published version. This is the same sequence the repository's end-to-end check runs on every pull
+request.
+
 ```bash
 npm run bootstrap
+npm run build
+for app in apps/*/; do
+  (cd "$app" && npx appshell publish --template dist/appshell.template.json)
+  appshell app activate "$(node -p "const p = require('./${app}package.json'); p.name.slice(1) + '@' + p.version")"
+done
+```
+
+Then start the dev servers:
+
+```bash
 npm run start
 ```
 
@@ -127,8 +142,8 @@ application instead of publishing: the application runs your local code for that
 your browser only**. Each dev server prints a confirm URL. Open it once, and that browser holds the
 overlay. Nothing is published, and the published versions are left alone, so two developers sharing
 a registry never overwrite each other. Editing `appshell.config.yaml` (routes, metadata) shows up on
-the next build. If the registry can't redirect a package yet, the dev server says so: publish it once
-with `appshell publish` and activate it, and the overlay can take over from there.
+the next build. A package the application doesn't run yet can't be redirected, and the dev server
+says so; the seed step above is what avoids that.
 
 An overlay needs the application to allow it, and you to be able to write to its scope.
 `appshell.app.yaml` sets `allowOverlays: true`, which is right for a development application. In
@@ -139,7 +154,7 @@ already running somewhere, without the plugin.
 Open the shell:
 
 ```bash
-appshell app open appshell-example  # prints http://localhost:7150/a/appshell/appshell-example
+appshell app open  # the application in your CLI context: http://localhost:7150/a/appshell/appshell-example
 ```
 
 The registry serves the shell document itself, so there is no separate host to run.
