@@ -104,7 +104,7 @@ module.exports = (env, { mode }) => {
         // No consumer currently relies on generated remote types.
         dts: false,
         exposes: {
-          './Ping': './src/Ping',
+          './PingRenamed': './src/Ping',
         },
         // A convention rather than configuration: every published manifest names
         // remoteEntry.js, so a build that produced anything else would serve a remote
