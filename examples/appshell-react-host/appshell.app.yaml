@@ -6,11 +6,12 @@
 # appshell.config.yaml expands them, so one file can describe the application
 # in more than one registry.
 #
-# `spec.packages` is deliberately absent. This is the development application:
-# `npm start` opens an overlay that runs each package's local code in your
-# browser, publishing nothing, so there are no versions here to pin. Production's
-# copy pins them, in a deployment repository, and anything absent from that list
-# gets deactivated.
+# `spec.packages` is deliberately absent. An apply deactivates anything a list
+# doesn't name, so pinning versions here would undo whatever a developer has
+# activated by hand, such as publishing a package once so an overlay can
+# redirect it. `npm start` itself publishes nothing: it opens an overlay that
+# runs each package's local code in your browser. Production's copy pins its
+# versions, in a deployment repository.
 apiVersion: registry.appshell.org/v1
 kind: Application
 # Scope-qualified, so this file says where the application belongs rather than

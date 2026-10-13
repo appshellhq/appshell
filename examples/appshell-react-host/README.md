@@ -102,12 +102,16 @@ cp sample.env .env
 ### 3. Declare the application
 
 ```bash
+appshell scopes create appshell
 appshell app apply -f appshell.app.yaml
 ```
 
-That creates `appshell/appshell-example` (the file names its scope, so it lands there whoever
-applies it) and sets its shell config — the root remote above all, without which the shell has
-nothing to mount. Re-running it is safe.
+The file names its scope, so it lands in `appshell` whoever applies it, and declaring an application
+never creates a scope as a side effect. On a fresh registry, claim it first, as above. On a shared
+registry where someone else owns `appshell`, change `name:` to a scope you own.
+
+The apply creates `appshell/appshell-example` and sets its shell config — the root remote above all,
+without which the shell has nothing to mount. Re-running it is safe.
 
 ### 4. Run it — the dev server opens an overlay
 
