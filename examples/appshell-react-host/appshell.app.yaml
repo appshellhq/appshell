@@ -6,10 +6,12 @@
 # appshell.config.yaml expands them, so one file can describe the application
 # in more than one registry.
 #
-# `spec.packages` is deliberately absent: `npm start` publishes and activates
-# each package as you edit, so pinning versions here would fight the dev loop.
-# A GitOps copy of this file would add it, and anything absent from that list
-# gets deactivated.
+# `spec.packages` is deliberately absent. An apply deactivates anything a list
+# doesn't name, so pinning versions here would undo whatever a developer has
+# activated by hand, such as a package published once and then activated, so
+# an overlay can redirect it (publishing alone activates nothing). `npm start` itself publishes nothing: it opens an overlay that
+# runs each package's local code in your browser. Production's copy pins its
+# versions, in a deployment repository.
 apiVersion: registry.appshell.org/v1
 kind: Application
 # Scope-qualified, so this file says where the application belongs rather than

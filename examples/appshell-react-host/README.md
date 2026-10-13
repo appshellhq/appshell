@@ -60,6 +60,12 @@ up in the composition the registry inlined, then loads it over Module Federation
 
 ## Running the example
 
+These steps use the `appshell` CLI, installed globally:
+
+```bash
+npm i -g @appshell/cli
+```
+
 ### 1. Start a registry
 
 The registry needs MongoDB and nothing else.
@@ -82,7 +88,7 @@ kubectl context, rather than per project:
 
 ```bash
 appshell config set registry http://localhost:7150
-appshell config set application dev
+appshell config set application appshell/appshell-example
 ```
 
 Under `AUTH_MODE=none` there is no token to set. Against a registry that enforces auth, run
@@ -102,47 +108,81 @@ cp sample.env .env
 ### 3. Declare the application
 
 ```bash
+# appshell.app.yaml expands ${SUPPORT_URL} from your environment. .env is dotenv syntax, not
+# shell, so take just that value rather than sourcing the file.
+export SUPPORT_URL="$(grep '^SUPPORT_URL=' .env | cut -d= -f2-)"
+appshell scopes create appshell
 appshell app apply -f appshell.app.yaml
 ```
 
-That creates `default/appshell-example` and sets its shell config — the root remote
-above all, without which the shell has nothing to mount. Re-running it is safe.
+The file names its scope, so it lands in `appshell` whoever applies it, and declaring an application
+never creates a scope as a side effect. On a fresh registry, claim it first, as above.
 
-### 4. Run it — publish happens on build
+This walkthrough needs a registry where you can claim `appshell`, like the local one started above:
+the example packages are named `@appshell/…`, so they publish into that scope too. On a shared
+registry where someone else owns `appshell`, don't rename things; start from the hosted example
+instead, by cloning it into your own scope.
+
+The apply creates `appshell/appshell-example` and sets its shell config — the root remote above all,
+without which the shell has nothing to mount. Re-running it is safe.
+
+### 4. Run it — the dev server opens an overlay
+
+On a fresh registry the application has nothing activated yet, and an overlay redirects a package
+the application already runs. So seed it once: build each example, publish it, and activate the
+published version, with the same global `appshell` as the steps above. This is the same sequence the
+repository's end-to-end check runs on every pull request.
 
 ```bash
 npm run bootstrap
+npm run build
+for app in apps/*/; do
+  (cd "$app" && appshell publish --template dist/appshell.template.json)
+  appshell app activate "$(node -p "const p = require('./${app}package.json'); p.name.slice(1) + '@' + p.version")"
+done
+```
+
+Then start the dev servers:
+
+```bash
 npm run start
 ```
 
-Each app runs its webpack dev server, and `@appshell/webpack-plugin` publishes that app's manifest
-to the registry and activates it in your application on every build — no separate publish step, and
-nothing to toggle: **development builds publish by default**. Because the dev server builds in
-development mode, the plugin asks the registry to **overwrite** the version in place, so editing
-`appshell.config.yaml` (routes, metadata) re-publishes without a version bump. A local
-`AUTH_MODE=none` registry honors that overwrite; a real registry refuses it. If no registry is
-configured, the dev server still runs — publishing is skipped with a warning.
+Each app runs its webpack dev server, and `@appshell/webpack-plugin` opens an **overlay** on your
+application instead of publishing: the application runs your local code for that package, **in
+your browser only**. Each dev server prints a confirm URL. Open it once, and that browser holds the
+overlay. Nothing is published, and the published versions are left alone, so two developers sharing
+a registry never overwrite each other. Editing `appshell.config.yaml` (routes, metadata) shows up on
+the next build. A package the application doesn't run yet can't be redirected, and the dev server
+says so; the seed step above is what avoids that.
+
+An overlay needs the application to allow it, and you to be able to write to its scope.
+`appshell.app.yaml` sets `allowOverlays: true`, which is right for a development application. In
+production it's a deliberate choice: appshell's own hosted example allows it, for demos, and only
+members of its scope can open one. `appshell dev` opens the same kind of overlay for a package
+already running somewhere, without the plugin.
 
 Open the shell:
 
 ```bash
-appshell app open appshell-example  # prints http://localhost:7070/a/default/appshell-example
+appshell app open  # the application in your CLI context: http://localhost:7150/a/appshell/appshell-example
 ```
 
 The registry serves the shell document itself, so there is no separate host to run.
 
-### Publishing in CI
+### Publishing and activating
 
-Publish-on-build is a development convenience — production builds never publish on their own. In CI,
-bump the package's version and publish explicitly so each release is an immutable version:
+Publishing is a release action, and a dev server isn't a release, so builds never publish on their
+own. A release publishes explicitly, at a new version, which is immutable once published:
 
 ```bash
-appshell publish --template dist/appshell.template.json --application dev
+appshell publish --template dist/appshell.template.json
 ```
 
-`--application` also activates the published version; add `--watch` to republish whenever the
-template changes. A production build never forces, so re-publishing changed content under an
-existing version is rejected — the immutability guarantee CI depends on.
+Publishing is inert: nothing runs it until an application activates it. appshell's own examples are
+published this way from CI, through trusted publishing (the workflow's own identity, no stored token).
+Their production application pins the versions it runs in a deployment repository, so activating one
+is a reviewed change.
 
 ## Inspecting an application
 
