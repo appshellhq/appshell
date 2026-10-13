@@ -60,6 +60,12 @@ up in the composition the registry inlined, then loads it over Module Federation
 
 ## Running the example
 
+These steps use the `appshell` CLI, installed globally:
+
+```bash
+npm i -g @appshell/cli
+```
+
 ### 1. Start a registry
 
 The registry needs MongoDB and nothing else.
@@ -122,14 +128,14 @@ without which the shell has nothing to mount. Re-running it is safe.
 
 On a fresh registry the application has nothing activated yet, and an overlay redirects a package
 the application already runs. So seed it once: build each example, publish it, and activate the
-published version. This is the same sequence the repository's end-to-end check runs on every pull
-request.
+published version, with the same global `appshell` as the steps above. This is the same sequence the
+repository's end-to-end check runs on every pull request.
 
 ```bash
 npm run bootstrap
 npm run build
 for app in apps/*/; do
-  (cd "$app" && npx appshell publish --template dist/appshell.template.json)
+  (cd "$app" && appshell publish --template dist/appshell.template.json)
   appshell app activate "$(node -p "const p = require('./${app}package.json'); p.name.slice(1) + '@' + p.version")"
 done
 ```
