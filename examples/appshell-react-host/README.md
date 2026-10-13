@@ -105,44 +105,52 @@ cp sample.env .env
 appshell app apply -f appshell.app.yaml
 ```
 
-That creates `default/appshell-example` and sets its shell config — the root remote
-above all, without which the shell has nothing to mount. Re-running it is safe.
+That creates `appshell/appshell-example` (the file names its scope, so it lands there whoever
+applies it) and sets its shell config — the root remote above all, without which the shell has
+nothing to mount. Re-running it is safe.
 
-### 4. Run it — publish happens on build
+### 4. Run it — the dev server opens an overlay
 
 ```bash
 npm run bootstrap
 npm run start
 ```
 
-Each app runs its webpack dev server, and `@appshell/webpack-plugin` publishes that app's manifest
-to the registry and activates it in your application on every build — no separate publish step, and
-nothing to toggle: **development builds publish by default**. Because the dev server builds in
-development mode, the plugin asks the registry to **overwrite** the version in place, so editing
-`appshell.config.yaml` (routes, metadata) re-publishes without a version bump. A local
-`AUTH_MODE=none` registry honors that overwrite; a real registry refuses it. If no registry is
-configured, the dev server still runs — publishing is skipped with a warning.
+Each app runs its webpack dev server, and `@appshell/webpack-plugin` opens an **overlay** on your
+application instead of publishing: the application runs your local code for that package, **in
+your browser only**. Each dev server prints a confirm URL. Open it once, and that browser holds the
+overlay. Nothing is published, and the published versions are left alone, so two developers sharing
+a registry never overwrite each other. Editing `appshell.config.yaml` (routes, metadata) shows up on
+the next build. If the registry can't redirect a package yet, the dev server says so: publish it once
+with `appshell publish` and activate it, and the overlay can take over from there.
+
+An overlay needs the application to allow it, and you to be able to write to its scope.
+`appshell.app.yaml` sets `allowOverlays: true`, which is right for a development application. In
+production it's a deliberate choice: appshell's own hosted example allows it, for demos, and only
+members of its scope can open one. `appshell dev` opens the same kind of overlay for a package
+already running somewhere, without the plugin.
 
 Open the shell:
 
 ```bash
-appshell app open appshell-example  # prints http://localhost:7070/a/default/appshell-example
+appshell app open appshell-example  # prints http://localhost:7150/a/appshell/appshell-example
 ```
 
 The registry serves the shell document itself, so there is no separate host to run.
 
-### Publishing in CI
+### Publishing and activating
 
-Publish-on-build is a development convenience — production builds never publish on their own. In CI,
-bump the package's version and publish explicitly so each release is an immutable version:
+Publishing is a release action, and a dev server isn't a release, so builds never publish on their
+own. A release publishes explicitly, at a new version, which is immutable once published:
 
 ```bash
-appshell publish --template dist/appshell.template.json --application dev
+appshell publish --template dist/appshell.template.json
 ```
 
-`--application` also activates the published version; add `--watch` to republish whenever the
-template changes. A production build never forces, so re-publishing changed content under an
-existing version is rejected — the immutability guarantee CI depends on.
+Publishing is inert: nothing runs it until an application activates it. appshell's own examples are
+published this way from CI, through trusted publishing (the workflow's own identity, no stored token).
+Their production application pins the versions it runs in a deployment repository, so activating one
+is a reviewed change.
 
 ## Inspecting an application
 
