@@ -108,7 +108,9 @@ cp sample.env .env
 ### 3. Declare the application
 
 ```bash
-set -a; . ./.env; set +a   # appshell.app.yaml expands ${SUPPORT_URL} from your environment
+# appshell.app.yaml expands ${SUPPORT_URL} from your environment. .env is dotenv syntax, not
+# shell, so take just that value rather than sourcing the file.
+export SUPPORT_URL="$(grep '^SUPPORT_URL=' .env | cut -d= -f2-)"
 appshell scopes create appshell
 appshell app apply -f appshell.app.yaml
 ```
