@@ -107,10 +107,12 @@ appshell app apply -f appshell.app.yaml
 ```
 
 The file names its scope, so it lands in `appshell` whoever applies it, and declaring an application
-never creates a scope as a side effect. On a fresh registry, claim it first, as above. On a shared
-registry where someone else owns `appshell`, change `name:` to a scope you own, and set your CLI
-context to match (`appshell config set application <scope>/appshell-example`): the dev servers open
-their overlays on whichever application the context names.
+never creates a scope as a side effect. On a fresh registry, claim it first, as above.
+
+This walkthrough needs a registry where you can claim `appshell`, like the local one started above:
+the example packages are named `@appshell/…`, so they publish into that scope too. On a shared
+registry where someone else owns `appshell`, don't rename things; start from the hosted example
+instead, by cloning it into your own scope.
 
 The apply creates `appshell/appshell-example` and sets its shell config — the root remote above all,
 without which the shell has nothing to mount. Re-running it is safe.
