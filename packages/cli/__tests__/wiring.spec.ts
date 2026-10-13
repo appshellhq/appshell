@@ -262,6 +262,66 @@ describe('trust', () => {
     expect(trust.add).not.toHaveBeenCalled();
   });
 
+  /* appshellhq/appshell-services#57: --application turns each command to deployers. */
+  it('should hand add a Kubernetes service account for an application', () => {
+    run(
+      'trust add acme --application storefront --kubernetes https://oidc.example.test --namespace apps --service-account deployer',
+    );
+
+    expect(handedTo(trust.add)).toMatchObject({
+      scope: 'acme',
+      application: 'storefront',
+      kubernetes: 'https://oidc.example.test',
+      namespace: 'apps',
+      serviceAccount: 'deployer',
+    });
+  });
+
+  it('should hand add a GitHub workflow for an application', () => {
+    run('trust add acme --application storefront --github acme/deploy --workflow deploy.yml');
+
+    expect(handedTo(trust.add)).toMatchObject({
+      application: 'storefront',
+      github: 'acme/deploy',
+      workflow: 'deploy.yml',
+    });
+  });
+
+  it.each([
+    ['nothing to trust', 'trust add acme --application storefront', /--github.*--kubernetes/],
+    [
+      'both kinds at once',
+      'trust add acme --application storefront --github acme/deploy --workflow deploy.yml --kubernetes https://oidc.example.test --namespace apps --service-account deployer',
+      /mutually exclusive/i,
+    ],
+    [
+      'a cluster without its account',
+      'trust add acme --application storefront --kubernetes https://oidc.example.test --namespace apps',
+      /--service-account/,
+    ],
+    [
+      'an account without its cluster',
+      'trust add acme --application storefront --github acme/deploy --workflow deploy.yml --namespace apps',
+      /go with --kubernetes/,
+    ],
+    [
+      'a workflow for a cluster',
+      'trust add acme --application storefront --kubernetes https://oidc.example.test --namespace apps --service-account deployer --workflow deploy.yml',
+      /mutually exclusive/i,
+    ],
+  ])('should refuse %s rather than calling add', (_what, line, error) => {
+    expect(run(line).error).toMatch(error);
+    expect(trust.add).not.toHaveBeenCalled();
+  });
+
+  it('should hand list and remove an application', () => {
+    run('trust ls acme --application storefront');
+    run('trust rm acme 1b2c3d4e --application storefront');
+
+    expect(handedTo(trust.list)).toMatchObject({ scope: 'acme', application: 'storefront' });
+    expect(handedTo(trust.remove)).toMatchObject({ id: '1b2c3d4e', application: 'storefront' });
+  });
+
   it('should route list and remove, taking the scope and the id positionally', () => {
     run('trust ls acme');
     run('trust rm acme 1b2c3d4e');

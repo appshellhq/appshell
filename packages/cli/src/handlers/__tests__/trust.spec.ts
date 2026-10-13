@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import axios from '../../util/axios';
 import { ensureToken } from '../../util/credentials';
-import { add, githubInstance, list, remove, workflowPath } from '../trust';
+import { add, applicationIn, githubInstance, list, remove, workflowPath } from '../trust';
 
 jest.mock('../../util/axios', () => ({
   __esModule: true,
@@ -391,6 +391,152 @@ describe('appshell trust', () => {
 
       await expect(remove({ registry, scope: 'acme', id: 'abc' })).rejects.toThrow(/matches 2/);
       expect(request).not.toHaveBeenCalledWith(expect.objectContaining({ method: 'delete' }));
+    });
+  });
+
+  /*
+   * Trusted deployment, appshellhq/appshell-services#57: the same commands with
+   * --application manage the workloads trusted to apply one application.
+   */
+  describe('with --application', () => {
+    const deployer = (over: Record<string, unknown> = {}) => ({
+      id: ID,
+      application: 'acme/storefront',
+      provider: 'kubernetes',
+      issuer: 'https://oidc.example.test',
+      namespace: 'apps',
+      serviceAccount: 'deployer',
+      createdAt: '2026-10-13T09:00:00.000Z',
+      createdBy: 'owner',
+      ...over,
+    });
+
+    const githubDeployer = deployer({
+      provider: 'github',
+      issuer: 'https://token.actions.githubusercontent.com',
+      namespace: undefined,
+      serviceAccount: undefined,
+      repository: 'acme/widgets',
+      repositoryId: '123',
+      repositoryOwnerId: '456',
+      workflow: '.github/workflows/deploy.yml',
+    });
+
+    const base = { registry, scope: 'acme', application: 'storefront' };
+
+    it('adds a Kubernetes service account under the issuer exactly as given', async () => {
+      request.mockResolvedValue({ data: { deployer: deployer(), created: true } });
+
+      await add({
+        ...base,
+        kubernetes: 'https://oidc.example.test',
+        namespace: 'apps',
+        serviceAccount: 'deployer',
+      });
+
+      expect(request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'post',
+          url: `${registry}/v1/applications/acme/storefront/trusted-deployers`,
+          data: {
+            provider: 'kubernetes',
+            issuer: 'https://oidc.example.test',
+            namespace: 'apps',
+            serviceAccount: 'deployer',
+          },
+        }),
+      );
+      expect(get).not.toHaveBeenCalled();
+      expect(output()).toMatch(/Trusted apps\/deployer to apply acme\/storefront/);
+    });
+
+    it('adds a GitHub workflow by its repository ids, as for publishing', async () => {
+      request.mockResolvedValue({ data: { deployer: githubDeployer, created: true } });
+
+      await add({ ...base, github: 'acme/widgets', workflow: 'deploy.yml' });
+
+      expect(request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: `${registry}/v1/applications/acme/storefront/trusted-deployers`,
+          data: {
+            provider: 'github',
+            repository: 'acme/widgets',
+            repositoryId: '123',
+            repositoryOwnerId: '456',
+            workflow: '.github/workflows/deploy.yml',
+          },
+        }),
+      );
+      expect(output()).toMatch(/Any run of this workflow, from any branch, can apply/);
+    });
+
+    /* Publishing verifies GitHub workflows only. */
+    it('refuses a Kubernetes service account without an application', async () => {
+      await expect(
+        add({
+          registry,
+          scope: 'acme',
+          kubernetes: 'https://oidc.example.test',
+          namespace: 'apps',
+          serviceAccount: 'deployer',
+        }),
+      ).rejects.toThrow(/needs --application/);
+      expect(request).not.toHaveBeenCalled();
+    });
+
+    it('lists both kinds in one table', async () => {
+      request.mockResolvedValue({ data: [deployer(), githubDeployer] });
+
+      await list(base);
+
+      expect(request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'get',
+          url: `${registry}/v1/applications/acme/storefront/trusted-deployers`,
+        }),
+      );
+      expect(output()).toMatch(/apps\/deployer/);
+      expect(output()).toMatch(/acme\/widgets\s+\.github\/workflows\/deploy\.yml \(\*\)/);
+      expect(output()).toMatch(/https:\/\/oidc\.example\.test/);
+    });
+
+    it('says how to add one when there are none', async () => {
+      request.mockResolvedValue({ data: [] });
+
+      await list(base);
+
+      expect(output()).toMatch(/No workload is trusted to apply acme\/storefront/);
+    });
+
+    it('removes by the id list shows, shortened', async () => {
+      request
+        .mockResolvedValueOnce({ data: [deployer()] })
+        .mockResolvedValueOnce({ data: { id: ID, message: 'removed' } });
+
+      await remove({ ...base, id: ID.slice(0, 8) });
+
+      expect(request).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          method: 'delete',
+          url: `${registry}/v1/applications/acme/storefront/trusted-deployers/${ID}`,
+        }),
+      );
+      expect(output()).toMatch(/Removed 1b2c3d4e/);
+    });
+
+    describe('applicationIn', () => {
+      it('takes a name, or scope/name in the same scope', () => {
+        expect(applicationIn('acme', 'storefront')).toBe('storefront');
+        expect(applicationIn('acme', 'acme/storefront')).toBe('storefront');
+      });
+
+      it('refuses an application in another scope', () => {
+        expect(() => applicationIn('acme', 'other/storefront')).toThrow(/is in other, not acme/);
+      });
+
+      it('refuses something that is not an application name', () => {
+        expect(() => applicationIn('acme', 'Store Front')).toThrow(/names an application/);
+      });
     });
   });
 });

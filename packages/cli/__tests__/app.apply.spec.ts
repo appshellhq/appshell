@@ -18,6 +18,13 @@ spec:
 describe('app apply', () => {
   let dir: string;
   let applySpy: jest.SpyInstance;
+  /*
+   * Cleared so a CI job granted `id-token: write` — this repository's own pipeline grants
+   * it workflow-wide — doesn't have apply ask the real runner for a deployment token.
+   */
+  const ambient = ['ACTIONS_ID_TOKEN_REQUEST_URL', 'ACTIONS_ID_TOKEN_REQUEST_TOKEN'].map(
+    (name) => [name, process.env[name]] as const,
+  );
 
   const write = (contents: string, name = 'appshell.app.yaml') => {
     const file = path.join(dir, name);
@@ -29,6 +36,7 @@ describe('app apply', () => {
 
   beforeEach(() => {
     dir = fs.mkdtempSync(path.join(os.tmpdir(), 'appshell-apply-'));
+    ambient.forEach(([name]) => delete process.env[name]);
     process.env.TEST_APP_TITLE = 'Storefront';
     applySpy = jest
       .spyOn(RegistryClient.prototype, 'apply')
@@ -39,6 +47,9 @@ describe('app apply', () => {
   afterEach(() => {
     fs.rmSync(dir, { recursive: true, force: true });
     delete process.env.TEST_APP_TITLE;
+    ambient.forEach(([name, value]) => {
+      if (value !== undefined) process.env[name] = value;
+    });
     jest.restoreAllMocks();
   });
 
