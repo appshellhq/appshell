@@ -120,8 +120,15 @@ jobs:
           cache: 'npm'
           cache-dependency-path: examples/appshell-react-host/package-lock.json
 
-      # The lockfile only. `--no-save` leaves the declared ranges in package.json alone,
-      # and that distinction is the whole point.
+      # The lockfile only: `npm update --package-lock-only` moves it within the declared
+      # ranges and leaves those ranges in package.json alone, and that distinction is the
+      # whole point.
+      #
+      # It was `npm install --package-lock-only --no-save <pkg>@<version>`, which on npm 11
+      # saves nothing, the lockfile included: every install exited 0 and nothing moved, so
+      # every release from alpha.85 to alpha.105 built, tested, imaged and published the
+      # examples against alpha.84 (#30). Hence the check below that the lockfile actually
+      # reached the release, rather than trusting an exit status.
       #
       # An example's `shared` contract is built from its package.json *ranges* — see the
       # webpack configs — so rewriting them on every release rewrote the package's surface
@@ -197,31 +204,70 @@ jobs:
           # first attempt and the loop buried it under eighty-nine identical repeats.
           log=$(mktemp)
 
-          install() {
+          # The published names the manifests declare, once each: the specs above without
+          # their versions. One update at the root covers the workspaces, whose
+          # dependencies are hoisted into its lockfile.
+          names=$(printf '%s\n' "$targets" | tr ' ' '\n' | grep '^@appshell/' | sed 's/@[^@]*$//' | sort -u)
+          test -n "$names"
+
+          # Every published @appshell package in the lockfile, transitive ones included, at
+          # this release. Local workspaces are links, not published, so they don't count.
+          # Exits 0 when all are, 1 when some are behind (npm hasn't shown $VERSION yet), and
+          # 2 when some are ahead: a newer release exists, so this is an old run re-run, and
+          # npm update can only reach the newest. npm lists versions in semver order, and
+          # every @appshell package is published at the same version, so one list orders all.
+          lockfile_at_version() {
+            node -e "
+              const { execSync } = require('child_process');
+              const { packages } = require('./package-lock.json');
+              const want = process.env.VERSION;
+              const off = Object.entries(packages)
+                .filter(([key, p]) => /(^|\/)node_modules\/@appshell\/[^/]+$/.test(key) && !p.link)
+                .filter(([, p]) => p.version !== want)
+                .map(([key, p]) => [key.replace(/^.*node_modules\//, ''), p.version]);
+              if (!off.length) process.exit(0);
+              const order = JSON.parse(execSync('npm view @appshell/cli versions --json --prefer-online').toString());
+              const at = order.indexOf(want);
+              const ahead = off.filter(([, v]) => at !== -1 && order.indexOf(v) > at);
+              const list = (xs) => xs.map(([n, v]) => n + '@' + v).join(' ');
+              if (ahead.length) { console.log(list(ahead)); process.exit(2); }
+              console.log(list(off));
+              process.exit(1);
+            "
+          }
+
+          update() {
             local status
 
-            while read -r dir specs; do
-              [ -z "$dir" ] && continue
+            npm update --package-lock-only --prefer-online $names 2>&1 | tee "$log"
+            # PIPESTATUS, because the exit code of a pipeline is tee's.
+            status=${PIPESTATUS[0]}
 
-              if [ "$dir" = "." ]; then
-                npm install --package-lock-only --prefer-online --no-save $specs 2>&1 | tee "$log"
-              else
-                npm install --package-lock-only --prefer-online --no-save -w "$dir" $specs 2>&1 | tee "$log"
+            if [ "$status" -ne 0 ]; then
+              if grep -q 'code ERESOLVE' "$log"; then
+                echo "::error::Cannot arrange dependencies at $VERSION. This will not resolve by waiting."
+                # 2 rather than 1: the caller has to tell `give up now` from `try again`.
+                return 2
               fi
 
-              # PIPESTATUS, because the exit code of a pipeline is tee's.
-              status=${PIPESTATUS[0]}
+              return 1
+            fi
 
-              if [ "$status" -ne 0 ]; then
-                if grep -q 'code ERESOLVE' "$log"; then
-                  echo "::error::Cannot arrange dependencies for $dir. This will not resolve by waiting."
-                  # 2 rather than 1: the caller has to tell `give up now` from `try again`.
-                  return 2
-                fi
-
+            # npm update settles for the newest version npm shows within the range, and a
+            # replica that hasn't caught up shows an older one without failing.
+            local off at=0
+            off=$(lockfile_at_version) || at=$?
+            case "$at" in
+              0) ;;
+              2)
+                echo "::error::A newer release than $VERSION exists ($off); npm update can only reach the newest, so re-run that release's run instead."
+                return 2
+                ;;
+              *)
+                echo "Lockfile still behind $VERSION: $off"
                 return 1
-              fi
-            done <<< "$targets"
+                ;;
+            esac
           }
 
           # Fifteen minutes, because five was not enough: a run succeeded on attempt 29 of
@@ -237,7 +283,7 @@ jobs:
             # stay distinguishable and neither branch depends on how errexit treats the
             # failing half of an and-or list.
             status=0
-            install || status=$?
+            update || status=$?
 
             if [ "$status" -eq 0 ]; then
               exit 0
@@ -247,11 +293,11 @@ jobs:
               exit 1
             fi
 
-            echo "Not installable yet; npm is still replicating $VERSION (attempt $attempt/90)"
+            echo "Not at $VERSION yet; npm is still replicating it (attempt $attempt/90)"
             sleep 10
           done
 
-          echo "::error::$VERSION did not become installable within fifteen minutes."
+          echo "::error::The lockfile did not reach $VERSION within fifteen minutes."
           exit 1
 
       # Lockstep with the release (appshellhq/appshell#16): each example is published at the
