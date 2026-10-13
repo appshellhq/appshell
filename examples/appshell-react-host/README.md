@@ -82,7 +82,7 @@ kubectl context, rather than per project:
 
 ```bash
 appshell config set registry http://localhost:7150
-appshell config set application dev
+appshell config set application appshell/appshell-example
 ```
 
 Under `AUTH_MODE=none` there is no token to set. Against a registry that enforces auth, run
@@ -108,7 +108,9 @@ appshell app apply -f appshell.app.yaml
 
 The file names its scope, so it lands in `appshell` whoever applies it, and declaring an application
 never creates a scope as a side effect. On a fresh registry, claim it first, as above. On a shared
-registry where someone else owns `appshell`, change `name:` to a scope you own.
+registry where someone else owns `appshell`, change `name:` to a scope you own, and set your CLI
+context to match (`appshell config set application <scope>/appshell-example`): the dev servers open
+their overlays on whichever application the context names.
 
 The apply creates `appshell/appshell-example` and sets its shell config — the root remote above all,
 without which the shell has nothing to mount. Re-running it is safe.
