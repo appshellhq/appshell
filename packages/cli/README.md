@@ -228,7 +228,8 @@ appshell trust remove acme 1b2c3d4e --application storefront
 The cluster issuer is taken exactly as given and must be what the cluster's service
 account tokens carry (`kubectl get --raw /.well-known/openid-configuration` prints it). The
 registry fetches its keys from there, so the issuer's discovery document must be public:
-EKS, GKE and AKS serve one, and a self-managed cluster needs its own published.
+EKS, GKE and AKS serve one, and a self-managed cluster must publish its own discovery
+document and keys at a public https address.
 
 **From GitHub Actions**, with `id-token: write` and no `APPSHELL_TOKEN` or stored login,
 `appshell app apply` asks the runner for a token for the registry's deploy audience — the
@@ -246,21 +247,32 @@ jobs:
       - run: npx appshell app apply -f appshell.app.yaml --registry https://registry.appshell.org
 ```
 
-**From Kubernetes**, project a token for that audience and present it:
+**From Kubernetes**, project a token for that audience into the pod, running as the
+trusted service account, and present it to the same registry:
 
 ```yaml
-volumes:
-  - name: appshell-token
-    projected:
-      sources:
-        - serviceAccountToken:
-            audience: https://registry.appshell.org/deploy
-            expirationSeconds: 3600 # at most an hour is accepted
-            path: token
+spec:
+  serviceAccountName: deployer
+  containers:
+    - name: apply
+      # ...
+      volumeMounts:
+        - name: appshell-token
+          mountPath: /var/run/appshell
+          readOnly: true
+  volumes:
+    - name: appshell-token
+      projected:
+        sources:
+          - serviceAccountToken:
+              audience: https://registry.appshell.org/deploy
+              expirationSeconds: 3600 # at most an hour is accepted
+              path: token
 ```
 
 ```bash
-APPSHELL_TOKEN=$(cat /var/run/appshell/token) appshell app apply -f appshell.app.yaml
+APPSHELL_TOKEN=$(cat /var/run/appshell/token) \
+  appshell app apply -f appshell.app.yaml --registry https://registry.appshell.org
 ```
 
 A workload may only apply, only an application that already exists, and only one named as

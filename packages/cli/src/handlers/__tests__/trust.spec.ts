@@ -530,6 +530,11 @@ describe('appshell trust', () => {
         expect(applicationIn('acme', 'acme/storefront')).toBe('storefront');
       });
 
+      /* Read as its first two parts, it would name a different application. */
+      it('refuses more than scope/name', () => {
+        expect(() => applicationIn('acme', 'acme/store/front')).toThrow(/names one application/);
+      });
+
       it('refuses an application in another scope', () => {
         expect(() => applicationIn('acme', 'other/storefront')).toThrow(/is in other, not acme/);
       });

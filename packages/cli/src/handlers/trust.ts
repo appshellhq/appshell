@@ -137,9 +137,17 @@ const customIssuer = (publisher: TrustedPublisher) =>
  * command naming two scopes would have to guess which was meant.
  */
 export const applicationIn = (scope: string, application: string): string => {
-  const [given, name] = application.includes('/')
-    ? application.split('/', 2)
-    : [scope, application];
+  const parts = application.split('/');
+
+  // Every part, not the first two: `acme/store/front` read as `acme/store` would change
+  // another application's records.
+  if (parts.length > 2) {
+    throw new Error(
+      `--application names one application, as storefront or ${scope}/storefront; got '${application}'.`,
+    );
+  }
+
+  const [given, name] = parts.length === 2 ? parts : [scope, application];
 
   if (given !== scope) {
     throw new Error(
