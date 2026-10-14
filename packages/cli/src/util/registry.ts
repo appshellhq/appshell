@@ -233,18 +233,26 @@ export type ApplyResult = {
   message: string;
 };
 
-export const describe = (error: unknown) => {
+/** The status and the registry's reason, and nothing added. */
+export const detailOf = (error: unknown) => {
   const { response } = error as { response?: { status: number; data?: { message?: unknown } } };
   if (!response) {
     return (error as Error).message;
   }
 
   const { message } = response.data ?? {};
-  const detail = `${response.status} ${
-    Array.isArray(message) ? message.join(', ') : message ?? ''
-  }`.trim();
 
-  return response.status === 401
+  return `${response.status} ${Array.isArray(message) ? message.join(', ') : message ?? ''}`.trim();
+};
+
+/** The status of a failed request, when it got one. */
+export const statusOf = (error: unknown) =>
+  (error as { response?: { status?: number } }).response?.status;
+
+export const describe = (error: unknown) => {
+  const detail = detailOf(error);
+
+  return statusOf(error) === 401
     ? `${detail} Run \`appshell login\` or set APPSHELL_TOKEN.`
     : detail;
 };
@@ -277,6 +285,34 @@ export type AddTrustedPublisherBody = {
   issuer?: string;
 };
 
+/**
+ * A workload to trust with applying one application, as `trust add --application` sends it:
+ * a GitHub workflow with its repository resolved to ids, as for publishing, or a Kubernetes
+ * service account under its cluster's OIDC issuer. appshellhq/appshell-services#57.
+ */
+export type AddTrustedDeployerBody =
+  | AddTrustedPublisherBody
+  | { provider: 'kubernetes'; issuer: string; namespace: string; serviceAccount: string };
+
+/** A workload trusted to apply an application, as the registry reports it. */
+export type TrustedDeployer = {
+  id: string;
+  /** `scope/name`. */
+  application: string;
+  provider: 'github' | 'kubernetes';
+  issuer: string;
+  repository?: string;
+  repositoryId?: string;
+  repositoryOwnerId?: string;
+  workflow?: string;
+  environment?: string;
+  namespace?: string;
+  serviceAccount?: string;
+  createdAt: string;
+  /** The username of whoever added it. */
+  createdBy: string;
+};
+
 /** A workflow trusted to publish into a scope. appshellhq/appshell-services#51. */
 export type TrustedPublisher = AddTrustedPublisherBody & {
   id: string;
@@ -293,14 +329,19 @@ export class RegistryClient {
     this.baseUrl = registry.replace(/\/$/, '');
   }
 
+  /**
+   * `as` presents that credential instead of the caller's own: a workload's token, which
+   * is minted for one request and never stored. `null` presents none at all.
+   */
   private async request<T>(
     method: 'get' | 'post' | 'patch' | 'delete',
     route: string,
     body?: unknown,
+    as?: string | null,
   ) {
     // Renews an expired access token rather than sending nothing and letting the request
     // 401. Every command goes through here, so this is the one place that has to know.
-    const token = await ensureToken(this.baseUrl);
+    const token = as === undefined ? await ensureToken(this.baseUrl) : as;
     const config: AxiosRequestConfig = token
       ? { headers: { Authorization: `Bearer ${token}` } }
       : {};
@@ -546,6 +587,49 @@ export class RegistryClient {
   /** Reconciles an application against a declared resource; creates it when absent. */
   apply(resource: ApplicationResource) {
     return this.send<ApplyResult>('post', '/v1/apply', `apply ${resource.name}`, resource);
+  }
+
+  /**
+   * Applies as a workload, under trusted deployment: with its own token, or — `null` — with
+   * none. Errors are left to the caller, whose advice is about trust records rather than
+   * logging in, which a workload can't do. appshellhq/appshell-services#57.
+   */
+  async applyAs(resource: ApplicationResource, token: string | null) {
+    const { data } = await this.request<ApplyResult>('post', '/v1/apply', resource, token);
+
+    return data;
+  }
+
+  /**
+   * Trusts a workload to apply one application. As for publishing, idempotent, and for the
+   * scope's owner or an organization admin to decide. The application must exist.
+   */
+  addTrustedDeployer(scopeId: string, name: string, body: AddTrustedDeployerBody) {
+    const who =
+      body.provider === 'kubernetes' ? `${body.namespace}/${body.serviceAccount}` : body.repository;
+
+    return this.send<{ deployer: TrustedDeployer; created: boolean; message: string }>(
+      'post',
+      `/v1/applications/${scopeId}/${name}/trusted-deployers`,
+      `trust ${who} to apply ${scopeId}/${name}`,
+      body,
+    );
+  }
+
+  listTrustedDeployers(scopeId: string, name: string) {
+    return this.send<TrustedDeployer[]>(
+      'get',
+      `/v1/applications/${scopeId}/${name}/trusted-deployers`,
+      `list trusted deployers of ${scopeId}/${name}`,
+    );
+  }
+
+  removeTrustedDeployer(scopeId: string, name: string, id: string) {
+    return this.send<{ id: string; message: string }>(
+      'delete',
+      `/v1/applications/${scopeId}/${name}/trusted-deployers/${encodeURIComponent(id)}`,
+      `remove trusted deployer ${id} from ${scopeId}/${name}`,
+    );
   }
 
   composition(scopeId: string, name: string) {

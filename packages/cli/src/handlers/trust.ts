@@ -2,16 +2,30 @@
 import chalk from 'chalk';
 import { GlobalArgs } from '../util/args';
 import { GITHUB_ACTIONS_ISSUER, GITHUB_API, repositoryIds } from '../util/github';
-import { RegistryClient, TrustedPublisher } from '../util/registry';
+import {
+  AddTrustedDeployerBody,
+  RegistryClient,
+  TrustedDeployer,
+  TrustedPublisher,
+} from '../util/registry';
 
-type TrustArgs = GlobalArgs & { scope: string };
+/*
+ * `application` turns every command from the scope's trusted publishers to one
+ * application's trusted deployers: workloads that may apply it. appshellhq/
+ * appshell-services#57.
+ */
+type TrustArgs = GlobalArgs & { scope: string; application?: string };
 
 export type TrustAddArgs = TrustArgs & {
-  github: string;
-  workflow: string;
+  github?: string;
+  workflow?: string;
   environment?: string;
   issuer?: string;
   githubApi?: string;
+  /** A cluster's OIDC issuer, for a Kubernetes service account. Deployment only. */
+  kubernetes?: string;
+  namespace?: string;
+  serviceAccount?: string;
 };
 
 export type TrustRemoveArgs = TrustArgs & { id: string };
@@ -117,7 +131,45 @@ const customIssuer = (publisher: TrustedPublisher) =>
  * what lets GitHub's own protection rules — required reviewers, branch restrictions —
  * decide which runs can mint the token at all, before the registry sees anything.
  */
-export const add = async (argv: TrustAddArgs) => {
+/**
+ * The application `--application` names, within the scope given positionally. `scope/name`
+ * is accepted too, as long as it's the same scope: a record lives on one application, and a
+ * command naming two scopes would have to guess which was meant.
+ */
+export const applicationIn = (scope: string, application: string): string => {
+  const parts = application.split('/');
+
+  // Every part, not the first two: `acme/store/front` read as `acme/store` would change
+  // another application's records.
+  if (parts.length > 2) {
+    throw new Error(
+      `--application names one application, as storefront or ${scope}/storefront; got '${application}'.`,
+    );
+  }
+
+  const [given, name] = parts.length === 2 ? parts : [scope, application];
+
+  if (given !== scope) {
+    throw new Error(
+      `--application ${application} is in ${given}, not ${scope}. Name it as ${name}, in the ` +
+        `scope given before it.`,
+    );
+  }
+
+  // The registry's own rule for an application name.
+  if (!name || !/^[a-z0-9][a-z0-9-_.]*$/.test(name)) {
+    throw new Error(`--application names an application, as storefront; got '${application}'.`);
+  }
+
+  return name;
+};
+
+/** A GitHub workflow, as a publisher or deployer record names it. */
+const githubWorkflow = async (argv: TrustAddArgs) => {
+  if (!argv.github || !argv.workflow) {
+    throw new Error('--github and --workflow name the workflow to trust; give both.');
+  }
+
   const workflow = workflowPath(argv.workflow);
   const { environment } = argv;
 
@@ -131,13 +183,109 @@ export const add = async (argv: TrustAddArgs) => {
   const instance = githubInstance(argv.githubApi, argv.issuer);
   const ids = await repositoryIds(argv.github, instance.api);
 
-  const client = new RegistryClient(argv.registry);
-  const { publisher, created } = await client.addTrustedPublisher(argv.scope, {
-    provider: 'github',
+  return {
+    provider: 'github' as const,
     ...ids,
     workflow,
     ...(environment ? { environment } : {}),
     ...(instance.issuer ? { issuer: instance.issuer } : {}),
+  };
+};
+
+/**
+ * A Kubernetes service account, under the issuer its cluster's projected tokens carry.
+ *
+ * The issuer is taken exactly as given — the registry compares it with each token's `iss`
+ * character for character, so it must be what the cluster's `--service-account-issuer` is
+ * (`kubectl get --raw /.well-known/openid-configuration` prints it), trailing slash and all.
+ */
+const kubernetesAccount = (argv: TrustAddArgs) => {
+  if (!argv.namespace || !argv.serviceAccount) {
+    throw new Error(
+      '--kubernetes names the cluster; --namespace and --service-account name the account in it. ' +
+        'Give all three.',
+    );
+  }
+
+  return {
+    provider: 'kubernetes' as const,
+    issuer: argv.kubernetes as string,
+    namespace: argv.namespace,
+    serviceAccount: argv.serviceAccount,
+  };
+};
+
+const describeDeployer = (deployer: TrustedDeployer) =>
+  deployer.provider === 'kubernetes'
+    ? `${deployer.namespace}/${deployer.serviceAccount}`
+    : `${deployer.repository} ${deployer.workflow}`;
+
+/**
+ * Trusts a workload to apply one application. appshellhq/appshell-services#57.
+ *
+ * The application has to exist already: a person creates it, then decides what may keep it
+ * up to date, as a scope has to exist before a workflow may publish into it.
+ */
+const addDeployer = async (argv: TrustAddArgs, name: string) => {
+  const body: AddTrustedDeployerBody = argv.kubernetes
+    ? kubernetesAccount(argv)
+    : await githubWorkflow(argv);
+
+  const client = new RegistryClient(argv.registry);
+  const { deployer, created } = await client.addTrustedDeployer(argv.scope, name, body);
+  const application = `${argv.scope}/${name}`;
+
+  console.log(
+    created
+      ? chalk.green(`Trusted ${describeDeployer(deployer)} to apply ${application}`)
+      : chalk.dim(`${describeDeployer(deployer)} was already trusted to apply ${application}`),
+  );
+
+  if (deployer.provider === 'kubernetes') {
+    console.log(`  ${chalk.dim('namespace')}        ${deployer.namespace}`);
+    console.log(`  ${chalk.dim('service account')}  ${deployer.serviceAccount}`);
+  } else {
+    console.log(`  ${chalk.dim('workflow')}         ${deployer.workflow}`);
+    console.log(
+      `  ${chalk.dim('environment')}      ${
+        deployer.environment ?? chalk.yellow('any environment')
+      }`,
+    );
+  }
+  console.log(`  ${chalk.dim('issuer')}           ${deployer.issuer}`);
+  console.log(`  ${chalk.dim('id')}               ${shortId(deployer.id)}`);
+
+  if (deployer.provider === 'github' && !deployer.environment) {
+    console.log(
+      chalk.dim(
+        'Any run of this workflow, from any branch, can apply. With --environment, its ' +
+          'protection rules decide which can.',
+      ),
+    );
+  }
+};
+
+export const add = async (argv: TrustAddArgs) => {
+  if (argv.application) {
+    await addDeployer(argv, applicationIn(argv.scope, argv.application));
+
+    return;
+  }
+
+  // Publishing is GitHub's alone: the registry verifies no other workload for it.
+  if (argv.kubernetes) {
+    throw new Error(
+      '--kubernetes trusts a service account to apply an application, so it needs ' +
+        '--application. Publishing trusts GitHub workflows only.',
+    );
+  }
+
+  const { provider, ...workflowRecord } = await githubWorkflow(argv);
+
+  const client = new RegistryClient(argv.registry);
+  const { publisher, created } = await client.addTrustedPublisher(argv.scope, {
+    provider,
+    ...workflowRecord,
   });
 
   console.log(
@@ -162,7 +310,64 @@ export const add = async (argv: TrustAddArgs) => {
   }
 };
 
+/** Rows padded into columns under a header, as `list` prints them. */
+const table = (header: string[], rows: string[][]) => {
+  const widths = header.map((title, column) =>
+    Math.max(title.length, ...rows.map((row) => row[column].length)),
+  );
+  const line = (cells: string[]) =>
+    `  ${cells.map((cell, column) => cell.padEnd(widths[column])).join('  ')}`.trimEnd();
+
+  console.log(chalk.dim(line(header)));
+  rows.forEach((row) => console.log(line(row)));
+};
+
+const listDeployers = async (argv: TrustArgs, name: string) => {
+  const client = new RegistryClient(argv.registry);
+  const deployers = await client.listTrustedDeployers(argv.scope, name);
+  const application = `${argv.scope}/${name}`;
+
+  if (!deployers.length) {
+    console.log(
+      chalk.dim(
+        `No workload is trusted to apply ${application}. Add one with \`appshell trust add ` +
+          `${argv.scope} --application ${name}\` and --github or --kubernetes.`,
+      ),
+    );
+
+    return;
+  }
+
+  // One table, both kinds: WHO is the repository or the namespace/account, WHAT the workflow
+  // and environment or nothing, so a refused apply is diagnosed by reading down one column.
+  const rows = deployers.map((deployer) => [
+    shortId(deployer.id),
+    deployer.provider,
+    deployer.provider === 'kubernetes'
+      ? `${deployer.namespace}/${deployer.serviceAccount}`
+      : (deployer.repository as string),
+    deployer.provider === 'kubernetes'
+      ? '-'
+      : `${deployer.workflow} (${deployer.environment ?? UNRESTRICTED})`,
+    deployer.issuer === GITHUB_ACTIONS_ISSUER ? 'github.com' : deployer.issuer,
+    deployer.createdAt.slice(0, 10),
+  ]);
+
+  console.log(`\n${chalk.bold(`Workloads trusted to apply ${application}`)}\n`);
+  table(['ID', 'PROVIDER', 'WHO', 'WORKFLOW (ENVIRONMENT)', 'ISSUER', 'CREATED'], rows);
+  if (deployers.some((deployer) => deployer.provider === 'github' && !deployer.environment)) {
+    console.log(chalk.dim(`\n  ${UNRESTRICTED}  any environment, or none: not restricted to one`));
+  }
+  console.log();
+};
+
 export const list = async (argv: TrustArgs) => {
+  if (argv.application) {
+    await listDeployers(argv, applicationIn(argv.scope, argv.application));
+
+    return;
+  }
+
   const client = new RegistryClient(argv.registry);
   const publishers = await client.listTrustedPublishers(argv.scope);
 
@@ -198,15 +403,8 @@ export const list = async (argv: TrustArgs) => {
     ...(showIssuer ? ['ISSUER'] : []),
     'CREATED',
   ];
-  const widths = header.map((title, column) =>
-    Math.max(title.length, ...rows.map((row) => row[column].length)),
-  );
-  const line = (cells: string[]) =>
-    `  ${cells.map((cell, column) => cell.padEnd(widths[column])).join('  ')}`.trimEnd();
-
   console.log(`\n${chalk.bold(`Workflows trusted to publish into ${argv.scope}`)}\n`);
-  console.log(chalk.dim(line(header)));
-  rows.forEach((row) => console.log(line(row)));
+  table(header, rows);
   if (publishers.some((publisher) => !publisher.environment)) {
     console.log(chalk.dim(`\n  ${UNRESTRICTED}  any environment, or none: not restricted to one`));
   }
@@ -221,7 +419,49 @@ export const list = async (argv: TrustArgs) => {
  * the scope's records, the way git resolves an abbreviated commit, and refused when it is
  * ambiguous rather than guessed.
  */
+/** An id as `list` shows it, shortened or whole, resolved like an abbreviated commit. */
+const resolveId = <T extends { id: string }>(
+  records: T[],
+  id: string,
+  missing: string,
+  kind: string,
+) => {
+  const matches = records.filter((record) => record.id.startsWith(id));
+
+  if (!matches.length) throw new Error(missing);
+
+  if (matches.length > 1) {
+    throw new Error(`${id} matches ${matches.length} ${kind}; give more of the id.`);
+  }
+
+  return matches[0];
+};
+
+const removeDeployer = async (argv: TrustRemoveArgs, name: string) => {
+  const client = new RegistryClient(argv.registry);
+  const application = `${argv.scope}/${name}`;
+  const deployer = resolveId(
+    await client.listTrustedDeployers(argv.scope, name),
+    argv.id,
+    `No workload trusted to apply ${application} has the id ${argv.id}. ` +
+      `\`appshell trust list ${argv.scope} --application ${name}\` shows them.`,
+    `trusted deployers of ${application}`,
+  );
+
+  await client.removeTrustedDeployer(argv.scope, name, deployer.id);
+
+  console.log(
+    chalk.green(`Removed ${shortId(deployer.id)}`) + chalk.dim(` — ${describeDeployer(deployer)}`),
+  );
+};
+
 export const remove = async (argv: TrustRemoveArgs) => {
+  if (argv.application) {
+    await removeDeployer(argv, applicationIn(argv.scope, argv.application));
+
+    return;
+  }
+
   const client = new RegistryClient(argv.registry);
   const publishers = await client.listTrustedPublishers(argv.scope);
   const matches = publishers.filter((publisher) => publisher.id.startsWith(argv.id));

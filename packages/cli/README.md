@@ -50,20 +50,21 @@ Commands:
   appshell logout                      Discard the stored credential for a registry
   appshell publish                     Publish a package to the appshell registry
   appshell unpublish <name> <version>  Remove a published package version
-  appshell trust                       Trust CI workflows to publish into a scope
-                                       without a stored secret
+  appshell trust                       Trust CI workflows to publish into a scope, or
+                                       workloads to apply its applications, without a
+                                       stored secret
   appshell outdated                    Analyzes shared dependencies for outdated versions
 ```
 
 These global options apply to every command:
 
-| Option | Default | Purpose |
-| ------ | ------- | ------- |
-| `-r, --registry` | `http://localhost:7070` | Registry to operate against |
-| `-a, --application` | — | Application, as `name` or `scope/name` |
-| `--scopeId` | `default` | Scope owning unqualified packages and applications |
-| `-k, --apiKey` | `""` | Api key, when the registry expects one |
-| `-v, --verbose` | `false` | Verbose output |
+| Option              | Default                 | Purpose                                            |
+| ------------------- | ----------------------- | -------------------------------------------------- |
+| `-r, --registry`    | `http://localhost:7070` | Registry to operate against                        |
+| `-a, --application` | —                       | Application, as `name` or `scope/name`             |
+| `--scopeId`         | `default`               | Scope owning unqualified packages and applications |
+| `-k, --apiKey`      | `""`                    | Api key, when the registry expects one             |
+| `-v, --verbose`     | `false`                 | Verbose output                                     |
 
 `--registry` and `--application` fall back to `APPSHELL_REGISTRY` /
 `APPSHELL_APPLICATION`, then to `~/.appshell/config`. Set them once instead of
@@ -77,12 +78,12 @@ appshell config list
 
 ## Vocabulary
 
-| Term | Identity | What it is |
-| ---- | -------- | ---------- |
-| **Scope** | `acme` | Namespace and permission boundary |
-| **Package** | `acme/checkout@1.5.0` | What you publish. Immutable, digest-addressed |
-| **Application** | `acme/storefront` | The composition the registry serves |
-| **Remote** | `PingModule/Ping` | What the browser loads, over Module Federation |
+| Term            | Identity              | What it is                                     |
+| --------------- | --------------------- | ---------------------------------------------- |
+| **Scope**       | `acme`                | Namespace and permission boundary              |
+| **Package**     | `acme/checkout@1.5.0` | What you publish. Immutable, digest-addressed  |
+| **Application** | `acme/storefront`     | The composition the registry serves            |
+| **Remote**      | `PingModule/Ping`     | What the browser loads, over Module Federation |
 
 ## Authenticating
 
@@ -107,13 +108,13 @@ Publishing is idempotent: the same content under the same version is a no-op.
 Different content under an existing version is rejected unless the registry allows
 forcing. When `--application` resolves, publish also **activates** the version there.
 
-| Option | When omitted | Purpose |
-| ------ | ------------ | ------- |
-| `-t, --template` | `appshell.template.json` | Template to process |
-| `--name` | the unscoped `package.json` name | Package name |
-| `--package-version` | the `package.json` version | Version to publish as |
-| `--visibility` | the registry defaults to `private` | Whether other scopes may activate it |
-| `-w, --watch` | `false` | Republish whenever the template changes |
+| Option              | When omitted                       | Purpose                                 |
+| ------------------- | ---------------------------------- | --------------------------------------- |
+| `-t, --template`    | `appshell.template.json`           | Template to process                     |
+| `--name`            | the unscoped `package.json` name   | Package name                            |
+| `--package-version` | the `package.json` version         | Version to publish as                   |
+| `--visibility`      | the registry defaults to `private` | Whether other scopes may activate it    |
+| `-w, --watch`       | `false`                            | Republish whenever the template changes |
 
 ```bash
 appshell unpublish checkout 1.5.0
@@ -203,6 +204,83 @@ locally where the webpack plugin already publishes and activates on every build.
 `${VAR}` placeholders expand from the environment exactly as they do in
 `appshell.config.yaml`.
 
+## Trusted deployment
+
+A workload can apply an application with its own OIDC identity, so the job or controller
+that keeps it at its declared state holds no secret either: a GitHub Actions workflow, or
+a Kubernetes service account. The application's scope owner, or an organization admin,
+records which workload may — the application must exist first:
+
+```bash
+# A GitHub Actions workflow, by repository ids as for publishing
+appshell trust add acme --application storefront \
+  --github acme/deploy --workflow deploy.yml --environment production
+
+# A Kubernetes service account, under its cluster's OIDC issuer
+appshell trust add acme --application storefront \
+  --kubernetes https://oidc.eks.us-east-1.amazonaws.com/id/EXAMPLE \
+  --namespace appshell --service-account deployer
+
+appshell trust list acme --application storefront
+appshell trust remove acme 1b2c3d4e --application storefront
+```
+
+The cluster issuer is taken exactly as given and must be what the cluster's service
+account tokens carry (`kubectl get --raw /.well-known/openid-configuration` prints it). The
+registry fetches its keys from there, so the issuer's discovery document must be public:
+EKS, GKE and AKS serve one, and a self-managed cluster must publish its own discovery
+document and keys at a public https address.
+
+**From GitHub Actions**, with `id-token: write` and no `APPSHELL_TOKEN` or stored login,
+`appshell app apply` asks the runner for a token for the registry's deploy audience — the
+registry url with `/deploy`, or `APPSHELL_DEPLOY_AUDIENCE` when the registry's operator set
+`TRUSTED_DEPLOYMENT_AUDIENCE` to something else — and applies with it:
+
+```yaml
+permissions: { id-token: write, contents: read }
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - run: npx appshell app apply -f appshell.app.yaml --registry https://registry.appshell.org
+```
+
+**From Kubernetes**, project a token for that audience into the pod, running as the
+trusted service account, and present it to the same registry:
+
+```yaml
+spec:
+  serviceAccountName: deployer
+  containers:
+    - name: apply
+      # ...
+      volumeMounts:
+        - name: appshell-token
+          mountPath: /var/run/appshell
+          readOnly: true
+  volumes:
+    - name: appshell-token
+      projected:
+        sources:
+          - serviceAccountToken:
+              audience: https://registry.appshell.org/deploy
+              expirationSeconds: 3600 # at most an hour is accepted
+              path: token
+```
+
+```bash
+APPSHELL_TOKEN=$(cat /var/run/appshell/token) \
+  appshell app apply -f appshell.app.yaml --registry https://registry.appshell.org
+```
+
+A workload may only apply, only an application that already exists, and only one named as
+`scope/name` in the resource, since it has no scope of its own. A refusal says what to
+check: `appshell trust list <scope> --application <name>` against the job or account, or
+the audience setting. Against a registry without trusted deployment enabled
+(`AUTH_MODE=none`, every local one), apply retries once without a token.
+
 ## Inspecting an application
 
 ```bash
@@ -263,11 +341,11 @@ run it directly when you want the manifest as a build artifact.
 appshell generate manifest --template dist/appshell.template.json
 ```
 
-| Option | Default | Purpose |
-| ------ | ------- | ------- |
+| Option           | Default                  | Purpose             |
+| ---------------- | ------------------------ | ------------------- |
 | `-t, --template` | `appshell.template.json` | Template to process |
-| `-o, --outDir` | `dist` | Output location |
-| `-f, --outFile` | `appshell.manifest.json` | Output filename |
+| `-o, --outDir`   | `dist`                   | Output location     |
+| `-f, --outFile`  | `appshell.manifest.json` | Output filename     |
 
 **Where does the template come from?**
 

@@ -9,6 +9,7 @@ import {
   RegistryClient,
 } from '../../util/registry';
 import { resolveScopeId } from '../../util/scope';
+import { applyResource } from './deploy';
 
 export type AppArgs = {
   registry: string;
@@ -325,7 +326,8 @@ export const clone = async (
 
 export const apply = async (argv: AppArgs & { file: string }) => {
   const resource = readResource(argv.file);
-  const result = await new RegistryClient(argv.registry).apply(resource);
+  // As the caller, or, in a GitHub Actions job with no credential of its own, as the job.
+  const result = await applyResource(argv.registry, resource);
 
   console.log(chalk.green(`${result.created ? 'Created' : 'Updated'} ${result.id}`));
 

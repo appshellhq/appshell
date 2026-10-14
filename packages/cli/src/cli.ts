@@ -344,36 +344,95 @@ const orgCommand: yargs.CommandModule<GlobalArgs, GlobalArgs> = {
  * identity, so no secret is stored anywhere. `publish` presents the token; this manages the
  * records the registry checks it against. appshellhq/appshell-services#51.
  *
+ * With --application, trusted deployment instead: which workloads — GitHub workflows, or
+ * Kubernetes service accounts — may apply one application of the scope, which `app apply`
+ * (or a controller) does with their own tokens. appshellhq/appshell-services#57.
+ *
  * The scope is a positional, never resolved from config or the working directory: this
  * decides who else can publish into a namespace, and that is not something to aim by
  * default.
  */
+/*
+ * `trust`'s own --application, never defaulted. The global option of the same name takes its
+ * default from APPSHELL_APPLICATION or config, which is right for commands that act on "the"
+ * application, and wrong here: whether --application is given decides whether a command
+ * changes the scope's publishers or an application's deployers, so a configured application
+ * must not silently turn `trust remove` to the other set of records.
+ */
+const TRUST_APPLICATION = {
+  type: 'string',
+  requiresArg: true,
+  default: undefined,
+  describe:
+    "An application in the scope: manage the workloads trusted to apply it, rather than the scope's publishers",
+} as const;
+
 const trustCommand: yargs.CommandModule<GlobalArgs, GlobalArgs> = {
   command: 'trust',
-  describe: 'Trust CI workflows to publish into a scope without a stored secret',
+  describe:
+    'Trust CI workflows to publish into a scope, or workloads to apply its applications, without a stored secret',
   // eslint-disable-next-line @typescript-eslint/no-shadow
   builder: (yargs) =>
     yargs
       .command({
         command: 'add <scope>',
-        describe: 'Trust a GitHub Actions workflow to publish into a scope',
+        describe:
+          'Trust a GitHub Actions workflow to publish into a scope, or a workload to apply one of its applications',
         builder: (y) =>
           y
             .positional('scope', {
               type: 'string',
-              describe: 'Scope the workflow may publish into',
+              describe: 'Scope the workflow may publish into, or whose application it may apply',
             })
+            .option('application', TRUST_APPLICATION)
             .option('github', {
               type: 'string',
-              demandOption: true,
               requiresArg: true,
               describe: 'Repository the workflow runs in, as owner/repo',
             })
             .option('workflow', {
               type: 'string',
-              demandOption: true,
               requiresArg: true,
               describe: 'Workflow file, as pipeline.yml or .github/workflows/pipeline.yml',
+            })
+            .option('kubernetes', {
+              type: 'string',
+              requiresArg: true,
+              describe:
+                "With --application: the cluster's OIDC issuer, exactly as its service account tokens carry it, for a Kubernetes service account",
+            })
+            .option('namespace', {
+              type: 'string',
+              requiresArg: true,
+              describe: "With --kubernetes: the service account's namespace",
+            })
+            .option('service-account', {
+              type: 'string',
+              requiresArg: true,
+              describe: 'With --kubernetes: the service account',
+            })
+            .conflicts('github', 'kubernetes')
+            .conflicts('kubernetes', ['workflow', 'environment', 'issuer', 'github-api'])
+            .check((args) => {
+              if (!args.github && !args.kubernetes) {
+                throw new Error(
+                  'Name what to trust: --github <owner/repo>, or --kubernetes <issuer>.',
+                );
+              }
+
+              if (args.github && !args.workflow) {
+                throw new Error('--github needs --workflow: the workflow file to trust.');
+              }
+
+              if (args.kubernetes && !(args.namespace && args.serviceAccount)) {
+                throw new Error('--kubernetes needs --namespace and --service-account.');
+              }
+
+              if ((args.namespace || args.serviceAccount) && !args.kubernetes) {
+                throw new Error('--namespace and --service-account go with --kubernetes.');
+              }
+
+              return true;
             })
             .option('environment', {
               type: 'string',
@@ -398,13 +457,16 @@ const trustCommand: yargs.CommandModule<GlobalArgs, GlobalArgs> = {
       .command({
         command: 'list <scope>',
         aliases: ['ls'],
-        describe: 'List the workflows trusted to publish into a scope',
+        describe:
+          'List the workflows trusted to publish into a scope, or the workloads trusted to apply one of its applications',
+        builder: (y) => y.option('application', TRUST_APPLICATION),
         handler: trustList as never,
       })
       .command({
         command: 'remove <scope> <id>',
         aliases: ['rm'],
-        describe: 'Stop trusting a workflow, by the id `trust list` shows',
+        describe: 'Stop trusting a workflow or workload, by the id `trust list` shows',
+        builder: (y) => y.option('application', TRUST_APPLICATION),
         handler: trustRemove as never,
       })
       .demandCommand(),

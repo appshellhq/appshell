@@ -262,6 +262,99 @@ describe('trust', () => {
     expect(trust.add).not.toHaveBeenCalled();
   });
 
+  /* appshellhq/appshell-services#57: --application turns each command to deployers. */
+  it('should hand add a Kubernetes service account for an application', () => {
+    run(
+      'trust add acme --application storefront --kubernetes https://oidc.example.test --namespace apps --service-account deployer',
+    );
+
+    expect(handedTo(trust.add)).toMatchObject({
+      scope: 'acme',
+      application: 'storefront',
+      kubernetes: 'https://oidc.example.test',
+      namespace: 'apps',
+      serviceAccount: 'deployer',
+    });
+  });
+
+  it('should hand add a GitHub workflow for an application', () => {
+    run('trust add acme --application storefront --github acme/deploy --workflow deploy.yml');
+
+    expect(handedTo(trust.add)).toMatchObject({
+      application: 'storefront',
+      github: 'acme/deploy',
+      workflow: 'deploy.yml',
+    });
+  });
+
+  it.each([
+    ['nothing to trust', 'trust add acme --application storefront', /--github.*--kubernetes/],
+    [
+      'both kinds at once',
+      'trust add acme --application storefront --github acme/deploy --workflow deploy.yml --kubernetes https://oidc.example.test --namespace apps --service-account deployer',
+      /mutually exclusive/i,
+    ],
+    [
+      'a cluster without its account',
+      'trust add acme --application storefront --kubernetes https://oidc.example.test --namespace apps',
+      /--service-account/,
+    ],
+    [
+      'an account without its cluster',
+      'trust add acme --application storefront --github acme/deploy --workflow deploy.yml --namespace apps',
+      /go with --kubernetes/,
+    ],
+    [
+      'a workflow for a cluster',
+      'trust add acme --application storefront --kubernetes https://oidc.example.test --namespace apps --service-account deployer --workflow deploy.yml',
+      /mutually exclusive/i,
+    ],
+  ])('should refuse %s rather than calling add', (_what, line, error) => {
+    expect(run(line).error).toMatch(error);
+    expect(trust.add).not.toHaveBeenCalled();
+  });
+
+  /*
+   * --application is also a global option, defaulted from APPSHELL_APPLICATION or config.
+   * Here it decides which records a command changes, so it must be given, never defaulted.
+   */
+  describe('with an application configured', () => {
+    const saved = process.env.APPSHELL_APPLICATION;
+
+    beforeEach(() => {
+      process.env.APPSHELL_APPLICATION = 'configured-app';
+    });
+
+    afterEach(() => {
+      if (saved === undefined) delete process.env.APPSHELL_APPLICATION;
+      else process.env.APPSHELL_APPLICATION = saved;
+    });
+
+    it.each([
+      ['add', 'trust add acme --github acme/widgets --workflow pipeline.yml', trust.add],
+      ['list', 'trust ls acme', trust.list],
+      ['remove', 'trust rm acme 1b2c3d4e', trust.remove],
+    ])('should not hand %s the configured application', (_verb, line, handler) => {
+      run(line);
+
+      expect(handedTo(handler)?.application).toBeUndefined();
+    });
+
+    it('should still hand over an application given on the command line', () => {
+      run('trust ls acme --application storefront');
+
+      expect(handedTo(trust.list)?.application).toBe('storefront');
+    });
+  });
+
+  it('should hand list and remove an application', () => {
+    run('trust ls acme --application storefront');
+    run('trust rm acme 1b2c3d4e --application storefront');
+
+    expect(handedTo(trust.list)).toMatchObject({ scope: 'acme', application: 'storefront' });
+    expect(handedTo(trust.remove)).toMatchObject({ id: '1b2c3d4e', application: 'storefront' });
+  });
+
   it('should route list and remove, taking the scope and the id positionally', () => {
     run('trust ls acme');
     run('trust rm acme 1b2c3d4e');
