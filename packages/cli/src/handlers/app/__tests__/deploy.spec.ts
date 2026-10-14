@@ -2,7 +2,7 @@
 import axios from '../../../util/axios';
 import { ensureToken } from '../../../util/credentials';
 import { ApplicationResource } from '../../../util/registry';
-import { applyResource, deployAudience } from '../deploy';
+import { applyResource, deployAudience, isDeploymentToken } from '../deploy';
 
 // The runner's OIDC endpoint is asked with `get`; the registry, through RegistryClient, with
 // `request`.
@@ -182,6 +182,64 @@ describe('app apply, as a GitHub Actions job', () => {
       await expect(applyResource(REGISTRY, RESOURCE)).rejects.toThrow(
         /trusted deployment enabled.*TRUSTED_PUBLISHING_AUDIENCE/,
       );
+    });
+  });
+
+  /*
+   * A Kubernetes workload passes its projected token as APPSHELL_TOKEN. It's still a
+   * workload's token, so a refusal gets workload advice rather than "log in".
+   */
+  describe('with a workload token given explicitly', () => {
+    const projected = jwt({
+      aud: [`${REGISTRY}/deploy`],
+      sub: 'system:serviceaccount:apps:deployer',
+    });
+
+    beforeEach(() => {
+      (ensureToken as jest.Mock).mockResolvedValue(projected);
+    });
+
+    it('should apply with it, minting nothing', async () => {
+      inActions();
+
+      await applyResource(REGISTRY, RESOURCE);
+
+      expect(get).not.toHaveBeenCalled();
+      expect(bearers()).toEqual([`Bearer ${projected}`]);
+    });
+
+    it('should point a refusal at the trust records, not at logging in', async () => {
+      request.mockRejectedValue(refusal(403, 'No trusted deployer on acme/storefront matches.'));
+
+      const error = await applyResource(REGISTRY, RESOURCE).catch((e: Error) => e);
+
+      expect(error.message).toMatch(/appshell trust list acme --application storefront/);
+      expect(error.message).not.toMatch(/appshell login/);
+    });
+
+    it('should name the audience setting when the audience is refused', async () => {
+      request.mockRejectedValue(
+        refusal(401, 'The deployment token is not valid: unexpected "aud"'),
+      );
+
+      const error = await applyResource(REGISTRY, RESOURCE).catch((e: Error) => e);
+
+      expect(error.message).toMatch(/APPSHELL_DEPLOY_AUDIENCE/);
+      expect(error.message).not.toMatch(/appshell login/);
+    });
+  });
+
+  describe('isDeploymentToken', () => {
+    const audience = `${REGISTRY}/deploy`;
+
+    it('should know a token by its audience, as a string or a list', () => {
+      expect(isDeploymentToken(jwt({ aud: audience }), audience)).toBe(true);
+      expect(isDeploymentToken(jwt({ aud: ['other', audience] }), audience)).toBe(true);
+    });
+
+    it('should not take a person’s token, or something that is not a JWT, for one', () => {
+      expect(isDeploymentToken(jwt({ aud: 'appshell-cli' }), audience)).toBe(false);
+      expect(isDeploymentToken('opaque-api-key', audience)).toBe(false);
     });
   });
 

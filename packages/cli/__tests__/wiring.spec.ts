@@ -314,6 +314,39 @@ describe('trust', () => {
     expect(trust.add).not.toHaveBeenCalled();
   });
 
+  /*
+   * --application is also a global option, defaulted from APPSHELL_APPLICATION or config.
+   * Here it decides which records a command changes, so it must be given, never defaulted.
+   */
+  describe('with an application configured', () => {
+    const saved = process.env.APPSHELL_APPLICATION;
+
+    beforeEach(() => {
+      process.env.APPSHELL_APPLICATION = 'configured-app';
+    });
+
+    afterEach(() => {
+      if (saved === undefined) delete process.env.APPSHELL_APPLICATION;
+      else process.env.APPSHELL_APPLICATION = saved;
+    });
+
+    it.each([
+      ['add', 'trust add acme --github acme/widgets --workflow pipeline.yml', trust.add],
+      ['list', 'trust ls acme', trust.list],
+      ['remove', 'trust rm acme 1b2c3d4e', trust.remove],
+    ])('should not hand %s the configured application', (_verb, line, handler) => {
+      run(line);
+
+      expect(handedTo(handler)?.application).toBeUndefined();
+    });
+
+    it('should still hand over an application given on the command line', () => {
+      run('trust ls acme --application storefront');
+
+      expect(handedTo(trust.list)?.application).toBe('storefront');
+    });
+  });
+
   it('should hand list and remove an application', () => {
     run('trust ls acme --application storefront');
     run('trust rm acme 1b2c3d4e --application storefront');

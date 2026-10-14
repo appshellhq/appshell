@@ -352,6 +352,21 @@ const orgCommand: yargs.CommandModule<GlobalArgs, GlobalArgs> = {
  * decides who else can publish into a namespace, and that is not something to aim by
  * default.
  */
+/*
+ * `trust`'s own --application, never defaulted. The global option of the same name takes its
+ * default from APPSHELL_APPLICATION or config, which is right for commands that act on "the"
+ * application, and wrong here: whether --application is given decides whether a command
+ * changes the scope's publishers or an application's deployers, so a configured application
+ * must not silently turn `trust remove` to the other set of records.
+ */
+const TRUST_APPLICATION = {
+  type: 'string',
+  requiresArg: true,
+  default: undefined,
+  describe:
+    "An application in the scope: manage the workloads trusted to apply it, rather than the scope's publishers",
+} as const;
+
 const trustCommand: yargs.CommandModule<GlobalArgs, GlobalArgs> = {
   command: 'trust',
   describe:
@@ -369,12 +384,7 @@ const trustCommand: yargs.CommandModule<GlobalArgs, GlobalArgs> = {
               type: 'string',
               describe: 'Scope the workflow may publish into, or whose application it may apply',
             })
-            .option('application', {
-              type: 'string',
-              requiresArg: true,
-              describe:
-                "An application in the scope: manage the workloads trusted to apply it, rather than the scope's publishers",
-            })
+            .option('application', TRUST_APPLICATION)
             .option('github', {
               type: 'string',
               requiresArg: true,
@@ -449,26 +459,14 @@ const trustCommand: yargs.CommandModule<GlobalArgs, GlobalArgs> = {
         aliases: ['ls'],
         describe:
           'List the workflows trusted to publish into a scope, or the workloads trusted to apply one of its applications',
-        builder: (y) =>
-          y.option('application', {
-            type: 'string',
-            requiresArg: true,
-            describe:
-              "An application in the scope: manage the workloads trusted to apply it, rather than the scope's publishers",
-          }),
+        builder: (y) => y.option('application', TRUST_APPLICATION),
         handler: trustList as never,
       })
       .command({
         command: 'remove <scope> <id>',
         aliases: ['rm'],
         describe: 'Stop trusting a workflow or workload, by the id `trust list` shows',
-        builder: (y) =>
-          y.option('application', {
-            type: 'string',
-            requiresArg: true,
-            describe:
-              "An application in the scope: manage the workloads trusted to apply it, rather than the scope's publishers",
-          }),
+        builder: (y) => y.option('application', TRUST_APPLICATION),
         handler: trustRemove as never,
       })
       .demandCommand(),

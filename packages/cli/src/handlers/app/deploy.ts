@@ -42,6 +42,23 @@ const DEPLOYMENT_OFF = /only be used to publish/i;
 export const deployAudience = (registry: string): string =>
   process.env.APPSHELL_DEPLOY_AUDIENCE?.trim() || `${registry.replace(/\/+$/, '')}/deploy`;
 
+/**
+ * Whether a credential is a workload's deployment token — a Kubernetes projected token
+ * passed as APPSHELL_TOKEN, say — by the audience it was minted for. Decoded, not verified:
+ * it only decides which advice a refusal gets, and the registry verifies.
+ */
+export const isDeploymentToken = (token: string, audience: string): boolean => {
+  try {
+    const { aud } = JSON.parse(
+      Buffer.from(token.split('.')[1] ?? '', 'base64url').toString('utf-8'),
+    ) as { aud?: unknown };
+
+    return Array.isArray(aud) ? aud.includes(audience) : aud === audience;
+  } catch {
+    return false;
+  }
+};
+
 /** The job as a trust record sees it, for the log: which workflow, at which ref, where. */
 const describeJob = ({ job_workflow_ref: ref, repository, environment }: WorkflowClaims) => {
   const who = ref ?? repository ?? 'this workflow';
@@ -86,12 +103,23 @@ export const applyResource = async (
   resource: ApplicationResource,
 ): Promise<ApplyResult> => {
   const client = new RegistryClient(registry);
+  const audience = deployAudience(registry);
+  const explicit = await ensureToken(registry);
 
-  if ((await ensureToken(registry)) || !actionsTokenAvailable()) {
+  // A workload's token given explicitly — the Kubernetes way — is still a workload's: its
+  // refusals are about trust records and audiences, never about logging in.
+  if (explicit && isDeploymentToken(explicit, audience)) {
+    try {
+      return await client.applyAs(resource, explicit);
+    } catch (error) {
+      throw refusal(resource, audience, error);
+    }
+  }
+
+  if (explicit || !actionsTokenAvailable()) {
     return client.apply(resource);
   }
 
-  const audience = deployAudience(registry);
   const token = await actionsToken(audience);
 
   console.log(
