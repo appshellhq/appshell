@@ -87,45 +87,17 @@ const refusal = (resource: ApplicationResource, audience: string, error: unknown
 };
 
 /**
- * Applies a resource, as the caller or — in a GitHub Actions job granted `id-token: write`,
- * with no credential of its own — as the job.
- *
- * An explicit credential wins, as for publishing: APPSHELL_TOKEN, or a stored login, was
- * put there on purpose, and a job's OIDC token is there whether anyone asked for it or not.
- *
- * The job's token is minted per apply and never stored. For a registry with trusted
- * deployment off — AUTH_MODE=none, every local one — the apply is retried with no credential
- * at all, which such a registry accepts; if that is refused too, the first refusal is the
- * one reported, since it says why the token wasn't taken.
+ * Applies with a workload's token, however it was obtained. A registry with trusted
+ * deployment off is retried with no credential, which an AUTH_MODE=none registry accepts;
+ * if that is refused too, the first refusal is reported, since it says why the token wasn't
+ * taken.
  */
-export const applyResource = async (
-  registry: string,
+const applyAsWorkload = async (
+  client: RegistryClient,
   resource: ApplicationResource,
+  token: string,
+  audience: string,
 ): Promise<ApplyResult> => {
-  const client = new RegistryClient(registry);
-  const audience = deployAudience(registry);
-  const explicit = await ensureToken(registry);
-
-  // A workload's token given explicitly — the Kubernetes way — is still a workload's: its
-  // refusals are about trust records and audiences, never about logging in.
-  if (explicit && isDeploymentToken(explicit, audience)) {
-    try {
-      return await client.applyAs(resource, explicit);
-    } catch (error) {
-      throw refusal(resource, audience, error);
-    }
-  }
-
-  if (explicit || !actionsTokenAvailable()) {
-    return client.apply(resource);
-  }
-
-  const token = await actionsToken(audience);
-
-  console.log(
-    chalk.blue(`Applying as ${describeJob(workflowClaims(token))}, via trusted deployment`),
-  );
-
   try {
     return await client.applyAs(resource, token);
   } catch (error) {
@@ -149,4 +121,42 @@ export const applyResource = async (
         : refusal(resource, audience, anonymous);
     }
   }
+};
+
+/**
+ * Applies a resource, as the caller or — in a GitHub Actions job granted `id-token: write`,
+ * with no credential of its own — as the job.
+ *
+ * An explicit credential wins, as for publishing: APPSHELL_TOKEN, or a stored login, was
+ * put there on purpose, and a job's OIDC token is there whether anyone asked for it or not.
+ *
+ * The job's token is minted per apply and never stored. A workload's token, minted here or
+ * given explicitly, falls back to no credential against a registry with trusted deployment
+ * off (see `applyAsWorkload`).
+ */
+export const applyResource = async (
+  registry: string,
+  resource: ApplicationResource,
+): Promise<ApplyResult> => {
+  const client = new RegistryClient(registry);
+  const audience = deployAudience(registry);
+  const explicit = await ensureToken(registry);
+
+  // A workload's token given explicitly — the Kubernetes way — is still a workload's: its
+  // refusals are about trust records and audiences, never about logging in.
+  if (explicit && isDeploymentToken(explicit, audience)) {
+    return applyAsWorkload(client, resource, explicit, audience);
+  }
+
+  if (explicit || !actionsTokenAvailable()) {
+    return client.apply(resource);
+  }
+
+  const token = await actionsToken(audience);
+
+  console.log(
+    chalk.blue(`Applying as ${describeJob(workflowClaims(token))}, via trusted deployment`),
+  );
+
+  return applyAsWorkload(client, resource, token, audience);
 };

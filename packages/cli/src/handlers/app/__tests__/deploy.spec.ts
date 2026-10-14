@@ -208,6 +208,17 @@ describe('app apply, as a GitHub Actions job', () => {
       expect(bearers()).toEqual([`Bearer ${projected}`]);
     });
 
+    /* The same fallback as a minted token, against a registry with trusted deployment off. */
+    it('should apply again with no credential when trusted deployment is off', async () => {
+      request.mockRejectedValueOnce(
+        refusal(403, 'A workflow token may only be used to publish a package.'),
+      );
+
+      await applyResource(REGISTRY, RESOURCE);
+
+      expect(bearers()).toEqual([`Bearer ${projected}`, undefined]);
+    });
+
     it('should point a refusal at the trust records, not at logging in', async () => {
       request.mockRejectedValue(refusal(403, 'No trusted deployer on acme/storefront matches.'));
 
