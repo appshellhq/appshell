@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.111](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.110...v1.0.0-alpha.111) (2026-10-14)
+
+### Bug Fixes
+
+- **cli:** fall back without a token for an explicit workload token too ([a463adf](https://github.com/appshellhq/appshell/commit/a463adfc61efce4c47bc13837574fc7be9eb8f12))
+
 # [1.0.0-alpha.110](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.109...v1.0.0-alpha.110) (2026-10-14)
 
 ### Bug Fixes
