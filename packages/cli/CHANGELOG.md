@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.110](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.109...v1.0.0-alpha.110) (2026-10-14)
+
+### Bug Fixes
+
+- **cli:** second review round on trusted deployment ([acf0f3a](https://github.com/appshellhq/appshell/commit/acf0f3a4244cedac8b888bbe4fe74c4b307b7ec5))
+
 # [1.0.0-alpha.109](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.108...v1.0.0-alpha.109) (2026-10-14)
 
 ### Bug Fixes
