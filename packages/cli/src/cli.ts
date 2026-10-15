@@ -642,7 +642,7 @@ const loginCommand: yargs.CommandModule<unknown, LoginArgs> = {
          * token outlives the session; Keycloak's default idle for one is 30 days.
          *
          * Every account here is granted the offline_access role through
-         * default-roles-navaris, so asking for it costs nothing when it is not wanted.
+         * default-roles-appshell, so asking for it costs nothing when it is not wanted.
          */
         default: 'openid profile offline_access',
         type: 'string',
