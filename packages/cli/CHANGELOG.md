@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.116](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.115...v1.0.0-alpha.116) (2026-10-16)
+
+### Bug Fixes
+
+- **cli:** put the registry in every restore hint ([d433104](https://github.com/appshellhq/appshell/commit/d43310457c55e5c808f35559770c7d0a04037d41)), closes [#37](https://github.com/appshellhq/appshell/issues/37)
+
 # [1.0.0-alpha.115](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.114...v1.0.0-alpha.115) (2026-10-16)
 
 ### Features
