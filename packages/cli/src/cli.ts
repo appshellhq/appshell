@@ -22,6 +22,7 @@ import {
   describe as packagesDescribe,
   get as packagesGet,
   list as packagesList,
+  unpublished as packagesUnpublished,
   visibility as packagesVisibility,
 } from './handlers/packages';
 import publishHandler from './handlers/publish';
@@ -234,6 +235,15 @@ const packagesCommand: yargs.CommandModule<GlobalArgs, GlobalArgs> = {
             // reported the failure under that name.
             reason: argv.reason?.length ? argv.reason.join(' ') : undefined,
           } as never)) as never,
+      })
+      /*
+       * What `restore` can still bring back, and until when. appshellhq/appshell-services#29.
+       * The frontend must never be the only way to do anything, so the list is here too.
+       */
+      .command({
+        command: 'unpublished <name>',
+        describe: "Unpublished versions that can still be restored, as 'name' or 'scope/name'",
+        handler: packagesUnpublished as never,
       }),
   handler: () => undefined,
 };
@@ -746,8 +756,74 @@ const unpublishCommand: yargs.CommandModule<
     const { RegistryClient } = await import('./util/registry');
     const { resolveScopeId } = await import('./util/scope');
     const scopeId = await resolveScopeId(argv);
-    await new RegistryClient(argv.registry).unpublish(scopeId, argv.name, argv.version);
+    const result = await new RegistryClient(argv.registry).unpublish(
+      scopeId,
+      argv.name,
+      argv.version,
+    );
     console.log(`Unpublished ${scopeId}/${argv.name}@${argv.version}`);
+    // A registry that keeps the content says until when (appshellhq/appshell-services#29);
+    // one from before says nothing, and nor may a reply with no body.
+    if (result?.restorableUntil) {
+      console.log(
+        `Restorable until ${new Date(result.restorableUntil).toISOString()}: ` +
+          `appshell restore ${argv.name} ${argv.version} --defaultScope ${scopeId}`,
+      );
+    }
+  },
+};
+
+type VersionArgs = { registry: string; defaultScope?: string; name: string; version: string };
+
+// The positionals restore and purge share with unpublish, `--version` off for the same reason.
+const versionPositionals = (y: yargs.Argv) =>
+  y
+    .version(false)
+    .positional('name', { type: 'string', demandOption: true })
+    .positional('version', { type: 'string', demandOption: true }) as yargs.Argv<VersionArgs>;
+
+/* Undoes an unpublish inside the registry's window. appshellhq/appshell-services#29. */
+const restoreCommand: yargs.CommandModule<unknown, VersionArgs> = {
+  command: 'restore <name> <version>',
+  describe: 'Bring back an unpublished version, exactly as it was, inside its window',
+  builder: versionPositionals,
+  handler: async (argv) => {
+    const { RegistryClient } = await import('./util/registry');
+    const { resolveScopeId } = await import('./util/scope');
+    const scopeId = await resolveScopeId(argv);
+    await new RegistryClient(argv.registry).restorePackage(scopeId, argv.name, argv.version);
+    console.log(`Restored ${scopeId}/${argv.name}@${argv.version}`);
+  },
+};
+
+/*
+ * Drops an unpublished version's kept content now, so it can no longer be restored: for a
+ * removal that can't wait, such as a secret in a manifest. The registry refuses it for a
+ * published version, so it's always the second of two steps, and `--yes` makes the second
+ * one deliberate as well.
+ */
+const purgeCommand: yargs.CommandModule<unknown, VersionArgs & { yes: boolean }> = {
+  command: 'purge <name> <version>',
+  describe: "Permanently drop an unpublished version's content, so it can't be restored",
+  builder: (y) =>
+    versionPositionals(y)
+      .option('yes', {
+        type: 'boolean',
+        default: false,
+        describe: 'Confirm: this cannot be undone',
+      })
+      // Refused by the parser, before anything reaches the registry.
+      .check((argv) =>
+        argv.yes
+          ? true
+          : `Purging ${argv.name}@${argv.version} cannot be undone. Run it again with --yes to confirm.`,
+      ) as yargs.Argv<VersionArgs & { yes: boolean }>,
+  handler: async (argv) => {
+    const { RegistryClient } = await import('./util/registry');
+    const { resolveScopeId } = await import('./util/scope');
+    const scopeId = await resolveScopeId(argv);
+    await new RegistryClient(argv.registry).purgePackage(scopeId, argv.name, argv.version);
+    console.log(`Purged ${scopeId}/${argv.name}@${argv.version}: it can no longer be restored`);
   },
 };
 
@@ -1084,6 +1160,8 @@ export const buildCli = (args: string[]) => {
       .command(logoutCommand)
       .command(publishCommand)
       .command(unpublishCommand)
+      .command(restoreCommand)
+      .command(purgeCommand)
       .command(outdatedCommand)
       .version(cliVersion)
       .help()

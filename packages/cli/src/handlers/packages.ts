@@ -218,3 +218,38 @@ export const describe = async (argv: PackageArgs) => {
 
   console.log('');
 };
+
+/**
+ * A package's unpublished versions that can still be restored, and until when.
+ * appshellhq/appshell-services#29.
+ *
+ * Newest version first, as the registry returns them, each with the command that brings it
+ * back, since that is the only thing to do with one. The command names the scope, so it is
+ * right however this one was chosen.
+ */
+export const unpublished = async (argv: PackageArgs) => {
+  const client = new RegistryClient(argv.registry);
+  const [scopeId, name] = argv.name.includes('/')
+    ? argv.name.split('/')
+    : [argv.scope ?? (await resolveScopeId(argv)), argv.name];
+
+  const versions = await client.unpublishedVersions(scopeId, name);
+
+  if (!versions.length) {
+    console.log(chalk.dim(`${scopeId}/${name} has no unpublished versions that can be restored`));
+    return;
+  }
+
+  const width = Math.max(...versions.map((v) => v.version.length));
+
+  console.log(chalk.bold(`${scopeId}/${name}`));
+  versions.forEach((v) => {
+    const until = new Date(v.restorableUntil).toISOString().slice(0, 10);
+    const by = v.unpublishedBy.username ?? v.unpublishedBy.id;
+
+    const when = chalk.dim(`unpublished by ${by}, restorable until ${until}`);
+    const how = chalk.cyan(`appshell restore ${name} ${v.version} --defaultScope ${scopeId}`);
+
+    console.log(`  ${v.version.padEnd(width)}  ${when}  ${how}`);
+  });
+};

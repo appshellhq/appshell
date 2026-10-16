@@ -49,7 +49,11 @@ Commands:
   appshell login                       Authenticate with an appshell registry
   appshell logout                      Discard the stored credential for a registry
   appshell publish                     Publish a package to the appshell registry
-  appshell unpublish <name> <version>  Remove a published package version
+  appshell unpublish <name> <version>  Remove a published package version, restorable for
+                                       the registry's window (30 days by default)
+  appshell restore <name> <version>    Bring back an unpublished version inside its window
+  appshell purge <name> <version>      Drop an unpublished version's content for good
+                                       (needs --yes)
   appshell trust                       Trust CI workflows to publish into a scope, or
                                        workloads to apply its applications, without a
                                        stored secret
@@ -119,6 +123,19 @@ forcing. When `--application` resolves, publish also **activates** the version t
 ```bash
 appshell unpublish checkout 1.5.0
 ```
+
+Unpublishing takes the version out of every read, but the registry keeps its content for a
+window, 30 days unless it is configured otherwise. It refuses a version an application has
+activated. The output says until when the version can be restored, and how:
+
+```bash
+appshell packages unpublished checkout   # what can still be restored, and until when
+appshell restore checkout 1.5.0          # back exactly as it was, same digest
+appshell purge checkout 1.5.0 --yes      # gone for good; only after an unpublish
+```
+
+The version's coordinates stay spent either way: the same version can't be published again
+with other content.
 
 ## Trusted publishing
 
