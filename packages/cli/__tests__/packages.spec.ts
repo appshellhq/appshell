@@ -164,7 +164,30 @@ describe('packages unpublished', () => {
 
     const output = logged.join('\n');
     expect(output).toMatch(/1\.2\.0.*unpublished by rh, restorable until 2026-11-09/);
-    expect(output).toMatch(/appshell restore checkout 1\.2\.0 --defaultScope acme/);
+    expect(output).toMatch(
+      /appshell restore checkout 1\.2\.0 --defaultScope acme --registry https:\/\/r/,
+    );
+  });
+
+  /* Copilot on appshellhq/appshell#37: the hint must restore on the registry that was asked. */
+  it('should keep an explicit registry in the hint', async () => {
+    wire([
+      {
+        id: 'acme/checkout@1.2.0',
+        scopeId: 'acme',
+        name: 'checkout',
+        version: '1.2.0',
+        digest: 'd',
+        publishedAt: '2026-10-01T00:00:00.000Z',
+        unpublishedAt: '2026-10-10T00:00:00.000Z',
+        unpublishedBy: { id: 'u-1', username: 'rh' },
+        restorableUntil: '2026-11-09T00:00:00.000Z',
+      },
+    ]);
+
+    await unpublished({ registry: 'https://other.example', name: 'acme/checkout' } as never);
+
+    expect(logged.join('\n')).toMatch(/--registry https:\/\/other\.example/);
   });
 
   it('should say when there is nothing to restore', async () => {

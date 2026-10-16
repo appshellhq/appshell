@@ -2,6 +2,7 @@
 import chalk from 'chalk';
 import { GlobalArgs } from '../util/args';
 import { ApplicationSummary, PackageSummary, RegistryClient } from '../util/registry';
+import { restoreCommand } from '../util/restoreHint';
 import { resolveScopeId } from '../util/scope';
 
 type PackagesArgs = GlobalArgs & { scope?: string };
@@ -224,8 +225,8 @@ export const describe = async (argv: PackageArgs) => {
  * appshellhq/appshell-services#29.
  *
  * Newest version first, as the registry returns them, each with the command that brings it
- * back, since that is the only thing to do with one. The command names the scope, so it is
- * right however this one was chosen.
+ * back, since that is the only thing to do with one. The command names the scope and the
+ * registry, so it is right however either was chosen.
  */
 export const unpublished = async (argv: PackageArgs) => {
   const client = new RegistryClient(argv.registry);
@@ -248,7 +249,9 @@ export const unpublished = async (argv: PackageArgs) => {
     const by = v.unpublishedBy.username ?? v.unpublishedBy.id;
 
     const when = chalk.dim(`unpublished by ${by}, restorable until ${until}`);
-    const how = chalk.cyan(`appshell restore ${name} ${v.version} --defaultScope ${scopeId}`);
+    const how = chalk.cyan(
+      restoreCommand({ name, version: v.version, scopeId, registry: argv.registry }),
+    );
 
     console.log(`  ${v.version.padEnd(width)}  ${when}  ${how}`);
   });

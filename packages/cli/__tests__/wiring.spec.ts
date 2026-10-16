@@ -249,6 +249,28 @@ describe('undoing an unpublish', () => {
     expect(client()?.purgePackage).toBeUndefined();
   });
 
+  /* Copilot on appshellhq/appshell#37: the hint must restore on the registry that was asked. */
+  it('should keep an explicit registry in the hint unpublish prints', async () => {
+    const logged: string[] = [];
+    jest.spyOn(console, 'log').mockImplementation((...args) => {
+      logged.push(args.join(' '));
+    });
+    (MockedRegistryClient as unknown as jest.Mock).mockImplementationOnce(() => ({
+      unpublish: jest.fn().mockResolvedValue({
+        id: 'acme/my-package@1.2.3',
+        restorableUntil: '2026-11-15T00:00:00.000Z',
+      }),
+    }));
+    const args = ['unpublish', 'my-package', '1.2.3', '--registry', 'https://other.example'];
+
+    await (buildCli(args) as yargs.Argv).parseAsync(args);
+
+    expect(logged.join('\n')).toMatch(
+      /appshell restore my-package 1\.2\.3 --defaultScope acme --registry https:\/\/other\.example/,
+    );
+    jest.restoreAllMocks();
+  });
+
   it('should route packages unpublished to its handler', () => {
     run('packages unpublished acme/checkout');
 

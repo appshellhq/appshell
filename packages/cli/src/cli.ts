@@ -765,9 +765,14 @@ const unpublishCommand: yargs.CommandModule<
     // A registry that keeps the content says until when (appshellhq/appshell-services#29);
     // one from before says nothing, and nor may a reply with no body.
     if (result?.restorableUntil) {
+      const { restoreCommand } = await import('./util/restoreHint');
       console.log(
-        `Restorable until ${new Date(result.restorableUntil).toISOString()}: ` +
-          `appshell restore ${argv.name} ${argv.version} --defaultScope ${scopeId}`,
+        `Restorable until ${new Date(result.restorableUntil).toISOString()}: ${restoreCommand({
+          name: argv.name,
+          version: argv.version,
+          scopeId,
+          registry: argv.registry,
+        })}`,
       );
     }
   },
