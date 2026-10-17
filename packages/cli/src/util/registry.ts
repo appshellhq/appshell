@@ -3,6 +3,19 @@ import { AxiosRequestConfig } from 'axios';
 import axios from './axios';
 import { ensureToken } from './credentials';
 
+/** An unpublished version that can still be restored. appshellhq/appshell-services#29. */
+export type UnpublishedSummary = {
+  id: string;
+  scopeId: string;
+  name: string;
+  version: string;
+  digest: string;
+  publishedAt: string;
+  unpublishedAt: string;
+  unpublishedBy: Actor;
+  restorableUntil: string;
+};
+
 export type PackageSummary = {
   id: string;
   scopeId: string;
@@ -781,11 +794,42 @@ export class RegistryClient {
     );
   }
 
+  /**
+   * Withdraws a version. The registry keeps its content restorable for a window and says
+   * until when; a registry from before that (appshellhq/appshell-services#29) says nothing.
+   */
   unpublish(scopeId: string, name: string, version: string) {
-    return this.send<{ id: string }>(
+    return this.send<{ id: string; restorableUntil?: string }>(
       'delete',
       `/v1/packages/${scopeId}/${name}/${version}`,
       `unpublish ${scopeId}/${name}@${version}`,
+    );
+  }
+
+  /** Undoes an unpublish inside its window. */
+  restorePackage(scopeId: string, name: string, version: string) {
+    return this.send<{ id: string }>(
+      'post',
+      `/v1/packages/${scopeId}/${name}/${version}/restore`,
+      `restore ${scopeId}/${name}@${version}`,
+    );
+  }
+
+  /** Drops an unpublished version's retained content, so it can no longer be restored. */
+  purgePackage(scopeId: string, name: string, version: string) {
+    return this.send<{ id: string }>(
+      'post',
+      `/v1/packages/${scopeId}/${name}/${version}/purge`,
+      `purge ${scopeId}/${name}@${version}`,
+    );
+  }
+
+  /** A package's unpublished versions that can still be restored. */
+  unpublishedVersions(scopeId: string, name: string) {
+    return this.send<UnpublishedSummary[]>(
+      'get',
+      `/v1/packages/${scopeId}/${name}/unpublished`,
+      `list unpublished versions of ${scopeId}/${name}`,
     );
   }
 }

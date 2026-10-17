@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.116](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.115...v1.0.0-alpha.116) (2026-10-16)
+
+### Bug Fixes
+
+- **cli:** put the registry in every restore hint ([d433104](https://github.com/appshellhq/appshell/commit/d43310457c55e5c808f35559770c7d0a04037d41)), closes [#37](https://github.com/appshellhq/appshell/issues/37)
+
+# [1.0.0-alpha.115](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.114...v1.0.0-alpha.115) (2026-10-16)
+
+### Features
+
+- **cli:** restore and purge an unpublished version, and list what can be restored ([b874058](https://github.com/appshellhq/appshell/commit/b874058a4367db09b1f53e431b334dd3e0a36cb3)), closes [appshellhq/appshell-services#29](https://github.com/appshellhq/appshell-services/issues/29) [#29](https://github.com/appshellhq/appshell/issues/29)
+
 # [1.0.0-alpha.114](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.113...v1.0.0-alpha.114) (2026-10-15)
 
 **Note:** Version bump only for package appshell

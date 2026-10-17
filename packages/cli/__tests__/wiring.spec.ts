@@ -5,6 +5,7 @@ import * as dev from '../src/handlers/dev';
 import * as packages from '../src/handlers/packages';
 import * as theme from '../src/handlers/theme';
 import * as trust from '../src/handlers/trust';
+import { RegistryClient as MockedRegistryClient } from '../src/util/registry';
 
 /*
  * Every handler is replaced, so parsing is exercised for real while nothing reaches a
@@ -202,6 +203,78 @@ describe('app', () => {
 
     expect(app.revisions).toHaveBeenCalled();
     expect(app.get).not.toHaveBeenCalled();
+  });
+});
+
+/*
+ * appshellhq/appshell-services#29. Restore and purge take the same positionals as
+ * unpublish, so they share its trap: yargs' reserved --version. Asserted at the registry
+ * call, where that bug showed.
+ */
+describe('undoing an unpublish', () => {
+  // The auto-mocked client the inline handlers construct.
+  const client = () => (MockedRegistryClient as unknown as jest.Mock).mock.instances[0];
+
+  it('should hand restore the version positional', async () => {
+    run('restore my-package 1.2.3');
+    await new Promise(process.nextTick);
+
+    expect(client().restorePackage).toHaveBeenCalledWith('acme', 'my-package', '1.2.3');
+  });
+
+  it('should purge when --yes confirms it', async () => {
+    run('purge my-package 1.2.3 --yes');
+    await new Promise(process.nextTick);
+
+    expect(client().purgePackage).toHaveBeenCalledWith('acme', 'my-package', '1.2.3');
+  });
+
+  /*
+   * Purge can't be undone, so the parser refuses it unconfirmed, before any registry call.
+   * Awaited through parseAsync: a command with an async handler parses asynchronously, so
+   * `run` would return before yargs had decided anything.
+   */
+  it('should refuse to purge without --yes, reaching nothing', async () => {
+    const args = ['purge', 'my-package', '1.2.3'];
+
+    // An async wrapper, because yargs throws a failed check synchronously, and as its message
+    // rather than an Error.
+    await expect(async () =>
+      (buildCli(args) as yargs.Argv)
+        .fail((msg, err) => {
+          throw err instanceof Error ? err : new Error(String(err ?? msg));
+        })
+        .parseAsync(args),
+    ).rejects.toThrow(/cannot be undone.*--yes/);
+    expect(client()?.purgePackage).toBeUndefined();
+  });
+
+  /* Copilot on appshellhq/appshell#37: the hint must restore on the registry that was asked. */
+  it('should keep an explicit registry in the hint unpublish prints', async () => {
+    const logged: string[] = [];
+    jest.spyOn(console, 'log').mockImplementation((...args) => {
+      logged.push(args.join(' '));
+    });
+    (MockedRegistryClient as unknown as jest.Mock).mockImplementationOnce(() => ({
+      unpublish: jest.fn().mockResolvedValue({
+        id: 'acme/my-package@1.2.3',
+        restorableUntil: '2026-11-15T00:00:00.000Z',
+      }),
+    }));
+    const args = ['unpublish', 'my-package', '1.2.3', '--registry', 'https://other.example'];
+
+    await (buildCli(args) as yargs.Argv).parseAsync(args);
+
+    expect(logged.join('\n')).toMatch(
+      /appshell restore my-package 1\.2\.3 --defaultScope acme --registry https:\/\/other\.example/,
+    );
+    jest.restoreAllMocks();
+  });
+
+  it('should route packages unpublished to its handler', () => {
+    run('packages unpublished acme/checkout');
+
+    expect(handedTo(packages.unpublished)).toMatchObject({ name: 'acme/checkout' });
   });
 });
 

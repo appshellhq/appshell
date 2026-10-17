@@ -1,4 +1,4 @@
-import { describe as describePackage, get, list } from '../src/handlers/packages';
+import { describe as describePackage, get, list, unpublished } from '../src/handlers/packages';
 import { RegistryClient } from '../src/util/registry';
 
 jest.mock('../src/util/registry');
@@ -121,5 +121,80 @@ describe('packages', () => {
     await list(argv);
 
     expect(output()).toContain('No packages published in appshell');
+  });
+});
+
+/*
+ * appshellhq/appshell-services#29. What `restore` can still bring back, each with the command
+ * that does it, naming the scope so it's right whichever way this one was chosen.
+ */
+describe('packages unpublished', () => {
+  let logged: string[];
+
+  beforeEach(() => {
+    logged = [];
+    jest.spyOn(console, 'log').mockImplementation((...args) => {
+      logged.push(args.join(' '));
+    });
+  });
+
+  afterEach(() => jest.restoreAllMocks());
+
+  const wire = (versions: unknown[]) =>
+    Client.mockImplementation(
+      () => ({ unpublishedVersions: jest.fn().mockResolvedValue(versions) } as never),
+    );
+
+  it('should list each restorable version with how to restore it', async () => {
+    wire([
+      {
+        id: 'acme/checkout@1.2.0',
+        scopeId: 'acme',
+        name: 'checkout',
+        version: '1.2.0',
+        digest: 'd',
+        publishedAt: '2026-10-01T00:00:00.000Z',
+        unpublishedAt: '2026-10-10T00:00:00.000Z',
+        unpublishedBy: { id: 'u-1', username: 'rh' },
+        restorableUntil: '2026-11-09T00:00:00.000Z',
+      },
+    ]);
+
+    await unpublished({ registry: 'https://r', name: 'acme/checkout' } as never);
+
+    const output = logged.join('\n');
+    expect(output).toMatch(/1\.2\.0.*unpublished by rh, restorable until 2026-11-09/);
+    expect(output).toMatch(
+      /appshell restore checkout 1\.2\.0 --defaultScope acme --registry https:\/\/r/,
+    );
+  });
+
+  /* Copilot on appshellhq/appshell#37: the hint must restore on the registry that was asked. */
+  it('should keep an explicit registry in the hint', async () => {
+    wire([
+      {
+        id: 'acme/checkout@1.2.0',
+        scopeId: 'acme',
+        name: 'checkout',
+        version: '1.2.0',
+        digest: 'd',
+        publishedAt: '2026-10-01T00:00:00.000Z',
+        unpublishedAt: '2026-10-10T00:00:00.000Z',
+        unpublishedBy: { id: 'u-1', username: 'rh' },
+        restorableUntil: '2026-11-09T00:00:00.000Z',
+      },
+    ]);
+
+    await unpublished({ registry: 'https://other.example', name: 'acme/checkout' } as never);
+
+    expect(logged.join('\n')).toMatch(/--registry https:\/\/other\.example/);
+  });
+
+  it('should say when there is nothing to restore', async () => {
+    wire([]);
+
+    await unpublished({ registry: 'https://r', name: 'acme/checkout' } as never);
+
+    expect(logged.join('\n')).toMatch(/no unpublished versions that can be restored/);
   });
 });
