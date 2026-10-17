@@ -731,6 +731,9 @@ const publishCommand: yargs.CommandModule<GlobalArgs, PublishOptions> = {
   handler: publishHandler,
 };
 
+// The forms `parseAddress` takes. Publish prints the second, so it's what gets copied.
+const NAME_FORMS = "The package, as 'name', 'scope/name' or '@scope/name'";
+
 const unpublishCommand: yargs.CommandModule<
   unknown,
   { registry: string; defaultScope?: string; name: string; version: string }
@@ -745,7 +748,7 @@ const unpublishCommand: yargs.CommandModule<
       // command, where a bare `--version` would be meaningless anyway. `appshell
       // --version` is unaffected; the top-level parser still has it.
       .version(false)
-      .positional('name', { type: 'string', demandOption: true })
+      .positional('name', { type: 'string', demandOption: true, describe: NAME_FORMS })
       .positional('version', { type: 'string', demandOption: true }) as yargs.Argv<{
       registry: string;
       defaultScope?: string;
@@ -754,21 +757,17 @@ const unpublishCommand: yargs.CommandModule<
     }>,
   handler: async (argv) => {
     const { RegistryClient } = await import('./util/registry');
-    const { resolveScopeId } = await import('./util/scope');
-    const scopeId = await resolveScopeId(argv);
-    const result = await new RegistryClient(argv.registry).unpublish(
-      scopeId,
-      argv.name,
-      argv.version,
-    );
-    console.log(`Unpublished ${scopeId}/${argv.name}@${argv.version}`);
+    const { resolvePackage } = await import('./util/address');
+    const { scopeId, name } = await resolvePackage(argv);
+    const result = await new RegistryClient(argv.registry).unpublish(scopeId, name, argv.version);
+    console.log(`Unpublished ${scopeId}/${name}@${argv.version}`);
     // A registry that keeps the content says until when (appshellhq/appshell-services#29);
     // one from before says nothing, and nor may a reply with no body.
     if (result?.restorableUntil) {
       const { restoreCommand } = await import('./util/restoreHint');
       console.log(
         `Restorable until ${new Date(result.restorableUntil).toISOString()}: ${restoreCommand({
-          name: argv.name,
+          name,
           version: argv.version,
           scopeId,
           registry: argv.registry,
@@ -784,7 +783,7 @@ type VersionArgs = { registry: string; defaultScope?: string; name: string; vers
 const versionPositionals = (y: yargs.Argv) =>
   y
     .version(false)
-    .positional('name', { type: 'string', demandOption: true })
+    .positional('name', { type: 'string', demandOption: true, describe: NAME_FORMS })
     .positional('version', { type: 'string', demandOption: true }) as yargs.Argv<VersionArgs>;
 
 /* Undoes an unpublish inside the registry's window. appshellhq/appshell-services#29. */
@@ -794,10 +793,10 @@ const restoreCommand: yargs.CommandModule<unknown, VersionArgs> = {
   builder: versionPositionals,
   handler: async (argv) => {
     const { RegistryClient } = await import('./util/registry');
-    const { resolveScopeId } = await import('./util/scope');
-    const scopeId = await resolveScopeId(argv);
-    await new RegistryClient(argv.registry).restorePackage(scopeId, argv.name, argv.version);
-    console.log(`Restored ${scopeId}/${argv.name}@${argv.version}`);
+    const { resolvePackage } = await import('./util/address');
+    const { scopeId, name } = await resolvePackage(argv);
+    await new RegistryClient(argv.registry).restorePackage(scopeId, name, argv.version);
+    console.log(`Restored ${scopeId}/${name}@${argv.version}`);
   },
 };
 
@@ -825,10 +824,10 @@ const purgeCommand: yargs.CommandModule<unknown, VersionArgs & { yes: boolean }>
       ) as yargs.Argv<VersionArgs & { yes: boolean }>,
   handler: async (argv) => {
     const { RegistryClient } = await import('./util/registry');
-    const { resolveScopeId } = await import('./util/scope');
-    const scopeId = await resolveScopeId(argv);
-    await new RegistryClient(argv.registry).purgePackage(scopeId, argv.name, argv.version);
-    console.log(`Purged ${scopeId}/${argv.name}@${argv.version}: it can no longer be restored`);
+    const { resolvePackage } = await import('./util/address');
+    const { scopeId, name } = await resolvePackage(argv);
+    await new RegistryClient(argv.registry).purgePackage(scopeId, name, argv.version);
+    console.log(`Purged ${scopeId}/${name}@${argv.version}: it can no longer be restored`);
   },
 };
 

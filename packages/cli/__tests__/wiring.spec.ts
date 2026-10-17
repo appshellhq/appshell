@@ -211,6 +211,38 @@ describe('app', () => {
  * unpublish, so they share its trap: yargs' reserved --version. Asserted at the registry
  * call, where that bug showed.
  */
+/*
+ * The form publish prints. `unpublish`, `restore` and `purge` took the scope from elsewhere and
+ * passed the name through, so `unpublish other/my-package 1.2.3` addressed
+ * `acme/other/my-package` and the registry answered 404 (`parseAddress`).
+ */
+describe('a package named with its scope', () => {
+  const client = () => (MockedRegistryClient as unknown as jest.Mock).mock.instances[0];
+  const settle = () =>
+    new Promise<void>((resolve) => {
+      setImmediate(resolve);
+    });
+
+  it.each(['other/my-package', '@other/my-package'])(
+    'should unpublish, restore and purge %s in the scope it names',
+    async (name) => {
+      run(`unpublish ${name} 1.2.3`);
+      await settle();
+      expect(client().unpublish).toHaveBeenCalledWith('other', 'my-package', '1.2.3');
+
+      jest.clearAllMocks();
+      run(`restore ${name} 1.2.3`);
+      await settle();
+      expect(client().restorePackage).toHaveBeenCalledWith('other', 'my-package', '1.2.3');
+
+      jest.clearAllMocks();
+      run(`purge ${name} 1.2.3 --yes`);
+      await settle();
+      expect(client().purgePackage).toHaveBeenCalledWith('other', 'my-package', '1.2.3');
+    },
+  );
+});
+
 describe('undoing an unpublish', () => {
   // The auto-mocked client the inline handlers construct.
   const client = () => (MockedRegistryClient as unknown as jest.Mock).mock.instances[0];

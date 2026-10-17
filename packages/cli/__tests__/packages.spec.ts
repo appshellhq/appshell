@@ -116,6 +116,26 @@ describe('packages', () => {
     expect(packageVersions).toHaveBeenCalledWith('other', 'thing');
   });
 
+  /* npm's form, as package.json spells it. Split on `/`, it read as scope `@other`. */
+  it('should accept an npm-scoped name', async () => {
+    const packageVersions = jest.fn().mockResolvedValue([pkg('0.1.3')]);
+
+    wire({ packageVersions });
+    await get({ ...(argv as object), name: '@other/thing' } as never);
+
+    expect(packageVersions).toHaveBeenCalledWith('other', 'thing');
+  });
+
+  /* Split on `@`, the scope's own sigil left nothing before the version. */
+  it('should describe an exact version of an npm-scoped name', async () => {
+    const getPackage = jest.fn().mockResolvedValue(pkg('0.1.1'));
+
+    wire({ getPackage });
+    await describePackage({ ...(argv as object), name: '@other/thing@0.1.1' } as never);
+
+    expect(getPackage).toHaveBeenCalledWith('other', 'thing', '0.1.1');
+  });
+
   it('should say so plainly when a scope holds nothing', async () => {
     wire({ listPackages: jest.fn().mockResolvedValue([]) });
     await list(argv);

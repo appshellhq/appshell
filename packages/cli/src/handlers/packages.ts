@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import chalk from 'chalk';
+import { resolvePackage } from '../util/address';
 import { GlobalArgs } from '../util/args';
 import { ApplicationSummary, PackageSummary, RegistryClient } from '../util/registry';
 import { restoreCommand } from '../util/restoreHint';
@@ -61,9 +62,7 @@ const versionLine = (pkg: PackageSummary, held: Map<string, string[]>, width: nu
  */
 export const visibility = async (argv: PackageArgs & { visibility: 'public' | 'private' }) => {
   const client = new RegistryClient(argv.registry);
-  const [scopeId, name] = argv.name.includes('/')
-    ? argv.name.split('/')
-    : [argv.scope ?? (await resolveScopeId(argv)), argv.name];
+  const { scopeId, name } = await resolvePackage(argv);
 
   const result = await client.setPackageVisibility(scopeId, name, argv.visibility);
 
@@ -76,10 +75,7 @@ export const visibility = async (argv: PackageArgs & { visibility: 'public' | 'p
 
 export const deprecate = async (argv: PackageArgs & { reason?: string; undo?: boolean }) => {
   const client = new RegistryClient(argv.registry);
-  const [reference, version] = argv.name.split('@');
-  const [scopeId, name] = reference.includes('/')
-    ? reference.split('/')
-    : [argv.scope ?? (await resolveScopeId(argv)), reference];
+  const { scopeId, name, version } = await resolvePackage(argv);
 
   if (!version) {
     throw new Error(`Name a version to deprecate, as '${name}@1.2.3'.`);
@@ -132,9 +128,7 @@ export const list = async (argv: PackagesArgs) => {
 
 export const get = async (argv: PackageArgs) => {
   const client = new RegistryClient(argv.registry);
-  const [scopeId, name] = argv.name.includes('/')
-    ? argv.name.split('/')
-    : [argv.scope ?? (await resolveScopeId(argv)), argv.name];
+  const { scopeId, name } = await resolvePackage(argv);
 
   const [versions, applications] = await Promise.all([
     client.packageVersions(scopeId, name),
@@ -158,10 +152,7 @@ export const get = async (argv: PackageArgs) => {
 
 export const describe = async (argv: PackageArgs) => {
   const client = new RegistryClient(argv.registry);
-  const [reference, version] = argv.name.split('@');
-  const [scopeId, name] = reference.includes('/')
-    ? reference.split('/')
-    : [argv.scope ?? (await resolveScopeId(argv)), reference];
+  const { scopeId, name, version } = await resolvePackage(argv);
 
   const [pkg, applications] = await Promise.all([
     client.getPackage(scopeId, name, version),
@@ -230,9 +221,7 @@ export const describe = async (argv: PackageArgs) => {
  */
 export const unpublished = async (argv: PackageArgs) => {
   const client = new RegistryClient(argv.registry);
-  const [scopeId, name] = argv.name.includes('/')
-    ? argv.name.split('/')
-    : [argv.scope ?? (await resolveScopeId(argv)), argv.name];
+  const { scopeId, name } = await resolvePackage(argv);
 
   const versions = await client.unpublishedVersions(scopeId, name);
 
