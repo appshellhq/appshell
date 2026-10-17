@@ -1,4 +1,10 @@
-import { describe as describePackage, get, list, unpublished } from '../src/handlers/packages';
+import {
+  describe as describePackage,
+  get,
+  list,
+  unpublished,
+  visibility,
+} from '../src/handlers/packages';
 import { RegistryClient } from '../src/util/registry';
 
 jest.mock('../src/util/registry');
@@ -114,6 +120,43 @@ describe('packages', () => {
     await get({ ...(argv as object), name: 'other/thing' } as never);
 
     expect(packageVersions).toHaveBeenCalledWith('other', 'thing');
+  });
+
+  /*
+   * Copilot on appshellhq/appshell#39: visibility is the whole package's, so a version in the
+   * name is refused rather than dropped, which reclassified releases nobody named.
+   */
+  it('should refuse a version where the command applies to every version', async () => {
+    const setPackageVisibility = jest.fn();
+
+    wire({ setPackageVisibility });
+    await expect(
+      visibility({ ...(argv as object), name: 'other/thing@0.1.1', visibility: 'public' } as never),
+    ).rejects.toThrow(/applies to every version/);
+    await expect(get({ ...(argv as object), name: 'other/thing@0.1.1' } as never)).rejects.toThrow(
+      /applies to every version/,
+    );
+    expect(setPackageVisibility).not.toHaveBeenCalled();
+  });
+
+  /* npm's form, as package.json spells it. Split on `/`, it read as scope `@other`. */
+  it('should accept an npm-scoped name', async () => {
+    const packageVersions = jest.fn().mockResolvedValue([pkg('0.1.3')]);
+
+    wire({ packageVersions });
+    await get({ ...(argv as object), name: '@other/thing' } as never);
+
+    expect(packageVersions).toHaveBeenCalledWith('other', 'thing');
+  });
+
+  /* Split on `@`, the scope's own sigil left nothing before the version. */
+  it('should describe an exact version of an npm-scoped name', async () => {
+    const getPackage = jest.fn().mockResolvedValue(pkg('0.1.1'));
+
+    wire({ getPackage });
+    await describePackage({ ...(argv as object), name: '@other/thing@0.1.1' } as never);
+
+    expect(getPackage).toHaveBeenCalledWith('other', 'thing', '0.1.1');
   });
 
   it('should say so plainly when a scope holds nothing', async () => {

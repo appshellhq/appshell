@@ -211,6 +211,57 @@ describe('app', () => {
  * unpublish, so they share its trap: yargs' reserved --version. Asserted at the registry
  * call, where that bug showed.
  */
+/*
+ * The form publish prints. `unpublish`, `restore` and `purge` took the scope from elsewhere and
+ * passed the name through, so `unpublish other/my-package 1.2.3` addressed
+ * `acme/other/my-package` and the registry answered 404 (`parseAddress`).
+ */
+describe('a package named with its scope', () => {
+  const client = () => (MockedRegistryClient as unknown as jest.Mock).mock.instances[0];
+  const settle = () =>
+    new Promise<void>((resolve) => {
+      setImmediate(resolve);
+    });
+
+  it.each(['other/my-package', '@other/my-package'])(
+    'should unpublish, restore and purge %s in the scope it names',
+    async (name) => {
+      run(`unpublish ${name} 1.2.3`);
+      await settle();
+      expect(client().unpublish).toHaveBeenCalledWith('other', 'my-package', '1.2.3');
+
+      jest.clearAllMocks();
+      run(`restore ${name} 1.2.3`);
+      await settle();
+      expect(client().restorePackage).toHaveBeenCalledWith('other', 'my-package', '1.2.3');
+
+      jest.clearAllMocks();
+      run(`purge ${name} 1.2.3 --yes`);
+      await settle();
+      expect(client().purgePackage).toHaveBeenCalledWith('other', 'my-package', '1.2.3');
+    },
+  );
+});
+
+/*
+ * Copilot on appshellhq/appshell#39. The version in the name disagrees with the one given on
+ * its own, so nothing is purged: before, the positional won and 2.0.0 went for good.
+ */
+it('should purge nothing when the two versions disagree', async () => {
+  const args = ['purge', 'acme/my-package@1.2.3', '2.0.0', '--yes'];
+
+  await expect(async () =>
+    (buildCli(args) as yargs.Argv)
+      .fail((msg, err) => {
+        throw err instanceof Error ? err : new Error(String(err ?? msg));
+      })
+      .parseAsync(args),
+  ).rejects.toThrow(/names version 1.2.3, but the command was given 2.0.0/);
+  expect(
+    (MockedRegistryClient as unknown as jest.Mock).mock.instances[0]?.purgePackage,
+  ).toBeUndefined();
+});
+
 describe('undoing an unpublish', () => {
   // The auto-mocked client the inline handlers construct.
   const client = () => (MockedRegistryClient as unknown as jest.Mock).mock.instances[0];

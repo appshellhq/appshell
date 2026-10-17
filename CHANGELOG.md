@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.119](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.118...v1.0.0-alpha.119) (2026-10-17)
+
+### Bug Fixes
+
+- **cli:** never drop a version named with the package, and refuse malformed names ([5b6ddc3](https://github.com/appshellhq/appshell/commit/5b6ddc30f024830e3c14daea10219e2dc992ca2a)), closes [appshellhq/appshell#39](https://github.com/appshellhq/appshell/issues/39)
+
+# [1.0.0-alpha.118](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.117...v1.0.0-alpha.118) (2026-10-17)
+
+### Bug Fixes
+
+- **cli:** take a package as 'scope/name' everywhere, in one place ([ec0ad67](https://github.com/appshellhq/appshell/commit/ec0ad671461666da6c8394af61660db995e18476)), closes [appshellhq/appshell-services#33](https://github.com/appshellhq/appshell-services/issues/33)
+
 # [1.0.0-alpha.117](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.116...v1.0.0-alpha.117) (2026-10-17)
 
 **Note:** Version bump only for package appshell
