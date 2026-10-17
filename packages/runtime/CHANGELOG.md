@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.118](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.117...v1.0.0-alpha.118) (2026-10-17)
+
+**Note:** Version bump only for package @appshell/runtime
+
 # [1.0.0-alpha.117](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.116...v1.0.0-alpha.117) (2026-10-17)
 
 **Note:** Version bump only for package @appshell/runtime
