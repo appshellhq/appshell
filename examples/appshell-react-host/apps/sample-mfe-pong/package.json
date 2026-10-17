@@ -1,6 +1,6 @@
 {
   "name": "@appshell/sample-mfe-pong",
-  "version": "1.0.0-alpha.115",
+  "version": "1.0.0-alpha.118",
   "private": true,
   "description": "",
   "main": "dist/main.js",
