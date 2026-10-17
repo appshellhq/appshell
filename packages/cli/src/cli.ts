@@ -758,7 +758,7 @@ const unpublishCommand: yargs.CommandModule<
   handler: async (argv) => {
     const { RegistryClient } = await import('./util/registry');
     const { resolvePackage } = await import('./util/address');
-    const { scopeId, name } = await resolvePackage(argv);
+    const { scopeId, name } = await resolvePackage(argv, { positional: argv.version });
     const result = await new RegistryClient(argv.registry).unpublish(scopeId, name, argv.version);
     console.log(`Unpublished ${scopeId}/${name}@${argv.version}`);
     // A registry that keeps the content says until when (appshellhq/appshell-services#29);
@@ -794,7 +794,7 @@ const restoreCommand: yargs.CommandModule<unknown, VersionArgs> = {
   handler: async (argv) => {
     const { RegistryClient } = await import('./util/registry');
     const { resolvePackage } = await import('./util/address');
-    const { scopeId, name } = await resolvePackage(argv);
+    const { scopeId, name } = await resolvePackage(argv, { positional: argv.version });
     await new RegistryClient(argv.registry).restorePackage(scopeId, name, argv.version);
     console.log(`Restored ${scopeId}/${name}@${argv.version}`);
   },
@@ -825,7 +825,7 @@ const purgeCommand: yargs.CommandModule<unknown, VersionArgs & { yes: boolean }>
   handler: async (argv) => {
     const { RegistryClient } = await import('./util/registry');
     const { resolvePackage } = await import('./util/address');
-    const { scopeId, name } = await resolvePackage(argv);
+    const { scopeId, name } = await resolvePackage(argv, { positional: argv.version });
     await new RegistryClient(argv.registry).purgePackage(scopeId, name, argv.version);
     console.log(`Purged ${scopeId}/${name}@${argv.version}: it can no longer be restored`);
   },

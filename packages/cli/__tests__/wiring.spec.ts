@@ -243,6 +243,25 @@ describe('a package named with its scope', () => {
   );
 });
 
+/*
+ * Copilot on appshellhq/appshell#39. The version in the name disagrees with the one given on
+ * its own, so nothing is purged: before, the positional won and 2.0.0 went for good.
+ */
+it('should purge nothing when the two versions disagree', async () => {
+  const args = ['purge', 'acme/my-package@1.2.3', '2.0.0', '--yes'];
+
+  await expect(async () =>
+    (buildCli(args) as yargs.Argv)
+      .fail((msg, err) => {
+        throw err instanceof Error ? err : new Error(String(err ?? msg));
+      })
+      .parseAsync(args),
+  ).rejects.toThrow(/names version 1.2.3, but the command was given 2.0.0/);
+  expect(
+    (MockedRegistryClient as unknown as jest.Mock).mock.instances[0]?.purgePackage,
+  ).toBeUndefined();
+});
+
 describe('undoing an unpublish', () => {
   // The auto-mocked client the inline handlers construct.
   const client = () => (MockedRegistryClient as unknown as jest.Mock).mock.instances[0];

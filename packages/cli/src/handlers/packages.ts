@@ -62,7 +62,7 @@ const versionLine = (pkg: PackageSummary, held: Map<string, string[]>, width: nu
  */
 export const visibility = async (argv: PackageArgs & { visibility: 'public' | 'private' }) => {
   const client = new RegistryClient(argv.registry);
-  const { scopeId, name } = await resolvePackage(argv);
+  const { scopeId, name } = await resolvePackage(argv, 'none');
 
   const result = await client.setPackageVisibility(scopeId, name, argv.visibility);
 
@@ -75,7 +75,7 @@ export const visibility = async (argv: PackageArgs & { visibility: 'public' | 'p
 
 export const deprecate = async (argv: PackageArgs & { reason?: string; undo?: boolean }) => {
   const client = new RegistryClient(argv.registry);
-  const { scopeId, name, version } = await resolvePackage(argv);
+  const { scopeId, name, version } = await resolvePackage(argv, 'optional');
 
   if (!version) {
     throw new Error(`Name a version to deprecate, as '${name}@1.2.3'.`);
@@ -128,7 +128,7 @@ export const list = async (argv: PackagesArgs) => {
 
 export const get = async (argv: PackageArgs) => {
   const client = new RegistryClient(argv.registry);
-  const { scopeId, name } = await resolvePackage(argv);
+  const { scopeId, name } = await resolvePackage(argv, 'none');
 
   const [versions, applications] = await Promise.all([
     client.packageVersions(scopeId, name),
@@ -152,7 +152,7 @@ export const get = async (argv: PackageArgs) => {
 
 export const describe = async (argv: PackageArgs) => {
   const client = new RegistryClient(argv.registry);
-  const { scopeId, name, version } = await resolvePackage(argv);
+  const { scopeId, name, version } = await resolvePackage(argv, 'optional');
 
   const [pkg, applications] = await Promise.all([
     client.getPackage(scopeId, name, version),
@@ -221,7 +221,7 @@ export const describe = async (argv: PackageArgs) => {
  */
 export const unpublished = async (argv: PackageArgs) => {
   const client = new RegistryClient(argv.registry);
-  const { scopeId, name } = await resolvePackage(argv);
+  const { scopeId, name } = await resolvePackage(argv, 'none');
 
   const versions = await client.unpublishedVersions(scopeId, name);
 

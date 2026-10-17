@@ -26,12 +26,19 @@ describe('parseAddress', () => {
     expect(parseAddress(raw)).toEqual(expected);
   });
 
-  it.each(['acme/checkout/extra', '@acme/checkout/extra', '/checkout', 'acme/', 'checkout@'])(
-    'refuses %s rather than guessing',
-    (raw) => {
-      expect(() => parseAddress(raw)).toThrow(/is not a package name/);
-    },
-  );
+  it.each([
+    'acme/checkout/extra',
+    '@acme/checkout/extra',
+    '/checkout',
+    'acme/',
+    'checkout@',
+    // Copilot on appshellhq/appshell#39: npm's sigil with no scope, and a version with a path in it.
+    '@/checkout',
+    '@acme',
+    'acme/checkout@1.2.3/extra',
+  ])('refuses %s rather than guessing', (raw) => {
+    expect(() => parseAddress(raw)).toThrow(/is not a package name/);
+  });
 });
 
 describe('resolvePackage', () => {
@@ -40,7 +47,7 @@ describe('resolvePackage', () => {
   beforeEach(() => jest.clearAllMocks());
 
   it('takes the scope the name carries, without asking for one', async () => {
-    await expect(resolvePackage({ ...ARGV, name: 'acme/checkout' })).resolves.toEqual({
+    await expect(resolvePackage({ ...ARGV, name: 'acme/checkout' }, 'optional')).resolves.toEqual({
       scopeId: 'acme',
       name: 'checkout',
     });
@@ -49,18 +56,46 @@ describe('resolvePackage', () => {
 
   it('prefers the name over --scope, which only fills in for a bare name', async () => {
     await expect(
-      resolvePackage({ ...ARGV, name: '@acme/checkout', scope: 'other' }),
+      resolvePackage({ ...ARGV, name: '@acme/checkout', scope: 'other' }, 'optional'),
     ).resolves.toMatchObject({ scopeId: 'acme' });
     await expect(
-      resolvePackage({ ...ARGV, name: 'checkout', scope: 'other' }),
+      resolvePackage({ ...ARGV, name: 'checkout', scope: 'other' }, 'optional'),
     ).resolves.toMatchObject({ scopeId: 'other' });
   });
 
   it('resolves the scope for a bare name', async () => {
-    await expect(resolvePackage({ ...ARGV, name: 'checkout@1.2.3' })).resolves.toEqual({
+    await expect(resolvePackage({ ...ARGV, name: 'checkout@1.2.3' }, 'optional')).resolves.toEqual({
       scopeId: 'mine',
       name: 'checkout',
       version: '1.2.3',
+    });
+  });
+
+  /* Copilot on appshellhq/appshell#39: a version in the name is never silently dropped. */
+  describe('a version in the name', () => {
+    it('is refused where the command applies to every version', async () => {
+      await expect(
+        resolvePackage({ ...ARGV, name: 'acme/checkout@1.2.3' }, 'none'),
+      ).rejects.toThrow(/applies to every version/);
+      await expect(resolvePackage({ ...ARGV, name: 'acme/checkout' }, 'none')).resolves.toEqual({
+        scopeId: 'acme',
+        name: 'checkout',
+      });
+    });
+
+    it('is refused when it disagrees with the version given on its own', async () => {
+      await expect(
+        resolvePackage({ ...ARGV, name: 'acme/checkout@1.2.3' }, { positional: '2.0.0' }),
+      ).rejects.toThrow(/names version 1.2.3, but the command was given 2.0.0/);
+    });
+
+    it('is the version given on its own, whether or not the name repeats it', async () => {
+      await expect(
+        resolvePackage({ ...ARGV, name: 'acme/checkout@1.2.3' }, { positional: '1.2.3' }),
+      ).resolves.toMatchObject({ version: '1.2.3' });
+      await expect(
+        resolvePackage({ ...ARGV, name: 'acme/checkout' }, { positional: '1.2.3' }),
+      ).resolves.toMatchObject({ version: '1.2.3' });
     });
   });
 });
