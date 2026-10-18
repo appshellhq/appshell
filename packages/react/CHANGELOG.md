@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.122](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.121...v1.0.0-alpha.122) (2026-10-18)
+
+### Features
+
+- **example:** build the examples on React 19, and peer @appshell/react on ^19 ([482f261](https://github.com/appshellhq/appshell/commit/482f2613cb415b78f5185b15a0eb2220355ba121)), closes [#40](https://github.com/appshellhq/appshell/issues/40)
+
 # [1.0.0-alpha.121](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.120...v1.0.0-alpha.121) (2026-10-18)
 
 ### Features
