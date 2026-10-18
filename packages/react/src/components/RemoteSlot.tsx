@@ -73,8 +73,4 @@ const RemoteSlot = <TProps extends ExtendedProps>({
   return <>{element || fallback}</>;
 };
 
-RemoteSlot.defaultProps = {
-  fallback: undefined,
-};
-
 export default RemoteSlot;

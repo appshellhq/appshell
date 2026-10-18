@@ -75,5 +75,11 @@ module.exports = {
       },
     ],
     'react/jsx-filename-extension': 'off',
+    // React 19 ignores defaultProps on function components, so an optional prop's default is
+    // the destructuring default, or none. Airbnb's rule would demand defaultProps for each.
+    'react/require-default-props': [
+      'error',
+      { forbidDefaultForRequired: true, ignoreFunctionalComponents: true },
+    ],
   },
 };
