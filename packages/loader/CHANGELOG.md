@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.121](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.120...v1.0.0-alpha.121) (2026-10-18)
+
+**Note:** Version bump only for package @appshell/loader
+
 # [1.0.0-alpha.120](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.119...v1.0.0-alpha.120) (2026-10-18)
 
 **Note:** Version bump only for package @appshell/loader

@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.121](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.120...v1.0.0-alpha.121) (2026-10-18)
+
+### Features
+
+- **react:** move the shell and the packages to React 19, the examples to follow ([72cec1e](https://github.com/appshellhq/appshell/commit/72cec1e793324bd604494f78602260025922f13d)), closes [#40](https://github.com/appshellhq/appshell/issues/40)
+
 # [1.0.0-alpha.120](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.119...v1.0.0-alpha.120) (2026-10-18)
 
 **Note:** Version bump only for package appshell
