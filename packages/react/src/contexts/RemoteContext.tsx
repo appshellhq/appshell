@@ -13,10 +13,6 @@ export const RemoteProvider: FC<RemoteProviderProps> = ({ remote, children }) =>
   <RemoteContext.Provider value={remote}>{children}</RemoteContext.Provider>
 );
 
-RemoteProvider.defaultProps = {
-  remote: undefined,
-};
-
 export const RemoteConsumer = RemoteContext.Consumer;
 
 export default RemoteContext;
