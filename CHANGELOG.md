@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.128](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.127...v1.0.0-alpha.128) (2026-10-19)
+
+### Features
+
+- **tokens:** a sunken surface, info and a control border, and status colours read as text ([5f0ee47](https://github.com/appshellhq/appshell/commit/5f0ee47b0e42284cbbb4498f5a7d72abeb9f8a67))
+
 # [1.0.0-alpha.127](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.126...v1.0.0-alpha.127) (2026-10-19)
 
 **Note:** Version bump only for package appshell
