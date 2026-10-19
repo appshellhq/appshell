@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.124](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.123...v1.0.0-alpha.124) (2026-10-19)
+
+### Features
+
+- **tokens:** publish the Tailwind v4 adapter as tailwind.css, generated from the contract ([4e09bcc](https://github.com/appshellhq/appshell/commit/4e09bcc2ee07f3de85df74c50616a0014aa737f0)), closes [#44](https://github.com/appshellhq/appshell/issues/44)
+
 # [1.0.0-alpha.123](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.122...v1.0.0-alpha.123) (2026-10-18)
 
 **Note:** Version bump only for package @appshell/tokens
