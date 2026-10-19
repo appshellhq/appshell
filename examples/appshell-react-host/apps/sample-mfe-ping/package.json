@@ -1,6 +1,6 @@
 {
   "name": "@appshell/sample-mfe-ping",
-  "version": "1.0.0-alpha.125",
+  "version": "1.0.0-alpha.126",
   "private": true,
   "main": "dist/main.js",
   "scripts": {
