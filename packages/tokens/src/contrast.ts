@@ -9,8 +9,9 @@
 import {
   AA_NON_TEXT,
   AA_TEXT,
-  MUTED_AGAINST,
   NON_TEXT_PAIRS,
+  SURFACES,
+  TEXT_ON_SURFACES,
   TEXT_PAIRS,
   type Theme,
   type TokenRole,
@@ -85,14 +86,24 @@ export const toHex = (value: string): string | undefined => {
 
   if (!rgb) return undefined;
 
-  return `#${rgb.map((c) => Math.round(c * 255).toString(16).padStart(2, '0')).join('')}`;
+  return `#${rgb
+    .map((c) =>
+      Math.round(c * 255)
+        .toString(16)
+        .padStart(2, '0'),
+    )
+    .join('')}`;
 };
 
 export type ContrastFinding = {
   roles: [TokenRole, TokenRole];
   ratio?: number;
   required: number;
-  reason: 'below-threshold' | 'unparseable';
+  /**
+   * `missing` is a theme published before the contract grew a role it lacks: the type says
+   * every role is there, and a stored theme can't be made to agree after the fact.
+   */
+  reason: 'below-threshold' | 'unparseable' | 'missing';
 };
 
 const check = (
@@ -102,6 +113,12 @@ const check = (
 ): ContrastFinding[] =>
   pairs.flatMap(([bg, fg]): ContrastFinding[] => {
     const roles: [TokenRole, TokenRole] = [bg, fg];
+    const values: (string | undefined)[] = [theme[bg], theme[fg]];
+
+    if (values.some((value) => typeof value !== 'string')) {
+      return [{ roles, required, reason: 'missing' }];
+    }
+
     const background = parseColor(theme[bg]);
     const foreground = parseColor(theme[fg]);
 
@@ -124,13 +141,18 @@ export const validateTheme = (theme: Theme): ContrastFinding[] => [
   ...check(theme, TEXT_PAIRS, AA_TEXT),
   ...check(
     theme,
-    MUTED_AGAINST.map((surface) => [surface, 'text-muted'] as const),
+    SURFACES.flatMap((surface) => TEXT_ON_SURFACES.map((text) => [surface, text] as const)),
     AA_TEXT,
   ),
   ...check(theme, NON_TEXT_PAIRS, AA_NON_TEXT),
 ];
 
-export const describeFinding = ({ roles, ratio, required, reason }: ContrastFinding): string =>
-  reason === 'unparseable'
+export const describeFinding = ({ roles, ratio, required, reason }: ContrastFinding): string => {
+  if (reason === 'missing') {
+    return `${roles[0]} / ${roles[1]}: the theme has no value for one of them — it predates a role the contract now has.`;
+  }
+
+  return reason === 'unparseable'
     ? `${roles[0]} / ${roles[1]}: could not be measured — one of the values is not a colour this understands.`
     : `${roles[0]} / ${roles[1]}: ${ratio?.toFixed(2)}:1, needs ${required}:1.`;
+};

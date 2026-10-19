@@ -13,16 +13,24 @@ export type Mode = 'light' | 'dark';
 export const BASE_COLOR_ROLES = [
   'surface',
   'on-surface',
+  // A level below the page, for its chrome: a sidebar, a navigation rail, an inset panel.
+  'surface-sunken',
+  'on-surface-sunken',
   'surface-raised',
   'on-surface-raised',
   'text-muted',
+  // A divider's edge, which nothing needs to see to use the page.
   'border',
+  // A control's edge, which is how it's found: a field, a select, an outlined button.
+  'border-control',
   'danger',
   'on-danger',
   'warning',
   'on-warning',
   'success',
   'on-success',
+  'info',
+  'on-info',
 ] as const;
 
 /** Colour roles an Application's *accent* supplies. */
@@ -108,20 +116,40 @@ export const cssVar = (role: TokenRole): string => `--appshell-${role}`;
  */
 export const TEXT_PAIRS: readonly (readonly [TokenRole, TokenRole])[] = [
   ['surface', 'on-surface'],
+  ['surface-sunken', 'on-surface-sunken'],
   ['surface-raised', 'on-surface-raised'],
   ['primary', 'on-primary'],
   ['secondary', 'on-secondary'],
   ['danger', 'on-danger'],
   ['warning', 'on-warning'],
   ['success', 'on-success'],
+  ['info', 'on-info'],
 ];
 
-/** Muted text has no `on-` partner; it is read against both surfaces. */
-export const MUTED_AGAINST: readonly TokenRole[] = ['surface', 'surface-raised'];
+/** The surfaces text is put on. */
+export const SURFACES: readonly TokenRole[] = ['surface', 'surface-sunken', 'surface-raised'];
 
-/** Non-text, so 3:1 rather than 4.5:1 — WCAG 1.4.11. */
+/**
+ * Colours that are also text with no `on-` partner of their own, so each is read against every
+ * surface: muted text, and a status used as text (an error under a field, a warning icon). A
+ * status that passes as a fill can still fail as text — amber on white is the classic case.
+ */
+export const TEXT_ON_SURFACES: readonly TokenRole[] = [
+  'text-muted',
+  'danger',
+  'warning',
+  'success',
+  'info',
+];
+
+/**
+ * Non-text, so 3:1 rather than 4.5:1 — WCAG 1.4.11. A control's border is checked on every
+ * surface, because it's how the control is found; `border` isn't, because a divider isn't
+ * needed to use the page.
+ */
 export const NON_TEXT_PAIRS: readonly (readonly [TokenRole, TokenRole])[] = [
   ['surface', 'focus-ring'],
+  ...SURFACES.map((surface) => [surface, 'border-control'] as const),
 ];
 
 export const AA_TEXT = 4.5;

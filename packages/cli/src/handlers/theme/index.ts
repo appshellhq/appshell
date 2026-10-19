@@ -73,7 +73,7 @@ export const get = async (argv: ThemeGetArgs) => {
  * when the original moves. `derivedFrom` is recorded so the catalogue can answer where
  * something came from, and carries no other meaning.
  *
- * Without this an author writes 41 roles twice by hand, which is the kind of task nobody
+ * Without this an author writes 46 roles twice by hand, which is the kind of task nobody
  * finishes.
  */
 export const init = async (argv: ThemeInitArgs) => {

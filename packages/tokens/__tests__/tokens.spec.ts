@@ -21,8 +21,8 @@ const combinations = Object.keys(BASES).flatMap((base) =>
 );
 
 describe('contract', () => {
-  it('should publish 41 roles', () => {
-    expect(TOKEN_ROLES).toHaveLength(41);
+  it('should publish 46 roles', () => {
+    expect(TOKEN_ROLES).toHaveLength(46);
   });
 
   it('should not repeat a role across groups', () => {
@@ -72,6 +72,58 @@ describe('presets', () => {
 
   it('should list what is available when an accent is unknown', () => {
     expect(() => composeTheme({ base: 'neutral', accent: 'nope' }, 'light')).toThrow(/ice/);
+  });
+});
+
+describe('validateTheme', () => {
+  const theme = composeTheme({ base: 'neutral', accent: 'ice' }, 'light');
+  const rolesOf = (findings: ReturnType<typeof validateTheme>) => findings.map((f) => f.roles);
+
+  /*
+   * A theme published before the contract grew a role is stored without it. That is a
+   * finding to report, not a crash: the registry answers 422, not 500.
+   */
+  it('should report a role the theme lacks rather than throwing', () => {
+    const older: Partial<typeof theme> = { ...theme };
+    delete older['surface-sunken'];
+    const findings = validateTheme(older as typeof theme);
+
+    expect(findings).toContainEqual(
+      expect.objectContaining({
+        roles: ['surface-sunken', 'on-surface-sunken'],
+        reason: 'missing',
+      }),
+    );
+    expect(findings.map(describeFinding).join('\n')).toMatch(/no value/);
+  });
+
+  // A status can pass as a fill under its on- colour and still fail as text on a surface.
+  it('should read a status colour as text against every surface', () => {
+    const findings = validateTheme({
+      ...theme,
+      warning: 'oklch(80% 0.15 80)',
+      'on-warning': 'oklch(20% 0 0)',
+    });
+
+    expect(rolesOf(findings)).toEqual(
+      expect.arrayContaining([
+        ['surface', 'warning'],
+        ['surface-sunken', 'warning'],
+        ['surface-raised', 'warning'],
+      ]),
+    );
+    expect(rolesOf(findings)).not.toContainEqual(['warning', 'on-warning']);
+  });
+
+  it('should hold a control border to 3:1 on every surface, and a divider to nothing', () => {
+    const faint = theme.border;
+    const findings = validateTheme({ ...theme, 'border-control': faint });
+
+    expect(rolesOf(findings)).toEqual([
+      ['surface', 'border-control'],
+      ['surface-sunken', 'border-control'],
+      ['surface-raised', 'border-control'],
+    ]);
   });
 });
 
