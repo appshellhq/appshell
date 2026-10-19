@@ -130,18 +130,22 @@ validateTheme(composeTheme({ base: 'neutral', accent: 'ice' }, 'light')).map(des
 Text pairs are checked at WCAG AA (4.5:1), and so are muted text and the status colours read
 as text on every surface: a status that passes as a fill under its `on-` colour can still
 fail as an error message under a field. The focus ring and the control border are checked at
-3:1 (1.4.11, non-text). A value that will not parse, or a role a stored theme predates, is
-reported rather than thrown, so one bad token does not hide the rest.
+3:1 (1.4.11, non-text) on every surface, since focus lands in a dialog and a sidebar as well
+as on the page. A value that will not parse, or a role a stored theme predates, is reported
+rather than thrown, so one bad token does not hide the rest.
 
-Three things this caught in the presets, each of which would otherwise have shipped:
+Four things this caught in the presets, each of which would otherwise have shipped:
 
 - **Tailwind's `indigo-500` fails against both black and white** — 4.28 and 4.22. There is
   no legible text colour for it. The `violet` accent uses `indigo-600` instead.
 - **A focus ring that is simply the accent disappears** on 7 of the 20 preset combinations.
-  The rings are derived instead: hue and chroma are kept, lightness moves only as far as it
-  must to clear 3:1.
+  The rings are derived instead: hue is kept, and lightness moves only as far as it must to
+  clear 3:1.
 - **Light-mode `danger` was 4.36:1 as text on `surface-raised`**: legible as a button, not
   as the error under a field in a dialog. It moved from 57.7% to 56.7% lightness.
+- **The rings were checked on the page alone**, and 8 of the 20 combinations fell below 3:1
+  in a dialog, down to 2.83. Each moved only as far as clearing every surface needed, and
+  the ice and emerald rings in light mode, which sat just outside sRGB, came back inside it.
 
 The presets are held to the same standard as everyone else's themes — the test suite
 composes all 20 combinations and asserts no findings.

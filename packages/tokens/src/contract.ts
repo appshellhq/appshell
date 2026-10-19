@@ -143,14 +143,14 @@ export const TEXT_ON_SURFACES: readonly TokenRole[] = [
 ];
 
 /**
- * Non-text, so 3:1 rather than 4.5:1 — WCAG 1.4.11. A control's border is checked on every
- * surface, because it's how the control is found; `border` isn't, because a divider isn't
- * needed to use the page.
+ * Non-text, so 3:1 rather than 4.5:1 — WCAG 1.4.11. The focus ring and a control's border are
+ * checked on every surface, because focus lands in a dialog and a sidebar as well as on the
+ * page, and a control's border is how it's found. `border` isn't checked, because a divider
+ * isn't needed to use the page.
  */
-export const NON_TEXT_PAIRS: readonly (readonly [TokenRole, TokenRole])[] = [
-  ['surface', 'focus-ring'],
-  ...SURFACES.map((surface) => [surface, 'border-control'] as const),
-];
+export const NON_TEXT_PAIRS: readonly (readonly [TokenRole, TokenRole])[] = SURFACES.flatMap(
+  (surface) => [[surface, 'focus-ring'] as const, [surface, 'border-control'] as const],
+);
 
 export const AA_TEXT = 4.5;
 export const AA_NON_TEXT = 3;

@@ -124,13 +124,14 @@ export const ACCENTS: Record<string, AccentTokens> = {
   },
 };
 
-/* Focus rings keep the accent hue and chroma; only lightness moves, and only far
- * enough to clear 3:1 against that particular surface. Defaulting the ring to the
- * accent itself fails on 7 of these 20 combinations. */
+/* Focus rings keep the accent's hue. Lightness moves only far enough to clear 3:1 on every
+ * surface the ring is drawn on, the page, its chrome and a dialog, and chroma drops only
+ * where the sRGB gamut ends at that lightness. Defaulting the ring to the accent itself
+ * fails on 7 of these 20 combinations against the page alone. */
 export const FOCUS_RINGS: Record<string, Record<string, Record<Mode, string>>> = {
   neutral: {
     ice: {
-      light: 'oklch(64.5% 0.148 237.3)',
+      light: 'oklch(63.8% 0.140 237.3)',
       dark: 'oklch(68.5% 0.148 237.3)',
     },
     ember: {
@@ -138,21 +139,21 @@ export const FOCUS_RINGS: Record<string, Record<string, Record<Mode, string>>> =
       dark: 'oklch(57.7% 0.215 27.3)',
     },
     emerald: {
-      light: 'oklch(63.6% 0.149 162.5)',
+      light: 'oklch(62.6% 0.136 162.5)',
       dark: 'oklch(69.6% 0.149 162.5)',
     },
     violet: {
       light: 'oklch(51.1% 0.230 277.0)',
-      dark: 'oklch(53.1% 0.230 277.0)',
+      dark: 'oklch(53.6% 0.230 277.0)',
     },
     steel: {
       light: 'oklch(44.2% 0.015 285.8)',
-      dark: 'oklch(50.2% 0.015 285.8)',
+      dark: 'oklch(51.6% 0.015 285.8)',
     },
   },
   midnight: {
     ice: {
-      light: 'oklch(64.5% 0.148 237.3)',
+      light: 'oklch(63.9% 0.140 237.3)',
       dark: 'oklch(68.5% 0.148 237.3)',
     },
     ember: {
@@ -160,16 +161,16 @@ export const FOCUS_RINGS: Record<string, Record<string, Record<Mode, string>>> =
       dark: 'oklch(57.7% 0.215 27.3)',
     },
     emerald: {
-      light: 'oklch(63.6% 0.149 162.5)',
+      light: 'oklch(62.8% 0.137 162.5)',
       dark: 'oklch(69.6% 0.149 162.5)',
     },
     violet: {
       light: 'oklch(51.1% 0.230 277.0)',
-      dark: 'oklch(51.1% 0.230 277.0)',
+      dark: 'oklch(51.5% 0.230 277.0)',
     },
     steel: {
       light: 'oklch(44.2% 0.015 285.8)',
-      dark: 'oklch(48.2% 0.015 285.8)',
+      dark: 'oklch(49.5% 0.015 285.8)',
     },
   },
 };
