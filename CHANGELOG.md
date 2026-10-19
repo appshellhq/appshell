@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.126](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.125...v1.0.0-alpha.126) (2026-10-19)
+
+### Features
+
+- **example:** theme the examples through the published @appshell/tokens/tailwind.css ([b888163](https://github.com/appshellhq/appshell/commit/b888163144ec9b6601052d474213b4e52dc19d2a)), closes [#44](https://github.com/appshellhq/appshell/issues/44)
+
 # [1.0.0-alpha.125](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.124...v1.0.0-alpha.125) (2026-10-19)
 
 **Note:** Version bump only for package appshell

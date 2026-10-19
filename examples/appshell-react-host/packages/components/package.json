@@ -18,7 +18,8 @@
   },
   "dependencies": {
     "@appshell/react": "^1.0.0-alpha.84",
-    "@appshell/runtime": "^1.0.0-alpha.84"
+    "@appshell/runtime": "^1.0.0-alpha.84",
+    "@appshell/tokens": "^1.0.0-alpha.125"
   },
   "devDependencies": {
     "@testing-library/react": "^16.1.0"
