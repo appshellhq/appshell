@@ -3,7 +3,7 @@
 The design token contract an Application supplies and every package it composes consumes.
 
 A catalogue of components that cannot be themed to their host is not composable — visual
-coherence is the point. This package is the vocabulary that makes it possible: 41 CSS
+coherence is the point. This package is the vocabulary that makes it possible: 46 CSS
 custom properties, a set of presets, and the contrast validation that keeps a theme
 legible.
 
@@ -52,7 +52,8 @@ maps the contract onto Tailwind's theme, so `bg-primary`, `text-on-surface`, `bo
   as `@navaris/ui-react`, imports its defaults first, so the Application's theme wins.
 
 The colour roles keep their names (`--color-primary`, `--color-on-surface`), except
-`text-muted`, which is `--color-muted` so the utility reads `text-muted`. Families are
+`text-muted`, which is `--color-muted` so the utility reads `text-muted`, and `border-control`,
+which is `--color-control` so it reads `border-control`. Families are
 `--font-sans` and `--font-mono`, type sizes `--text-h1`…`--text-small`, line heights
 `--leading-tight` and `--leading-normal`, and the scales `--spacing-xs`…`xl` and
 `--radius-sm`/`md`/`lg`. The file is generated from the contract, as `TAILWIND_NAMES`, and
@@ -71,13 +72,21 @@ makes dark mode a change of values rather than a change of logic.
 
 | Group       | Roles                                                                                            |
 | ----------- | ------------------------------------------------------------------------------------------------ |
-| Surface     | `surface`, `on-surface`, `surface-raised`, `on-surface-raised`                                   |
-| Text & line | `text-muted`, `border`                                                                           |
+| Surface     | `surface-sunken`, `surface`, `surface-raised` and their `on-` partners                           |
+| Text & line | `text-muted`, `border`, `border-control`                                                         |
 | Action      | `primary`, `on-primary`, `secondary`, `on-secondary`                                             |
 | Derived     | `primary-hover`, `primary-active`, `secondary-hover`, `secondary-active`, `focus-ring`           |
-| Status      | `danger`, `warning`, `success` and their `on-` partners                                          |
+| Status      | `danger`, `warning`, `success`, `info` and their `on-` partners                                  |
 | Type        | `font-body`, `font-mono`, `font-size-h1`…`h6`, `-body`, `-small`, `line-height-tight`, `-normal` |
 | Dimension   | `space-xs`…`xl`, `radius-sm`/`md`/`lg`                                                           |
+
+**Three surfaces, by elevation.** `surface` is the page; `surface-raised` sits above it (a
+card, a dialog, a menu) and `surface-sunken` below it (the page's chrome: a sidebar, a
+navigation rail, an inset panel). Put text in the `on-` partner of the surface it's on.
+
+**Two borders, by what they're for.** `border` is a divider's edge, which nothing needs to
+see to use the page. `border-control` is a control's edge, which is how a field, a select or
+an outlined button is found, so it's held to 3:1 on every surface.
 
 Type sizes are named for their role rather than a `sm/md/lg` scale on purpose. A numeric
 scale reintroduces the divergence the contract exists to prevent — one author maps `h1` to
@@ -85,12 +94,12 @@ scale reintroduces the divergence the contract exists to prevent — one author 
 
 **Derived roles cost a theme nothing.** Hover and active are a `color-mix` from their
 accent, and the focus ring is picked per base and accent. A theme may override any of
-them; none has to be supplied. So the contract publishes 41 names while an Application
-authors 36 at most — and usually none, because it picks presets.
+them; none has to be supplied. So the contract publishes 46 names while an Application
+authors 41 at most — and usually none, because it picks presets.
 
 ## Presets: base × accent
 
-Themes are two choices, not 41 values:
+Themes are two choices, not 46 values:
 
 ```ts
 import { toCss } from '@appshell/tokens';
@@ -98,7 +107,7 @@ import { toCss } from '@appshell/tokens';
 toCss({ base: 'midnight', accent: 'ice' });
 ```
 
-**Bases** carry surfaces, text, border and status, as a light/dark pair: `neutral`,
+**Bases** carry surfaces, text, borders and status, as a light/dark pair: `neutral`,
 `midnight`. **Accents** carry the two action colours: `ice`, `ember`, `emerald`, `violet`,
 `steel`. Either slot also accepts raw token values, and `overrides` adjusts a preset
 without forking it.
@@ -118,18 +127,25 @@ import { composeTheme, validateTheme, describeFinding } from '@appshell/tokens';
 validateTheme(composeTheme({ base: 'neutral', accent: 'ice' }, 'light')).map(describeFinding);
 ```
 
-Text pairs are checked at WCAG AA (4.5:1), the focus ring at 3:1 against its surface
-(1.4.11, non-text). A value that will not parse is reported rather than thrown, so one bad
-token does not hide the rest.
+Text pairs are checked at WCAG AA (4.5:1), and so are muted text and the status colours read
+as text on every surface: a status that passes as a fill under its `on-` colour can still
+fail as an error message under a field. The focus ring and the control border are checked at
+3:1 (1.4.11, non-text) on every surface, since focus lands in a dialog and a sidebar as well
+as on the page. A value that will not parse, or a role a stored theme predates, is reported
+rather than thrown, so one bad token does not hide the rest.
 
-Two things this caught while the presets were being chosen, both of which would otherwise
-have shipped:
+Four things this caught in the presets, each of which would otherwise have shipped:
 
 - **Tailwind's `indigo-500` fails against both black and white** — 4.28 and 4.22. There is
   no legible text colour for it. The `violet` accent uses `indigo-600` instead.
 - **A focus ring that is simply the accent disappears** on 7 of the 20 preset combinations.
-  The rings are derived instead: hue and chroma are kept, lightness moves only as far as it
-  must to clear 3:1.
+  The rings are derived instead: hue is kept, and lightness moves only as far as it must to
+  clear 3:1.
+- **Light-mode `danger` was 4.36:1 as text on `surface-raised`**: legible as a button, not
+  as the error under a field in a dialog. It moved from 57.7% to 56.7% lightness.
+- **The rings were checked on the page alone**, and 8 of the 20 combinations fell below 3:1
+  in a dialog, down to 2.83. Each moved only as far as clearing every surface needed, and
+  the ice and emerald rings in light mode, which sat just outside sRGB, came back inside it.
 
 The presets are held to the same standard as everyone else's themes — the test suite
 composes all 20 combinations and asserts no findings.

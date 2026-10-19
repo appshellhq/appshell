@@ -16,17 +16,23 @@ import { TOKEN_ROLES, cssVar, type TokenRole } from './contract';
 export const TAILWIND_NAMES: Readonly<Record<TokenRole, string>> = {
   surface: '--color-surface',
   'on-surface': '--color-on-surface',
+  'surface-sunken': '--color-surface-sunken',
+  'on-surface-sunken': '--color-on-surface-sunken',
   'surface-raised': '--color-surface-raised',
   'on-surface-raised': '--color-on-surface-raised',
   // `text-muted` reads as one utility, not `text-text-muted`.
   'text-muted': '--color-muted',
   border: '--color-border',
+  // Likewise `border-control`, not `border-border-control`.
+  'border-control': '--color-control',
   danger: '--color-danger',
   'on-danger': '--color-on-danger',
   warning: '--color-warning',
   'on-warning': '--color-on-warning',
   success: '--color-success',
   'on-success': '--color-on-success',
+  info: '--color-info',
+  'on-info': '--color-on-info',
 
   primary: '--color-primary',
   'on-primary': '--color-on-primary',
