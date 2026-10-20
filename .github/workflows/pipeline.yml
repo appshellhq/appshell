@@ -620,11 +620,13 @@ jobs:
       # Serving the right bytes isn't composing them: an unresolvable manifest, a remote that
       # fails to load or a shared dependency that no longer lines up all serve fine and render
       # nothing. Playwright is installed for this step only, not carried by the repository.
+      # 1.61 is the first to support Ubuntu 26.04, which ubuntu-latest became in October 2026:
+      # 1.55 couldn't install chromium's dependencies there.
       - name: The composed application renders
         run: |
           set -euo pipefail
           export BROWSER_DIR="$RUNNER_TEMP/browser"
-          npm install --no-save --prefix "$BROWSER_DIR" playwright@1.55.0
+          npm install --no-save --prefix "$BROWSER_DIR" playwright@1.64.1
           "$BROWSER_DIR/node_modules/.bin/playwright" install --with-deps chromium
           node scripts/check-composition.cjs "$APPSHELL_REGISTRY/a/appshell/appshell-example"
 
