@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.132](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.131...v1.0.0-alpha.132) (2026-10-20)
+
+### Bug Fixes
+
+- **ci:** give provenance signing npm's five-minute Rekor timeout ([0e8f514](https://github.com/appshellhq/appshell/commit/0e8f51440eb95a2e2b71363fa7f69c4dd77017f8)), closes [appshellhq/appshell#49](https://github.com/appshellhq/appshell/issues/49)
+- **ci:** install Playwright 1.64.1 now ubuntu-latest is Ubuntu 26.04 ([e9b54e0](https://github.com/appshellhq/appshell/commit/e9b54e0b03f0f895162417f43c3815f9d49b46fa))
+
 # [1.0.0-alpha.131](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.130...v1.0.0-alpha.131) (2026-10-20)
 
 ### Bug Fixes
