@@ -843,58 +843,52 @@ jobs:
       - name: Build
         run: npm run build
 
-      # Trusted publishing (OIDC) signs each package's provenance before uploading it, and
-      # writes the signature to Rekor, the public transparency log, first. lerna hands
-      # sigstore none of npm's fetch settings, so each Rekor request gets sigstore's own
-      # five-second timeout where npm publish would give it five minutes (fetch-timeout). A
-      # slower write still lands: sigstore gives up on it, sends the same entry again, is
-      # told with a 409 that it already exists, and fails the package, which is never
-      # uploaded (appshellhq/appshell#49).
+      # Each package is published by npm itself; lerna only versions them. Trusted publishing
+      # (OIDC) signs a package's provenance before uploading it, and writes the signature to
+      # Rekor, the public transparency log, first. npm gives sigstore its five-minute
+      # fetch-timeout and its retry policy. lerna passed neither, so sigstore fell back to five
+      # seconds: a slower write still landed, sigstore sent the same entry again, Rekor
+      # answered 409 that it already existed, and the package was never uploaded
+      # (appshellhq/appshell#49). Nor can lerna be handed the timeout: it reads a key npm
+      # doesn't define only as a string, and npm's HTTP layer refuses a string timeout, which
+      # is how alpha.132 published nothing.
       #
-      # npm_config_timeout gives sigstore npm's five minutes: lerna reads npm_config_* into
-      # its npm config and spreads that config into what it passes libnpmpublish, which
-      # passes it to sigstore. lerna runs directly rather than through npx, which would warn
-      # that the key isn't one of npm's.
+      # In dependency order, so a package is on npm before anything that depends on it.
+      # --tag latest because npm requires a tag for a prerelease, and latest is where every
+      # release has gone so far.
       - name: Publish
         shell: bash
         run: |
-          set -o pipefail
-          publish_log="$RUNNER_TEMP/lerna-publish.log"
-          publish() { npm_config_timeout=300000 node_modules/.bin/lerna publish --yes --concurrency 1 "$@"; }
+          set -euo pipefail
 
-          if publish from-git 2>&1 | tee "$publish_log"; then
-            exit 0
+          # Listed first, and refused if empty, so a listing that failed can't publish nothing
+          # and pass.
+          mapfile -t packages < <(npx lerna list --toposort --json | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>JSON.parse(s).filter(p=>!p.private).forEach(p=>console.log(p.location)))')
+          if [ "${#packages[@]}" -eq 0 ]; then
+            echo "::error::Could not list the packages to publish."
+            exit 1
           fi
 
-          # Any failure gets the one retry, and this step never decides the release: the
-          # registry check after it does. A failure after uploading would otherwise fail a
-          # release whose packages all landed. A retry signs each package afresh, a new
-          # Rekor entry, so it can't meet the first attempt's 409.
-          if grep -q "TLOG_CREATE_ENTRY_ERROR" "$publish_log"; then
-            echo "::warning::npm transparency log returned 409; retrying whatever did not land."
-          else
-            echo "::warning::lerna publish failed; retrying whatever did not land. The registry check decides."
-          fi
+          # What fails gets one more try, and this step never decides the release: the
+          # registry check after it does. A package that failed on Rekor's 409 was never
+          # uploaded, and the second try signs it afresh, a new entry, so it can't meet the
+          # same conflict. One that failed after uploading fails its second try as already
+          # published, and the check finds it there.
+          pending=("${packages[@]}")
+          for attempt in 1 2; do
+            failed=()
+            for dir in "${pending[@]}"; do
+              npm publish "$dir" --tag latest || failed+=("$dir")
+            done
+            [ "${#failed[@]}" -eq 0 ] && break
+            echo "::warning::Not published on attempt $attempt: ${failed[*]##*/}"
+            pending=("${failed[@]}")
+          done
 
-          # A failed publish leaves lerna's own work in the tree: it rewrites internal
-          # workspace dependency ranges to concrete versions before packing and restores
-          # them afterwards, so a mid-run exit leaves every package.json modified. lerna
-          # then refuses to publish from a dirty tree, which is how the previous retry
-          # died in under a second with EUNCOMMIT having published nothing at all.
-          git checkout -- .
-
-          # from-package, not from-git. from-git publishes everything the tag names without
-          # asking npm what is already there, so a retry re-attempts the packages that
-          # already succeeded and fails on them. from-package reads each package's version
-          # and queries the registry, so it publishes only what is genuinely missing —
-          # which is the property a retry needs and the reason one attempt could leave six
-          # packages on the new version and two on the old.
-          publish from-package || true
-
-      # Judged by what npm holds, not by lerna's exit code. Rekor's 409 fails a run whose
-      # packages all landed (the one that published alpha.100 did), and a retry that finds
-      # everything already there says nothing useful either. The release succeeded if and
-      # only if every public package is on npm at the version this run claimed.
+      # Judged by what npm holds, not by the publish step's exit codes: a package that failed
+      # after uploading has landed, and a retry that finds it there fails as already
+      # published. The release succeeded if and only if every public package is on npm at
+      # the version this run claimed.
       - name: Check every package reached npm
         shell: bash
         run: |
@@ -913,8 +907,8 @@ jobs:
           # enough — alpha.101 published all eight, and the check gave up on @appshell/cli
           # while npm was still catching up. Each round asks only for what is still missing.
           #
-          # --prefer-online: lerna's registry queries above cached these packuments, and a
-          # cached one from before the publish would fail every attempt. The answer is
+          # --prefer-online: npm publish's registry queries above cached these packuments,
+          # and a cached one from before the publish would fail every attempt. The answer is
           # compared rather than trusted by exit code, so an empty one is never a yes.
           pending="$specs"
           for attempt in $(seq 1 90); do
