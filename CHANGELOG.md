@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.134](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.133...v1.0.0-alpha.134) (2026-10-20)
+
+### Bug Fixes
+
+- **ci:** give npm's malware scan up to ninety minutes before judging a release ([612d327](https://github.com/appshellhq/appshell/commit/612d32731d29d58755c00dd58ab86d424d76f736))
+
+# [1.0.0-alpha.133](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.132...v1.0.0-alpha.133) (2026-10-20)
+
+### Bug Fixes
+
+- **ci:** publish each package with npm, which gives Rekor its five-minute timeout ([394dc4f](https://github.com/appshellhq/appshell/commit/394dc4feff406860e07c4115c5eb5c74be4a54d3)), closes [appshellhq/appshell#49](https://github.com/appshellhq/appshell/issues/49)
+
 # [1.0.0-alpha.132](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.131...v1.0.0-alpha.132) (2026-10-20)
 
 ### Bug Fixes
