@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.131](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.130...v1.0.0-alpha.131) (2026-10-20)
+
+### Bug Fixes
+
+- **react-shell:** the shell's reset normalises what Tailwind packages assume Preflight did ([db064ca](https://github.com/appshellhq/appshell/commit/db064ca6582ee29ef4beaef3f4a712999aff917b)), closes [#50](https://github.com/appshellhq/appshell/issues/50)
+
 # [1.0.0-alpha.130](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.129...v1.0.0-alpha.130) (2026-10-19)
 
 **Note:** Version bump only for package appshell
