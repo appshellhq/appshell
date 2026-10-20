@@ -841,24 +841,33 @@ jobs:
       - name: Build
         run: npm run build
 
-      # Trusted publishing (OIDC) generates provenance on its own, and Rekor
-      # intermittently rejects an attestation with a 409 saying an equivalent entry already
-      # exists. It hits a package or two out of eight and the rest publish fine, so the
-      # release ends up split across two versions rather than failing outright.
-      # --concurrency 1 avoids any tlog race between packages.
+      # Trusted publishing (OIDC) signs each package's provenance before uploading it, and
+      # writes the signature to Rekor, the public transparency log, first. lerna hands
+      # sigstore none of npm's fetch settings, so each Rekor request gets sigstore's own
+      # five-second timeout where npm publish would give it five minutes (fetch-timeout). A
+      # slower write still lands: sigstore gives up on it, sends the same entry again, is
+      # told with a 409 that it already exists, and fails the package, which is never
+      # uploaded (appshellhq/appshell#49).
+      #
+      # npm_config_timeout gives sigstore npm's five minutes: lerna reads npm_config_* into
+      # its npm config and spreads that config into what it passes libnpmpublish, which
+      # passes it to sigstore. lerna runs directly rather than through npx, which would warn
+      # that the key isn't one of npm's.
       - name: Publish
         shell: bash
         run: |
           set -o pipefail
           publish_log="$RUNNER_TEMP/lerna-publish.log"
+          publish() { npm_config_timeout=300000 node_modules/.bin/lerna publish --yes --concurrency 1 "$@"; }
 
-          if npx lerna publish --yes --concurrency 1 from-git 2>&1 | tee "$publish_log"; then
+          if publish from-git 2>&1 | tee "$publish_log"; then
             exit 0
           fi
 
           # Any failure gets the one retry, and this step never decides the release: the
-          # registry check after it does. A failure after uploading — Rekor's 409 above all,
-          # but not only — would otherwise fail a release whose packages all landed.
+          # registry check after it does. A failure after uploading would otherwise fail a
+          # release whose packages all landed. A retry signs each package afresh, a new
+          # Rekor entry, so it can't meet the first attempt's 409.
           if grep -q "TLOG_CREATE_ENTRY_ERROR" "$publish_log"; then
             echo "::warning::npm transparency log returned 409; retrying whatever did not land."
           else
@@ -878,7 +887,7 @@ jobs:
           # and queries the registry, so it publishes only what is genuinely missing —
           # which is the property a retry needs and the reason one attempt could leave six
           # packages on the new version and two on the old.
-          npx lerna publish --yes --concurrency 1 from-package || true
+          publish from-package || true
 
       # Judged by what npm holds, not by lerna's exit code. Rekor's 409 fails a run whose
       # packages all landed (the one that published alpha.100 did), and a retry that finds
