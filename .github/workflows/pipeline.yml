@@ -902,16 +902,20 @@ jobs:
             exit 1
           fi
 
-          # Fifteen minutes in all, the budget the example's install waits on above, for the
-          # same replication lag: ten seconds to five minutes. A minute per package was not
-          # enough — alpha.101 published all eight, and the check gave up on @appshell/cli
-          # while npm was still catching up. Each round asks only for what is still missing.
+          # Ninety minutes in all. npm scans every new version for malware before it can be
+          # installed, typically for about five minutes, but it held
+          # @appshell/react@1.0.0-alpha.133 for 58 while the other seven took under five.
+          # Fifteen, sized for replication lag alone (ten seconds to five minutes; alpha.101
+          # needed more than a minute per package), gave up on that release with react still
+          # in the scan. So, as for the example's install above, the budget is the worst case
+          # seen with a margin: waiting costs nothing when it isn't needed. Each round asks
+          # only for what is still missing.
           #
           # --prefer-online: npm publish's registry queries above cached these packuments,
           # and a cached one from before the publish would fail every attempt. The answer is
           # compared rather than trusted by exit code, so an empty one is never a yes.
           pending="$specs"
-          for attempt in $(seq 1 90); do
+          for attempt in $(seq 1 180); do
             still=""
             for spec in $pending; do
               seen=$(npm view "$spec" version --prefer-online 2>/dev/null || true)
@@ -924,9 +928,9 @@ jobs:
               exit 0
             fi
 
-            echo "Not on npm yet:$pending (attempt $attempt/90)"
-            sleep 10
+            echo "Not on npm yet:$pending (attempt $attempt/180)"
+            sleep 30
           done
 
-          echo "::error::Not on npm fifteen minutes after publishing:$pending"
+          echo "::error::Not on npm ninety minutes after publishing:$pending"
           exit 1
