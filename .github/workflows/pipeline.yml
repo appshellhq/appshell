@@ -478,7 +478,7 @@ jobs:
     env:
       # Production's tag (navaris/argocd-deployment-repo applications/appshell-registry/prod),
       # rolled forward with it, so this tests the registry users are served by.
-      REGISTRY_IMAGE: ghcr.io/appshellhq/registry:sha-a8625c6
+      REGISTRY_IMAGE: ghcr.io/appshellhq/registry:sha-2df2b45
       APPSHELL_REGISTRY: http://localhost:7150
 
     steps:
