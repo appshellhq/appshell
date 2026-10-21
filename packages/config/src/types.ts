@@ -277,6 +277,13 @@ export type AppshellComposition<TMetadata = Metadata> = {
   /** `scope/name` — makes the payload self-describing for fetch-on-miss and for `env diff`. */
   applicationId: string;
   revision: number;
+  /**
+   * The path the shell was rendered under: `/a/{scope}/{name}` on the shared serving plane,
+   * or the application's mount on a host of its own, `/` included. The application's router
+   * takes it as its base (`getBasePath` in `@appshell/runtime`). Absent from registries
+   * before appshellhq/appshell-services#68.
+   */
+  basePath?: string;
   /** The remote key the host mounts at the root, and the props it is given. */
   root: string;
   rootProps: Record<string, unknown>;

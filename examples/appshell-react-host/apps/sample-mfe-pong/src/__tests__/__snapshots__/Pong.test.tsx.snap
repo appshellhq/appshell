@@ -39,7 +39,7 @@ exports[`should match snapshot 1`] = `
   "metadata": {
     "route": "/pong",
     "displayName": "Pong Micro-Frontend",
-    "displayGroup": "main",
+    "displayGroup": "primary",
     "order": 20,
     "icon": "ViewList"
   },

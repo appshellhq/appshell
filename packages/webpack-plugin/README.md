@@ -108,7 +108,7 @@ remotes:
     metadata: # Use metadata to provide additional information
       route: ${FOO_ROUTE}
       displayName: Foo App
-      displayGroup: main
+      displayGroup: primary
       order: 10
       icon: ViewList
 
@@ -117,7 +117,7 @@ remotes:
     metadata:
       route: /bar
       displayName: Bar App
-      displayGroup: main
+      displayGroup: primary
       order: 20
       icon: ViewList
 
@@ -126,7 +126,7 @@ remotes:
     metadata:
       route: /biz
       displayName: Biz App
-      displayGroup: auxiliary
+      displayGroup: utility
       order: 30
       icon: ViewList
 
@@ -202,7 +202,7 @@ Sample `appshell manifest`:
       "metadata": {
         "route": "/cra",
         "displayName": "Example App",
-        "displayGroup": "main",
+        "displayGroup": "primary",
         "order": 10,
         "icon": "ViewList"
       }
@@ -215,7 +215,7 @@ Sample `appshell manifest`:
       "metadata": {
         "route": "/vanilla",
         "displayName": "Example React App",
-        "displayGroup": "main",
+        "displayGroup": "primary",
         "order": 10,
         "icon": "ViewList"
       }
@@ -304,13 +304,13 @@ module.exports = {
 
 ### `Options`
 
-| Option | Type | Default | Purpose |
-| ------ | ---- | ------- | ------- |
-| `config` | `string` | `appshell.config.yaml` | Location of the config file |
-| `registry` | `string` | CLI context | Registry to publish to |
-| `application` | `string` | CLI context | Application to activate the published version in |
-| `publish` | `boolean` | `true` in development | Publish after every successful build |
-| `force` | `boolean` | `true` in development | Ask the registry to overwrite an existing version whose content differs |
+| Option        | Type      | Default                | Purpose                                                                 |
+| ------------- | --------- | ---------------------- | ----------------------------------------------------------------------- |
+| `config`      | `string`  | `appshell.config.yaml` | Location of the config file                                             |
+| `registry`    | `string`  | CLI context            | Registry to publish to                                                  |
+| `application` | `string`  | CLI context            | Application to activate the published version in                        |
+| `publish`     | `boolean` | `true` in development  | Publish after every successful build                                    |
+| `force`       | `boolean` | `true` in development  | Ask the registry to overwrite an existing version whose content differs |
 
 `registry` and `application` are usually omitted — see
 [Publishing on build](#publishing-on-build) for the resolution order.

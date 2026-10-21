@@ -7,7 +7,7 @@
       "metadata": {
         "route": "/",
         "displayName": "Host App",
-        "displayGroup": "main",
+        "displayGroup": "primary",
         "order": 0,
         "icon": "ViewList"
       },
@@ -26,7 +26,7 @@
       "metadata": {
         "route": "/ping",
         "displayName": "Ping Micro-Frontend",
-        "displayGroup": "main",
+        "displayGroup": "primary",
         "order": 10,
         "icon": "ViewList"
       },
@@ -45,7 +45,7 @@
       "metadata": {
         "route": "/pong",
         "displayName": "Pong Micro-Frontend",
-        "displayGroup": "main",
+        "displayGroup": "primary",
         "order": 20,
         "icon": "ViewList"
       },
@@ -64,7 +64,7 @@
       "metadata": {
         "route": "/cool",
         "displayName": "Cool Shared Component",
-        "displayGroup": "main",
+        "displayGroup": "primary",
         "order": 30,
         "icon": "ViewList"
       },

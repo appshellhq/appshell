@@ -431,7 +431,7 @@ Sample appshell manifest produced by the `appshell generate manifest` function:
       "metadata": {
         "route": "/cra",
         "displayName": "Example App",
-        "displayGroup": "main",
+        "displayGroup": "primary",
         "order": 10,
         "icon": "ViewList"
       }
@@ -444,7 +444,7 @@ Sample appshell manifest produced by the `appshell generate manifest` function:
       "metadata": {
         "route": "/vanilla",
         "displayName": "Example React App",
-        "displayGroup": "main",
+        "displayGroup": "primary",
         "order": 10,
         "icon": "ViewList"
       }

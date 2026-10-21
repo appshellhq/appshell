@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.136](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.135...v1.0.0-alpha.136) (2026-10-21)
+
+### Features
+
+- **runtime:** getRemotes and getBasePath, what a container reads from the composition ([40e17b9](https://github.com/appshellhq/appshell/commit/40e17b9e4a10a00d78a17e7ca306867502ac7eaf)), closes [appshellhq/appshell-mfe#1](https://github.com/appshellhq/appshell-mfe/issues/1)
+
 # [1.0.0-alpha.135](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.134...v1.0.0-alpha.135) (2026-10-20)
 
 **Note:** Version bump only for package @appshell/config

@@ -6,6 +6,6 @@ components:
     metadata:
       route: /ping
       displayName: Ping Micro-Frontend
-      displayGroup: main
+      displayGroup: primary
       order: 10
       icon: ViewList

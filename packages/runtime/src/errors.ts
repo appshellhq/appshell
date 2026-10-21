@@ -50,6 +50,25 @@ export class VarsConflictError extends Error {
 }
 
 /**
+ * A container asked for the composition on a page that has none.
+ *
+ * The registry inlines it into every page it serves, and the shell never mounts a remote
+ * without one. So this is code running outside an appshell page: a test, a storybook, a
+ * direct import. A test sets `window.__appshell_config__` to the composition it wants.
+ */
+export class MissingCompositionError extends Error {
+  constructor() {
+    super(
+      `No composition on this page. The registry inlines one as window.__appshell_config__ ` +
+        `into every page it serves; outside one (a test, a storybook), set it to the ` +
+        `composition you want.`,
+    );
+
+    this.name = 'MissingCompositionError';
+  }
+}
+
+/**
  * The package was built without `AppshellPlugin`, so nothing substituted the scope the
  * `@appshell/runtime/vars` accessor needs to know which vars are its own.
  */
