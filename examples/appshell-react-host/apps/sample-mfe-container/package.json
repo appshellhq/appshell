@@ -1,6 +1,6 @@
 {
   "name": "@appshell/sample-mfe-container",
-  "version": "1.0.0-alpha.136",
+  "version": "1.0.0-alpha.137",
   "private": true,
   "main": "dist/main.js",
   "scripts": {
