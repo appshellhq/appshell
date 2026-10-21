@@ -6,7 +6,7 @@ components:
     metadata:
       route: /
       displayName: Host App
-      displayGroup: main
+      displayGroup: primary
       order: 0
       icon: ViewList
 

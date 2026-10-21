@@ -42,19 +42,18 @@ pnpm add -D @appshell/config
 `@appshell/config` is the library the CLI is built on. Most of it is reachable through
 `appshell` commands; reach for the package directly when you are scripting a build.
 
-| Export | Purpose | CLI equivalent |
-| ------ | ------- | -------------- |
-| `generateManifest` | Template → manifest, expanding `${VAR}` | `appshell generate manifest` |
-| `publish` | Publish a manifest as a package version | `appshell publish` |
-| `activate` | Activate a version into an application | `appshell publish --application` |
-| `outdated` | Compare shared dependencies against baselines | `appshell outdated` |
-| `sync` | Install shared dependencies at the declared versions | — |
-| `resolveContext` / `persistedContext` | Registry, application and token, resolved as the CLI resolves them | `appshell config list` |
-| `resolveToken` / `saveCredential` / `clearCredential` / `credentialsPath` | Stored credentials, per registry | `appshell login` / `logout` |
-| `configmap` | `${VAR}` placeholder expansion | — |
-| `utils` | File loading, comparison and formatting helpers | — |
-| `validators` | `AppshellTemplateValidator` | — |
-
+| Export                                                                    | Purpose                                                            | CLI equivalent                   |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------ | -------------------------------- |
+| `generateManifest`                                                        | Template → manifest, expanding `${VAR}`                            | `appshell generate manifest`     |
+| `publish`                                                                 | Publish a manifest as a package version                            | `appshell publish`               |
+| `activate`                                                                | Activate a version into an application                             | `appshell publish --application` |
+| `outdated`                                                                | Compare shared dependencies against baselines                      | `appshell outdated`              |
+| `sync`                                                                    | Install shared dependencies at the declared versions               | —                                |
+| `resolveContext` / `persistedContext`                                     | Registry, application and token, resolved as the CLI resolves them | `appshell config list`           |
+| `resolveToken` / `saveCredential` / `clearCredential` / `credentialsPath` | Stored credentials, per registry                                   | `appshell login` / `logout`      |
+| `configmap`                                                               | `${VAR}` placeholder expansion                                     | —                                |
+| `utils`                                                                   | File loading, comparison and formatting helpers                    | —                                |
+| `validators`                                                              | `AppshellTemplateValidator`                                        | —                                |
 
 ### `generateManifest`
 
@@ -131,7 +130,7 @@ Sample appshell manifest produced by the `generateManifest` function:
       "metadata": {
         "route": "/cra",
         "displayName": "Example App",
-        "displayGroup": "main",
+        "displayGroup": "primary",
         "order": 10,
         "icon": "ViewList"
       }
@@ -144,7 +143,7 @@ Sample appshell manifest produced by the `generateManifest` function:
       "metadata": {
         "route": "/vanilla",
         "displayName": "Example React App",
-        "displayGroup": "main",
+        "displayGroup": "primary",
         "order": 10,
         "icon": "ViewList"
       }

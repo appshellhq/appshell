@@ -6,7 +6,7 @@ components:
     metadata:
       route: /pong
       displayName: Pong Micro-Frontend
-      displayGroup: main
+      displayGroup: primary
       order: 20
       icon: ViewList
 
@@ -14,6 +14,6 @@ components:
     metadata:
       route: /cool
       displayName: Cool Shared Component
-      displayGroup: main
+      displayGroup: primary
       order: 30
       icon: ViewList
