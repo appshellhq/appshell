@@ -11,7 +11,7 @@ which supplies the scope for you.
 
 ## `@appshell/runtime/vars`
 
-The accessor most packages actually want. It reads *this* package's vars, with no scope
+The accessor most packages actually want. It reads _this_ package's vars, with no scope
 to pass and no way to name someone else's:
 
 ```ts
@@ -21,7 +21,7 @@ const { BACKGROUND_COLOR } = getVars<{ BACKGROUND_COLOR: string }>();
 ```
 
 It is a subpath rather than a main-entry export for a reason. `AppshellPlugin` compiles
-the package's own scope into whatever imports it, and the main entry is the *shared*
+the package's own scope into whatever imports it, and the main entry is the _shared_
 module — one instance for the whole page — so a scope baked in there would be one
 package's, and every other package would read the wrong vars.
 
@@ -49,6 +49,33 @@ no-op, because the same remote can be mounted more than once; replacing them thr
 
 `readVars` throws `MissingVarsError` rather than returning an empty object. A package
 that silently renders with no configuration is the failure this replaced.
+
+## The composition: `getRemotes` and `getBasePath`
+
+What a container needs from the page to lay an application out. The workspace, for
+one, builds its navigation and its routes from them:
+
+```ts
+import { getBasePath, getRemotes } from '@appshell/runtime';
+
+// Every activated remote, keyed as RemoteSlot mounts it (`scope/package/Component`),
+// with the metadata its package published.
+const remotes = getRemotes<{ route?: string; displayName?: string }>();
+
+// The path the application is served under, for the router's base.
+const basename = getBasePath();
+```
+
+They read the composition the registry inlines into the page, and expose those two
+parts only: a package's vars come through `@appshell/runtime/vars`, and the rest of the
+payload is the shell's.
+
+Appshell never reads metadata, so its keys are whatever the container reading them
+defines. The type you pass `getRemotes` is not checked, so validate what you read.
+
+Both throw `MissingCompositionError` on a page with no composition, rather than
+returning an empty list that would render a navigation with nothing in it. In a test,
+set `window.__appshell_config__` to the composition you want.
 
 ## What this does and does not fix
 
