@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.139](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.138...v1.0.0-alpha.139) (2026-10-22)
+
+### Bug Fixes
+
+- **cli:** dev stop --package finds a package's overlay by what it exposes ([aad8d31](https://github.com/appshellhq/appshell/commit/aad8d3150206bdb1fb95f6dee0415583e6d101b2))
+
 # [1.0.0-alpha.138](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.137...v1.0.0-alpha.138) (2026-10-22)
 
 ### Bug Fixes
