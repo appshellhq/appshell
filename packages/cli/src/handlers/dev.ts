@@ -414,6 +414,16 @@ const reportWorkspace = (
 };
 
 /**
+ * The addresses an overlay redirects a package's components by — `scope/package/Component` —
+ * from what its published manifest exposes, which is keyed by federation key instead
+ * (`PongModule/Pong`). Read from `components`: `remotes` lists what the package consumes.
+ */
+const addressesOf = (scopeId: string, pkg: string, components: Record<string, unknown> = {}) =>
+  Object.keys(components).map(
+    (federationKey) => `${scopeId}/${pkg}/${federationKey.split('/').slice(1).join('/')}`,
+  );
+
+/**
  * Which pkg publishes each redirected remote, asked of the registry so this works
  * outside a workspace too. Without it a developer reads `PongModule/Pong` off the
  * listing and still has to work out which package to name to stop it.
@@ -441,9 +451,8 @@ const appsByRemoteKey = async (
    * matched nothing twice over, so every remote resolved to `unknown package`.
    */
   return manifests.reduce<Record<string, string>>((acc, [pkg, manifest]) => {
-    Object.keys(manifest?.components ?? {}).forEach((federationKey) => {
-      const component = federationKey.split('/').slice(1).join('/');
-      acc[`${scopeId}/${pkg}/${component}`] = pkg;
+    addressesOf(scopeId, pkg, manifest?.components).forEach((address) => {
+      acc[address] = pkg;
     });
 
     return acc;
@@ -547,8 +556,10 @@ const overlayRedirecting = async (
   name: string,
   pkg: string,
 ): Promise<{ id: string; keys: string[] }> => {
-  const { remotes } = await client.packageManifest(scopeId, pkg);
-  const owned = Object.keys(remotes ?? {});
+  // By what the package exposes. This read `remotes`, which is what it consumes, a list of
+  // names whose keys are indices, so no overlay ever matched and `--package` always failed.
+  const { components } = await client.packageManifest(scopeId, pkg);
+  const owned = addressesOf(scopeId, pkg, components);
   const open = await client.listOverlays(scopeId, name);
   const candidates = argv.id
     ? open.filter((overlay) => overlay.id === argv.id)

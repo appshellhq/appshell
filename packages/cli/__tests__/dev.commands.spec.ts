@@ -56,11 +56,14 @@ describe('the commands dev prints', () => {
           getApplication: jest.fn().mockResolvedValue({
             packages: { 'appshell/workspace': { packageId: 'appshell/workspace@0.2.0' } },
           }),
+          // As the registry sends it: what the package exposes under components, by
+          // federation key, and what it consumes under remotes, by name.
           packageManifest: jest.fn().mockResolvedValue({
             components: { 'WorkspaceModule/Workspace': {} },
-            remotes: { 'appshell/workspace/Workspace': {} },
+            remotes: [],
           }),
           closeOverlay: jest.fn().mockResolvedValue({ id: '0c84ec7e', revoked: true }),
+          stopRedirecting: jest.fn().mockResolvedValue({ remotes: [] }),
           ...over,
         } as never),
     );
@@ -105,6 +108,18 @@ describe('the commands dev prints', () => {
     expect(output()).toContain('No overlay 0c84ec7e on appshell/appshell-example to stop.');
     expect(output()).toContain('another application');
     expect(output()).toContain("'appshell dev status -a <scope>/<name>'");
+  });
+
+  it('stops redirecting a package by the addresses its components are overlaid at', async () => {
+    const stopRedirecting = jest.fn().mockResolvedValue({ remotes: [] });
+    wire({ stopRedirecting });
+
+    await stop(argv({ package: 'workspace', all: false }));
+
+    expect(stopRedirecting).toHaveBeenCalledWith('appshell', 'workspace-preview', '0c84ec7e', [
+      'appshell/workspace/Workspace',
+    ]);
+    expect(output()).toContain('Stopped redirecting workspace.');
   });
 
   it('names the application when it asks which of several overlays to stop a package in', async () => {
