@@ -98,10 +98,14 @@ export const deprecate = async (argv: PackageArgs & { reason?: string; undo?: bo
 export const list = async (argv: PackagesArgs) => {
   const client = new RegistryClient(argv.registry);
   const scopeId = argv.scope ?? (await resolveScopeId(argv));
-  const [packages, applications] = await Promise.all([
+  const [catalogue, applications] = await Promise.all([
     client.listPackages(scopeId),
     client.listApplications(scopeId),
   ]);
+  // The registry's listing is the catalogue, which carries every public package from any scope
+  // beside this one's, so they'd be listed here under "Packages in <scope>". This lists what the
+  // scope has published.
+  const packages = catalogue.filter((pkg) => pkg.scopeId === scopeId);
 
   if (!packages.length) {
     console.log(`\nNo packages published in ${scopeId}.`);

@@ -419,10 +419,12 @@ export class RegistryClient {
   }
 
   /**
-   * Every published package in a scope, one entry per version.
+   * The registry's catalogue for a scope, one entry per version: the scope's own packages and
+   * every public package from any other scope. Public, and the registry filters by what the
+   * caller may see: public packages plus the private ones in their own scope.
    *
-   * Public, and the registry filters by what the caller may see: public packages plus the
-   * private ones in their own scope.
+   * Not just the scope's own: a caller listing what a scope has published keeps only that
+   * scope's entries.
    */
   listPackages(scopeId?: string) {
     const suffix = scopeId ? `?scopeId=${encodeURIComponent(scopeId)}` : '';

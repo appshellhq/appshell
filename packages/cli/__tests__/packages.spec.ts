@@ -165,6 +165,38 @@ describe('packages', () => {
 
     expect(output()).toContain('No packages published in appshell');
   });
+
+  /*
+   * appshellhq/appshell-services#78. The registry's listing is the catalogue, so a scope's comes
+   * with every public package from other scopes, which "Packages in appshell" used to list too.
+   */
+  it("should list only the scope's own packages, not the catalogue's others", async () => {
+    wire({
+      listPackages: jest
+        .fn()
+        .mockResolvedValue([
+          pkg('0.1.3'),
+          pkg('9.9.9', { id: 'elsewhere/widget@9.9.9', scopeId: 'elsewhere', name: 'widget' }),
+        ]),
+    });
+    await list(argv);
+
+    expect(output()).toContain('thing');
+    expect(output()).not.toContain('widget');
+  });
+
+  it('should say a scope holds nothing when the catalogue has only other scopes', async () => {
+    wire({
+      listPackages: jest
+        .fn()
+        .mockResolvedValue([
+          pkg('9.9.9', { id: 'elsewhere/widget@9.9.9', scopeId: 'elsewhere', name: 'widget' }),
+        ]),
+    });
+    await list(argv);
+
+    expect(output()).toContain('No packages published in appshell');
+  });
 });
 
 /*
