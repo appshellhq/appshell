@@ -52,6 +52,18 @@ const target = async (argv: GlobalArgs) => {
 };
 
 /**
+ * A `dev stop` command to print, naming the application it acts on.
+ *
+ * Named every time, even when it's the configured one. These are printed to be pasted, and a
+ * pasted command without it runs against whatever application the config or
+ * APPSHELL_APPLICATION names. `dev status -a appshell/workspace-preview` used to offer
+ * `appshell dev stop <id>`, which looked for the overlay on the configured application, found
+ * nothing, and said it may have expired.
+ */
+const stopCommand = (scopeId: string, name: string, ...args: string[]) =>
+  ['appshell dev stop', ...args, '-a', `${scopeId}/${name}`].join(' ');
+
+/**
  * Where this package is running locally. A port is what a developer actually knows, so it
  * is the ergonomic form; `--url` covers everything else, such as a devbox or Codespace
  * that is not on localhost.
@@ -349,9 +361,11 @@ export const start = async (argv: DevStartArgs) => {
   }
   console.log(
     chalk.dim(
-      `Expires ${new Date(
-        overlay.expiresAt,
-      ).toLocaleString()} \u00b7 stop with: appshell dev stop ${overlay.id}`,
+      `Expires ${new Date(overlay.expiresAt).toLocaleString()} \u00b7 stop with: ${stopCommand(
+        scopeId,
+        name,
+        overlay.id,
+      )}`,
     ),
   );
 
@@ -400,6 +414,16 @@ const reportWorkspace = (
 };
 
 /**
+ * The addresses an overlay redirects a package's components by — `scope/package/Component` —
+ * from what its published manifest exposes, which is keyed by federation key instead
+ * (`PongModule/Pong`). Read from `components`: `remotes` lists what the package consumes.
+ */
+const addressesOf = (scopeId: string, pkg: string, components: Record<string, unknown> = {}) =>
+  Object.keys(components).map(
+    (federationKey) => `${scopeId}/${pkg}/${federationKey.split('/').slice(1).join('/')}`,
+  );
+
+/**
  * Which pkg publishes each redirected remote, asked of the registry so this works
  * outside a workspace too. Without it a developer reads `PongModule/Pong` off the
  * listing and still has to work out which package to name to stop it.
@@ -427,9 +451,8 @@ const appsByRemoteKey = async (
    * matched nothing twice over, so every remote resolved to `unknown package`.
    */
   return manifests.reduce<Record<string, string>>((acc, [pkg, manifest]) => {
-    Object.keys(manifest?.components ?? {}).forEach((federationKey) => {
-      const component = federationKey.split('/').slice(1).join('/');
-      acc[`${scopeId}/${pkg}/${component}`] = pkg;
+    addressesOf(scopeId, pkg, manifest?.components).forEach((address) => {
+      acc[address] = pkg;
     });
 
     return acc;
@@ -489,7 +512,7 @@ export const status = async (argv: DevStatusArgs) => {
 
     Object.keys(grouped).forEach((pkg) => {
       console.log(`    ${pkg} ${chalk.dim(grouped[pkg].join(', '))}`);
-      console.log(chalk.dim(`      stop:  appshell dev stop --pkg ${pkg}`));
+      console.log(chalk.dim(`      stop:  ${stopCommand(scopeId, name, '--package', pkg)}`));
     });
 
     // Named for what is true of them rather than grouped under a package name, and
@@ -498,7 +521,7 @@ export const status = async (argv: DevStatusArgs) => {
 
     if (unowned.length) {
       console.log(`    ${chalk.yellow('not published')} ${chalk.dim(unowned.join(', '))}`);
-      console.log(chalk.dim(`      stop:  appshell dev stop ${overlay.id}`));
+      console.log(chalk.dim(`      stop:  ${stopCommand(scopeId, name, overlay.id)}`));
     }
 
     console.log(
@@ -509,7 +532,7 @@ export const status = async (argv: DevStatusArgs) => {
       ),
     );
     console.log(chalk.dim(`    apply: ${absoluteUrl(overlay.confirmUrl, client.baseUrl)}`));
-    console.log(chalk.dim(`    close: appshell dev stop ${overlay.id}`));
+    console.log(chalk.dim(`    close: ${stopCommand(scopeId, name, overlay.id)}`));
   });
 
   // An overlay only takes effect in a browser that confirmed it, so what is listed
@@ -533,8 +556,10 @@ const overlayRedirecting = async (
   name: string,
   pkg: string,
 ): Promise<{ id: string; keys: string[] }> => {
-  const { remotes } = await client.packageManifest(scopeId, pkg);
-  const owned = Object.keys(remotes ?? {});
+  // By what the package exposes. This read `remotes`, which is what it consumes, a list of
+  // names whose keys are indices, so no overlay ever matched and `--package` always failed.
+  const { components } = await client.packageManifest(scopeId, pkg);
+  const owned = addressesOf(scopeId, pkg, components);
   const open = await client.listOverlays(scopeId, name);
   const candidates = argv.id
     ? open.filter((overlay) => overlay.id === argv.id)
@@ -547,7 +572,7 @@ const overlayRedirecting = async (
   if (candidates.length > 1) {
     throw new Error(
       `More than one overlay is redirecting ${pkg}. Name one: ${candidates
-        .map((overlay) => `appshell dev stop ${overlay.id} --pkg ${pkg}`)
+        .map((overlay) => stopCommand(scopeId, name, overlay.id, '--package', pkg))
         .join(', ')}`,
     );
   }
@@ -596,11 +621,17 @@ export const stop = async (argv: DevStopArgs) => {
     ids.map(async (id) => ({ ...(await client.closeOverlay(scopeId, name, id)), id })),
   );
 
+  // Named for the application it looked in: an id from another application's listing is the
+  // likelier reason than expiry, and the message used to suggest only expiry.
   results.forEach(({ id, revoked }) =>
     console.log(
       revoked
-        ? chalk.green(`Stopped overlay ${id}.`)
-        : chalk.yellow(`No overlay ${id} to stop; it may have already expired.`),
+        ? chalk.green(`Stopped overlay ${id} on ${scopeId}/${name}.`)
+        : chalk.yellow(
+            `No overlay ${id} on ${scopeId}/${name} to stop. It may have expired, or be open on ` +
+              `another application: 'appshell dev status -a <scope>/<name>' lists an ` +
+              `application's overlays.`,
+          ),
     ),
   );
 
