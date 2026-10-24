@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.141](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.140...v1.0.0-alpha.141) (2026-10-24)
+
+### Features
+
+- **scripts:** release the examples to kind, as the release does to production ([#69](https://github.com/appshellhq/appshell/issues/69)) ([38bf8de](https://github.com/appshellhq/appshell/commit/38bf8de8835cc9267eef11979776455715a77bc3)), closes [navaris/argocd-deployment-repo#242](https://github.com/navaris/argocd-deployment-repo/issues/242)
+
 # [1.0.0-alpha.140](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.139...v1.0.0-alpha.140) (2026-10-22)
 
 ### Bug Fixes
