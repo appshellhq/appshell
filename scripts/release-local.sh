@@ -80,7 +80,14 @@ git -C "$ROOT" worktree add -q --detach "$work/src" "$commit"
 
 example="$work/src/examples/appshell-react-host"
 echo "Building the examples at $version, from ${commit:0:7}"
-(cd "$example" && cp sample.env .env && npm ci --silent && npm run build --silent)
+# The build is the examples' webpack, whose AppshellPlugin publishes, and activates the
+# configured application, when APPSHELL_PUBLISH_ON_BUILD asks it to, wherever the cli's context
+# points: your shell's APPSHELL_REGISTRY, or ~/.appshell/config, which may be production. Off
+# here, with nothing to find: no publishing, kind's registry, no config, no application
+# (Copilot on #69).
+(cd "$example" && cp sample.env .env && npm ci --silent \
+  && env -u APPSHELL_APPLICATION APPSHELL_PUBLISH_ON_BUILD=false APPSHELL_REGISTRY="$REGISTRY" \
+    APPSHELL_CONFIG="$work/no-config" npm run build --silent)
 
 # This checkout's upload script, which knows how kind's bucket is read; the build's own may be
 # older. From the example, with apps/ relative, as the release runs it. READ_BASE is

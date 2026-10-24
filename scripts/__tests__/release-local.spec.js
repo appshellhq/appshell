@@ -51,11 +51,15 @@ const setup = () => {
 esac
 exit 0`,
   );
-  // npm: the build leaves a remoteEntry.js and a template in each app's dist.
+  // npm: the build leaves a remoteEntry.js and a template in each app's dist, and records the
+  // environment the examples' webpack, and so AppshellPlugin, sees.
   fake(
     bin,
     'npm',
-    `case "$*" in *"run build"*) for d in apps/*/; do echo x > "$d/dist/remoteEntry.js"; echo {} > "$d/dist/appshell.template.json"; done ;; esac
+    `case "$*" in *"run build"*)
+  echo "build-env publish=\${APPSHELL_PUBLISH_ON_BUILD-unset} registry=\${APPSHELL_REGISTRY-unset} config=\${APPSHELL_CONFIG-unset} application=\${APPSHELL_APPLICATION-unset}" >> "$CALLS"
+  for d in apps/*/; do echo x > "$d/dist/remoteEntry.js"; echo {} > "$d/dist/appshell.template.json"; done ;;
+esac
 exit 0`,
   );
   fake(
@@ -131,6 +135,23 @@ describe('release-local.sh', () => {
       .split('\n')
       .filter((line) => line.startsWith('npx '))
       .forEach((line) => expect(line).toContain('--registry https://registry.local.appshell.org'));
+  });
+
+  // Copilot on #69: AppshellPlugin publishes during a build when APPSHELL_PUBLISH_ON_BUILD asks,
+  // to the cli context's registry, and activates its application.
+  it("keeps the examples' build from publishing anywhere, whatever the shell or config says", () => {
+    const { status, calls } = run(ctx, '1.0.0-alpha.137', {
+      APPSHELL_PUBLISH_ON_BUILD: 'true',
+      APPSHELL_REGISTRY: 'https://registry.appshell.org',
+      APPSHELL_APPLICATION: 'appshell/appshell-example',
+    });
+
+    expect(status).toBe(0);
+    const env = calls.split('\n').find((line) => line.startsWith('build-env'));
+    expect(env).toContain('publish=false');
+    expect(env).toContain('registry=https://registry.local.appshell.org');
+    expect(env).toMatch(/config=\S+\/no-config/);
+    expect(env).toContain('application=unset');
   });
 
   // 1.0.0-alpha.14 is a prefix of 1.0.0-alpha.140; only the whole version may match.
