@@ -28,8 +28,8 @@
   "dependencies": {
     "@appshell/react": "^1.0.0-alpha.84",
     "@appshell/runtime": "^1.0.0-alpha.84",
-    "@testing-library/jest-dom": "^6.6.0",
     "@testing-library/dom": "^10.4.2",
+    "@testing-library/jest-dom": "^6.6.0",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.5.0",
     "@types/jest": "^29.5.0",
@@ -72,6 +72,7 @@
     "tailwindcss": "^4.3.3",
     "ts-jest": "^29.2.0",
     "url-loader": "4.1.1",
+    "webpack-merge": "^5.10.0",
     "webpack-visualizer-plugin2": "1.0.0"
   },
   "license": "MIT",
