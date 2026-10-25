@@ -51,6 +51,78 @@ module.exports = {
 };
 ```
 
+## A remote's configuration: `appshellRemote()`
+
+Most of a remote's webpack configuration isn't the author's choice: the registry and
+`@appshell/react-shell` require it of every remote. `appshellRemote()` returns that part, and you
+extend it with your own loaders, usually with `webpack-merge`. It needs
+`@module-federation/enhanced` installed beside it.
+
+```js
+const { merge } = require('webpack-merge');
+const { appshellRemote } = require('@appshell/webpack-plugin');
+const { dependencies } = require('./package.json');
+
+module.exports = (_env, { mode }) =>
+  merge(
+    appshellRemote({
+      name: 'PackagesModule',
+      exposes: { './Packages': './src/Packages' },
+      port: 7302,
+      mode,
+      react: true,
+      dependencies,
+    }),
+    {
+      resolve: { extensions: ['.js', '.ts', '.tsx'] },
+      module: {
+        rules: [
+          /* your transpiler, your CSS */
+        ],
+      },
+    },
+  );
+```
+
+What it sets, and what requires it:
+
+| Setting                                                                    | Required by                                                                                                                                                                                           |
+| -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Source maps without `eval` in development                                  | The registry serves the shell page under a CSP that forbids `eval`, so development's default source maps throw before the remote runs.                                                                |
+| `publicPath: 'auto'`                                                       | The registry serves a remote's files under `/p/<scope>/<name>/<version>/` on the application's own origin, and an overlay serves them from a dev server: the path is known only once the entry loads. |
+| Content-hashed chunks, an unhashed `remoteEntry.js`                        | A chunk's name names its bytes, so nothing pairs a fresh entry with a stale chunk. The entry is the file the published manifest names.                                                                |
+| A dev server with CORS, `allowedHosts`, and a reload socket on `localhost` | Overlays: the page is on the application's origin and the code on `localhost`. The server binds every interface and would otherwise bake `0.0.0.0`, which no browser can dial, into its client.       |
+| `ModuleFederationPlugin` with `appshellShared`                             | `@appshell/react-shell` is the federation host and shares appshell's runtime, and with `react`, React and its bindings, as singletons.                                                                |
+| `AppshellPlugin`                                                           | Writes the manifest a publish sends.                                                                                                                                                                  |
+
+**Defaults you can override:**
+
+- The dev server covers the page only for build errors: warnings stay in the terminal, and an error thrown by something else on the page, such as a browser extension, isn't the remote's.
+- `allowedHosts` is `'all'`, since the dev server already answers every origin with CORS. Name your applications' hosts to narrow it, for example `['.appshell.org']`.
+- The one warning `@appshell/react`'s bundle causes, from its federation runtime's dynamic import, is ignored.
+
+**Not included**, because they're yours: a transpiler, CSS and testing. A container's own
+contract isn't included either. The workspace's `react-router` singleton, for example, is added
+through `shared` by the remotes that contribute to it:
+
+```js
+appshellRemote({ …, shared: { 'react-router': { singleton: true, requiredVersion: dependencies['react-router'] } } });
+```
+
+| Option         | Default                  | Meaning                                                               |
+| -------------- | ------------------------ | --------------------------------------------------------------------- |
+| `name`         |                          | The federation container's name, the scope its manifest names.        |
+| `exposes`      |                          | What it exposes, as `ModuleFederationPlugin` takes it.                |
+| `port`         |                          | The dev server's port, for an overlay to point at.                    |
+| `mode`         |                          | webpack's mode, as its CLI passes it to a config function.            |
+| `react`        | `false`                  | Share React and appshell's React bindings.                            |
+| `dependencies` | `{}`                     | Usually `package.json`'s `dependencies`, which pin the shared ranges. |
+| `shared`       | `{}`                     | Shared beyond appshell's preset, merged last.                         |
+| `entry`        | the first exposed module | The build's entry.                                                    |
+| `uniqueName`   | `name`                   | `output.uniqueName`, which keeps two remotes' chunks apart.           |
+| `allowedHosts` | `'all'`                  | The hosts allowed to open the dev server's reload socket.             |
+| `plugin`       |                          | Options for `AppshellPlugin`.                                         |
+
 ## Publishing on build
 
 The plugin can publish the generated manifest to an Appshell registry after every successful build,

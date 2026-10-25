@@ -36,5 +36,14 @@
   "gitHead": "e8105f3c5eeb4aec8e3f0e06b151d0a0ef394d12",
   "dependencies": {
     "@appshell/tokens": "^1.0.0-alpha.141"
+  },
+  "peerDependencies": {
+    "@module-federation/enhanced": "^2.8.2",
+    "webpack": "^5.106.0"
+  },
+  "peerDependenciesMeta": {
+    "@module-federation/enhanced": {
+      "optional": true
+    }
   }
 }

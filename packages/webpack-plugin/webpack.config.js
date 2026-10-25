@@ -49,5 +49,7 @@ module.exports = {
       amd: 'webpack',
       root: 'Webpack',
     },
+    // A peer dependency of appshellRemote() alone, loaded when it's called (src/remote.ts).
+    '@module-federation/enhanced/webpack': 'commonjs @module-federation/enhanced/webpack',
   },
 };
