@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.142](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.141...v1.0.0-alpha.142) (2026-10-25)
+
+### Features
+
+- **webpack-plugin:** appshellRemote(), the webpack configuration every appshell remote needs ([#75](https://github.com/appshellhq/appshell/issues/75)) ([40208c2](https://github.com/appshellhq/appshell/commit/40208c2724c01d6390910b2d27f809ab8b235394)), closes [#74](https://github.com/appshellhq/appshell/issues/74) [#72](https://github.com/appshellhq/appshell/issues/72)
+
 # [1.0.0-alpha.141](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.140...v1.0.0-alpha.141) (2026-10-24)
 
 **Note:** Version bump only for package @appshell/webpack-plugin
