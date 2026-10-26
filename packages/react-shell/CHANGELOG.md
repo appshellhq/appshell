@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.144](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.143...v1.0.0-alpha.144) (2026-10-26)
+
+### Features
+
+- **react-shell:** the appshell logo in the console's blue, with SVG sources for every variant ([#80](https://github.com/appshellhq/appshell/issues/80)) ([ff972b7](https://github.com/appshellhq/appshell/commit/ff972b7eb581e94b850850e281467ad9204c6faf)), closes [#1c78c0](https://github.com/appshellhq/appshell/issues/1c78c0) [#348bd4](https://github.com/appshellhq/appshell/issues/348bd4) [appshellhq/appshell-mfe#51](https://github.com/appshellhq/appshell-mfe/issues/51) [#8ed5](https://github.com/appshellhq/appshell/issues/8ed5) [#8ed5](https://github.com/appshellhq/appshell/issues/8ed5) [#348bd4](https://github.com/appshellhq/appshell/issues/348bd4)
+
 # [1.0.0-alpha.143](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.142...v1.0.0-alpha.143) (2026-10-25)
 
 **Note:** Version bump only for package @appshell/react-shell
