@@ -300,6 +300,7 @@ export const clone = async (
     from: string;
     to?: string;
     ephemeral?: boolean;
+    allowOverlays?: boolean;
   },
 ) => {
   const source = parseApplication(argv.from, await resolveScopeId(argv));
@@ -311,15 +312,19 @@ export const clone = async (
   }
   const destination = parseApplication(destinationName, await resolveScopeId(argv));
 
+  // In the clone's own request, so the copy is never left without the overlays it asked for.
   await new RegistryClient(argv.registry).cloneApplication(destination.scopeId, destination.name, {
     fromScopeId: source.scopeId,
     fromName: source.name,
     ephemeral: argv.ephemeral,
+    allowOverlays: argv.allowOverlays,
   });
 
   console.log(
     chalk.green(
-      `Cloned ${destination.scopeId}/${destination.name} from ${source.scopeId}/${source.name}`,
+      `Cloned ${destination.scopeId}/${destination.name} from ${source.scopeId}/${source.name}${
+        argv.allowOverlays ? ', with overlays allowed' : ''
+      }`,
     ),
   );
 };

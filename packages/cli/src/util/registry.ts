@@ -186,6 +186,8 @@ export type CloneApplicationBody = {
   fromScopeId: string;
   fromName: string;
   ephemeral?: boolean;
+  /** Overlays on the clone. Never inherited from the source; off unless asked (#28). */
+  allowOverlays?: boolean;
 };
 
 /** Token values for one mode, keyed by role. The role list is versioned in @appshell/tokens. */

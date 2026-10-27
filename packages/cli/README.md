@@ -320,6 +320,13 @@ appshell app clone --from prod --to my-sandbox
 appshell app sync --from prod --to staging --include packages
 ```
 
+A clone never inherits its source's permission to take overlays. Ask for it with
+`--allow-overlays`, and the copy is yours to point at your machine with `appshell dev`:
+
+```bash
+appshell app clone --from appshell/appshell-example --to <scope>/example --allow-overlays
+```
+
 ## Developing against a deployed application
 
 `appshell dev` opens an **overlay**: a per-developer, per-browser redirect that points

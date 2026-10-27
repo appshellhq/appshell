@@ -204,6 +204,22 @@ describe('app', () => {
     expect(app.revisions).toHaveBeenCalled();
     expect(app.get).not.toHaveBeenCalled();
   });
+
+  // #28: someone trying appshell clones the hosted example and overlays their code on the copy.
+  it('should hand clone --allow-overlays, and nothing when it is left out', () => {
+    run('app clone --from appshell/appshell-example --to acme/example --allow-overlays');
+    expect(handedTo(app.clone)).toEqual(
+      expect.objectContaining({
+        from: 'appshell/appshell-example',
+        to: 'acme/example',
+        allowOverlays: true,
+      }),
+    );
+
+    jest.clearAllMocks();
+    run('app clone --from appshell/appshell-example --to acme/example');
+    expect(handedTo(app.clone)?.allowOverlays).toBeUndefined();
+  });
 });
 
 /*
