@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.145](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.144...v1.0.0-alpha.145) (2026-10-27)
+
+### Features
+
+- **cli:** app clone --allow-overlays, so a copy of the hosted example can be overlaid ([#82](https://github.com/appshellhq/appshell/issues/82)) ([0b6aacb](https://github.com/appshellhq/appshell/commit/0b6aacb6cb4b2ffca64c9a0ef53604ff82ee8402)), closes [#28](https://github.com/appshellhq/appshell/issues/28)
+
 # [1.0.0-alpha.144](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.143...v1.0.0-alpha.144) (2026-10-26)
 
 **Note:** Version bump only for package @appshell/cli
