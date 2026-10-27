@@ -1149,6 +1149,11 @@ export const buildCli = (args: string[]) => {
                     boolean: true,
                     type: 'boolean',
                     description: 'Optional ephemeral override on the target application',
+                  })
+                  .option('allow-overlays', {
+                    type: 'boolean',
+                    description:
+                      "Let the clone take overlays, so 'appshell dev' can point it at your machine. A clone never inherits its source's setting",
                   }),
               handler: app.clone as never,
             })
