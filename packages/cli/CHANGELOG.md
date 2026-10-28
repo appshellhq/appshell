@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.147](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.146...v1.0.0-alpha.147) (2026-10-28)
+
+### Bug Fixes
+
+- **cli:** dev start --theme sends the theme alone beside a dev server for an unpublished package ([#89](https://github.com/appshellhq/appshell/issues/89)) ([88cb800](https://github.com/appshellhq/appshell/commit/88cb8002bd0293c8a77898bd55c349706193c095)), closes [#86](https://github.com/appshellhq/appshell/issues/86)
+
 # [1.0.0-alpha.146](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.145...v1.0.0-alpha.146) (2026-10-28)
 
 **Note:** Version bump only for package @appshell/cli
