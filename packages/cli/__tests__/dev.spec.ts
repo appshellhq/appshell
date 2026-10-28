@@ -5,8 +5,9 @@ import {
   OverlayEffects,
   remotesOf,
 } from '../src/handlers/dev';
+import * as devHint from '../src/util/devHint';
 import { DevHint } from '../src/util/devHint';
-import { OVERLAY_EFFECTS, OverlayEffect } from '../src/util/registry';
+import { OVERLAY_EFFECTS, OverlayEffect, RegistryClient } from '../src/util/registry';
 
 const HINT: DevHint = {
   version: 1,
@@ -207,5 +208,78 @@ describe('remotesOf', () => {
       scope: 'PingModule',
       module: './Ping',
     });
+  });
+});
+
+// So a caller can tell a package nobody published from a registry that failed.
+describe('a failed request', () => {
+  afterEach(() => jest.restoreAllMocks());
+
+  it('should keep the response as its cause', async () => {
+    jest.spyOn(RegistryClient.prototype as never, 'request').mockRejectedValue({
+      response: { status: 404, data: { message: "Package 'hello' was not found" } },
+    } as never);
+
+    await expect(
+      new RegistryClient('https://registry.example').packageManifest('quickstart-check', 'hello'),
+    ).rejects.toMatchObject({
+      message: expect.stringContaining('404'),
+      cause: { response: { status: 404 } },
+    });
+  });
+});
+
+/*
+ * appshellhq/appshell#86. Beside appshell-quickstart's dev server, whose AppshellPlugin
+ * introduced a package nobody has published, `dev start --theme` failed fetching a manifest
+ * that doesn't exist, before it sent the theme. The dev server's overlay already serves the
+ * package, so the theme goes alone and extends it.
+ */
+describe('remotesOf, for a package nobody has published', () => {
+  const failure = (status: number) =>
+    Object.assign(new Error(`Failed to fetch the published manifest: ${status}`), {
+      cause: { response: { status } },
+    });
+
+  const clientFailing = (status: number) =>
+    ({ packageManifest: jest.fn().mockRejectedValue(failure(status)) } as never);
+
+  const args = (more: Record<string, unknown> = {}) =>
+    ({ package: 'hello', shell: 'dev', ...more } as never);
+
+  beforeEach(() => {
+    jest.spyOn(devHint, 'readDevHint').mockReturnValue(HINT);
+    jest.spyOn(console, 'log').mockImplementation(() => undefined);
+  });
+
+  afterEach(() => jest.restoreAllMocks());
+
+  it('should send the theme alone, beside the dev server whose overlay serves it', async () => {
+    await expect(
+      remotesOf(args({ theme: 'midnight-violet' }), clientFailing(404), 'quickstart-check'),
+    ).resolves.toEqual({});
+  });
+
+  it('should refuse a request with nothing else in it, saying the dev server serves it', async () => {
+    await expect(remotesOf(args(), clientFailing(404), 'quickstart-check')).rejects.toThrow(
+      /quickstart-check\/hello isn't published.*Pass --theme/,
+    );
+  });
+
+  // A port is a request to redirect, which an unpublished package can't have.
+  it('should refuse a port passed explicitly, theme or not', async () => {
+    await expect(
+      remotesOf(
+        args({ theme: 'midnight-violet', port: 7400 }),
+        clientFailing(404),
+        'quickstart-check',
+      ),
+    ).rejects.toThrow(/isn't published, so there's nothing to redirect to http:\/\/localhost:7400/);
+  });
+
+  it('should still fail as it did on anything but a 404', async () => {
+    await expect(
+      remotesOf(args({ theme: 'midnight-violet' }), clientFailing(500), 'quickstart-check'),
+    ).rejects.toThrow('Failed to fetch the published manifest: 500');
   });
 });

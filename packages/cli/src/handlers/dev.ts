@@ -12,6 +12,7 @@ import {
   OverlayRemoteBody,
   parseApplication,
   RegistryClient,
+  statusOf,
 } from '../util/registry';
 import { resolveScopeId } from '../util/scope';
 import { findWorkspace, WorkspacePackage } from '../util/workspace';
@@ -138,6 +139,54 @@ export const hintedOrigin = async (
 };
 
 /**
+ * The package's published manifest, or nothing when nobody has published it and a theme is
+ * still worth sending.
+ *
+ * A package that's never been published has no manifest to redirect, which is the case beside
+ * a dev server whose AppshellPlugin introduced it into the application, as
+ * appshellhq/appshell-quickstart's does. Found there by its hint, the dev server already serves
+ * the package through its own overlay, so a theme is sent alone and extends that overlay
+ * (appshellhq/appshell#86). A port or url passed explicitly asks for a redirect, which an
+ * unpublished package can't have, so that still fails, as does a request with no theme, in
+ * words about the package rather than a failed fetch.
+ */
+const publishedManifest = async (
+  argv: DevStartArgs,
+  client: RegistryClient,
+  scopeId: string,
+  pkg: string,
+  source: string | DevHint,
+) => {
+  try {
+    return await client.packageManifest(scopeId, pkg);
+  } catch (error) {
+    if (statusOf((error as Error).cause) !== 404) throw error;
+
+    if (typeof source === 'string') {
+      throw new Error(
+        `${scopeId}/${pkg} isn't published, so there's nothing to redirect to ${source}. Its ` +
+          "dev server's overlay serves it while it runs.",
+      );
+    }
+
+    if (!argv.theme) {
+      throw new Error(
+        `${scopeId}/${pkg} isn't published, so there's nothing to redirect: its dev server's ` +
+          'overlay already serves it. Pass --theme to try a theme on that overlay.',
+      );
+    }
+
+    console.log(
+      chalk.dim(
+        `  ${scopeId}/${pkg} isn't published: its dev server's overlay serves it, so only the theme is sent.`,
+      ),
+    );
+
+    return undefined;
+  }
+};
+
+/**
  * The overlay redirects exactly the remotes this package has published into the target
  * application, asked of the registry rather than read out of a local build. The
  * registry is the only thing that knows what is actually activated there, and it
@@ -165,7 +214,11 @@ export const remotesOf = async (
    * every `dev start` failed with "publishes no remotes". The client's type still
    * described the old shape, and `send` casts rather than validates, so nothing said so.
    */
-  const { components } = await client.packageManifest(scopeId, pkg);
+  const manifest = await publishedManifest(argv, client, scopeId, pkg, source);
+
+  if (!manifest) return {};
+
+  const { components } = manifest;
 
   if (!components || !Object.keys(components).length) {
     throw new Error(`${scopeId}/${pkg} publishes no components.`);
