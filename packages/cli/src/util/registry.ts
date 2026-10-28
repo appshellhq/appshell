@@ -376,7 +376,8 @@ export class RegistryClient {
       const { data } = await this.request<T>(method, route, body);
       return data;
     } catch (error) {
-      throw new Error(`Failed to ${action}: ${describe(error)}`);
+      // The failure kept as the cause, so a caller can tell a 404 from anything else.
+      throw new Error(`Failed to ${action}: ${describe(error)}`, { cause: error });
     }
   }
 
