@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.148](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.147...v1.0.0-alpha.148) (2026-10-29)
+
+### Bug Fixes
+
+- **example:** lucide icons for the examples' navigation entries ([#91](https://github.com/appshellhq/appshell/issues/91)) ([99de28a](https://github.com/appshellhq/appshell/commit/99de28a3e64834ee859ca3ed96c2376beace675b))
+
 # [1.0.0-alpha.147](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.146...v1.0.0-alpha.147) (2026-10-28)
 
 ### Bug Fixes
