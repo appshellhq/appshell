@@ -8,7 +8,8 @@ components:
       displayName: Host App
       displayGroup: primary
       order: 0
-      icon: ViewList
+      # One of lucide's icons, by name, which a workspace's navigation draws beside the entry.
+      icon: house
 
 # What this package consumes, by the name it refers to them by. The application binds each
 # to a registry address, so nothing here names the scope a sibling was published into —

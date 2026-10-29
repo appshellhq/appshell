@@ -8,7 +8,8 @@ components:
       displayName: Pong Micro-Frontend
       displayGroup: primary
       order: 20
-      icon: ViewList
+      # One of lucide's icons, by name, which a workspace's navigation draws beside the entry.
+      icon: reply
 
   PongModule/CoolComponent:
     metadata:
@@ -16,4 +17,4 @@ components:
       displayName: Cool Shared Component
       displayGroup: primary
       order: 30
-      icon: ViewList
+      icon: puzzle
