@@ -8,4 +8,5 @@ components:
       displayName: Ping Micro-Frontend
       displayGroup: primary
       order: 10
-      icon: ViewList
+      # One of lucide's icons, by name, which a workspace's navigation draws beside the entry.
+      icon: send
