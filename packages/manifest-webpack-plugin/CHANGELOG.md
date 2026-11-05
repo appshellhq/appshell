@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# 0.12.1 (2026-11-05)
+
+Restores the package to npm, from which it was unpublished on 2026-08-29. The code is 0.12.0's, and
+the bundle is byte-identical to the 0.12.0-alpha.0 CI published. Its successor is
+`@appshell/webpack-plugin`, whose 1.0 line requires an Appshell registry.
+
 # 0.12.0 (2026-04-20)
 
 ### Bug Fixes
