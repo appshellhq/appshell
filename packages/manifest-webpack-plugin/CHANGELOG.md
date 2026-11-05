@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# 0.12.2 (2026-11-05)
+
+### Security
+
+The plugin bundles its dependencies, so a consumer's `npm audit` can't see them. This release
+rebuilds the bundle with patched versions, which resolves all 43 advisories published against
+0.12.1's bundle (24 high, 17 moderate, 2 low):
+
+- axios 1.15.1 → 1.21.0 (27 advisories)
+- fast-uri 3.0.1 → 3.1.9 (12)
+- follow-redirects 1.16.0 → 1.16.2 (3)
+- form-data 4.0.5 → 4.0.6 (1)
+
+None of them was reachable from the plugin: it makes no network requests, and fast-uri only resolves
+the bundled schema's local `$ref`. The plugin's code is unchanged.
+
 # 0.12.1 (2026-11-05)
 
 Restores the package to npm, from which it was unpublished on 2026-08-29. The code is 0.12.0's, and
