@@ -150,19 +150,34 @@ steps above. This is the same sequence the repository's end-to-end check runs on
 ```bash
 npm run bootstrap
 npm run build
-for app in apps/*/; do
-  package="$(node -p "require('./${app}package.json').name.slice(1)")"
-  version="$(node -p "require('./${app}package.json').version")"
-  mkdir -p "$BUNDLES/$package/$version"
-  cp -R "${app}dist/." "$BUNDLES/$package/$version/"
-  (cd "$app" && appshell publish --template dist/appshell.template.json)
-  appshell app activate "$package@$version"
-done
+(
+  set -euo pipefail
+  for app in apps/*/; do
+    package="$(node -p "require('./${app}package.json').name.slice(1)")"
+    version="$(node -p "require('./${app}package.json').version")"
+    target="$BUNDLES/$package/$version"
+    if [ -d "$target" ]; then
+      echo "$package@$version: its code is already there, and a version's code is written once"
+    else
+      mkdir -p "$target.partial"
+      cp -R "${app}dist/." "$target.partial/"
+      mv "$target.partial" "$target"
+    fi
+    (cd "$app" && appshell publish --template dist/appshell.template.json)
+    appshell app activate "$package@$version"
+  done
+)
 ```
 
 - **The copy is the deployment.** A release pipeline puts each build in your bucket or CDN. The
   registry never stores code: it fetches it from there, by scope, name and version, and serves it
   on the application's own origin.
+- **A version's code is written once.** The registry tells browsers it never changes, so a copy
+  over it would reach some browsers and not others. To ship a changed build, give the package a
+  new version; to try one, the dev server below needs no publish. The copy lands under its version
+  only when it's complete, so a run cut short is finished by the next.
+- **The parentheses** run the steps in a shell that stops at the first failure, so a package
+  whose code didn't copy is never published, without closing your terminal.
 - **`publish` sends only the manifest:** what the package exposes, and its metadata.
 - **`activate`** is what puts it in the application.
 
