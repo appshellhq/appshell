@@ -68,18 +68,28 @@ npm i -g @appshell/cli
 
 ### 1. Start a registry
 
-The registry needs MongoDB and nothing else.
+[appshell-self-hosted](https://github.com/appshellhq/appshell-self-hosted) runs the registry on your
+machine with Docker Compose, with MongoDB and a directory standing in for the bucket that holds
+packages' code. Clone it anywhere, and start it without signing in:
 
 ```bash
-docker run -d -p 27017:27017 --name appshell-mongo mongo:7
-
-docker run -d -p 7150:7150 --name appshell-registry \
-  -e MONGO_URI=mongodb://host.docker.internal:27017/appshell-registry \
-  -e AUTH_MODE=none \
-  appshell/registry:latest
+git clone https://github.com/appshellhq/appshell-self-hosted.git
+cd appshell-self-hosted
+AUTH_MODE=none docker compose up --wait
+source ./env.sh
+export BUNDLES="$PWD/bundles"
 ```
 
-`AUTH_MODE=none` disables authentication and is for local development only.
+- **`AUTH_MODE=none`** runs every request as one principal, so there's no one to sign in as. It's
+  for your machine only. If you've run that repository's own walkthrough, which signs in, start
+  clean first with `docker compose down -v`: ownership doesn't carry between modes.
+- **`env.sh`** gives the CLI, and the dev servers that run on it, a config and credentials of their
+  own in that repository's `.appshell/`. Nothing here reads or changes your `~/.appshell`, which may
+  point at another registry. Source it in each terminal you use.
+- **`BUNDLES`** is the directory the registry reads packages' code from. Step 4 copies the
+  example's builds there.
+
+Then come back to this directory, in the same terminal.
 
 ### 2. Set your CLI context
 
@@ -87,12 +97,16 @@ The registry, application, and token are your working context — set them once 
 kubectl context, rather than per project:
 
 ```bash
-appshell config set registry http://localhost:7150
-appshell config set application appshell/appshell-example
+appshell config init --registry http://localhost:7150 \
+  --default-scope appshell --application appshell/appshell-example
 ```
 
-Under `AUTH_MODE=none` there is no token to set. Against a registry that enforces auth, run
-`appshell login` once; it stores a per-registry token in `~/.appshell/credentials`.
+`appshell config set <key> <value>` changes one of them later.
+
+Under `AUTH_MODE=none` there is no token to set, so `init`'s warning that `auth-issuer` is unset
+doesn't apply: only `appshell login` needs one. Against a registry that enforces auth, pass
+`--auth-issuer` too, and run `appshell login` once. It stores a per-registry token in
+`~/.appshell/credentials`, or wherever `APPSHELL_CREDENTIALS` points.
 
 `@appshell/webpack-plugin` reads this same context, so the example packages need no registry or token in
 their `.env`. To point a single build somewhere else, set `APPSHELL_REGISTRY` / `APPSHELL_APPLICATION`
@@ -129,18 +143,28 @@ without which the shell has nothing to mount. Re-running it is safe.
 ### 4. Run it — the dev server opens an overlay
 
 On a fresh registry the application has nothing activated yet, and an overlay redirects a package
-the application already runs. So seed it once: build each example, publish it, and activate the
-published version, with the same global `appshell` as the steps above. This is the same sequence the
-repository's end-to-end check runs on every pull request.
+the application already runs. So seed it once: build each example, put its code where the registry
+reads it, publish it, and activate the published version, with the same global `appshell` as the
+steps above. This is the same sequence the repository's end-to-end check runs on every pull request.
 
 ```bash
 npm run bootstrap
 npm run build
 for app in apps/*/; do
+  package="$(node -p "require('./${app}package.json').name.slice(1)")"
+  version="$(node -p "require('./${app}package.json').version")"
+  mkdir -p "$BUNDLES/$package/$version"
+  cp -R "${app}dist/." "$BUNDLES/$package/$version/"
   (cd "$app" && appshell publish --template dist/appshell.template.json)
-  appshell app activate "$(node -p "const p = require('./${app}package.json'); p.name.slice(1) + '@' + p.version")"
+  appshell app activate "$package@$version"
 done
 ```
+
+- **The copy is the deployment.** A release pipeline puts each build in your bucket or CDN. The
+  registry never stores code: it fetches it from there, by scope, name and version, and serves it
+  on the application's own origin.
+- **`publish` sends only the manifest:** what the package exposes, and its metadata.
+- **`activate`** is what puts it in the application.
 
 Then start the dev servers:
 
