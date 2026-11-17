@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.149](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.148...v1.0.0-alpha.149) (2026-11-17)
+
+**Note:** Version bump only for package @appshell/react
+
 # [1.0.0-alpha.148](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.147...v1.0.0-alpha.148) (2026-10-29)
 
 **Note:** Version bump only for package @appshell/react
