@@ -148,10 +148,10 @@ reads it, publish it, and activate the published version, with the same global `
 steps above. This is the same sequence the repository's end-to-end check runs on every pull request.
 
 ```bash
-npm run bootstrap
-npm run build
 (
   set -euo pipefail
+  npm run bootstrap
+  npm run build
   for app in apps/*/; do
     package="$(node -p "require('./${app}package.json').name.slice(1)")"
     version="$(node -p "require('./${app}package.json').version")"
@@ -176,8 +176,9 @@ npm run build
   over it would reach some browsers and not others. To ship a changed build, give the package a
   new version; to try one, the dev server below needs no publish. The copy lands under its version
   only when it's complete, so a run cut short is finished by the next.
-- **The parentheses** run the steps in a shell that stops at the first failure, so a package
-  whose code didn't copy is never published, without closing your terminal.
+- **The parentheses** run it all in a shell that stops at the first failure, without closing your
+  terminal. A build that fails is never copied, so an older build left in `dist/` can't be frozen
+  under the new version, and code that didn't copy is never published.
 - **`publish` sends only the manifest:** what the package exposes, and its metadata.
 - **`activate`** is what puts it in the application.
 
