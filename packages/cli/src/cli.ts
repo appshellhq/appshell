@@ -589,6 +589,11 @@ const initConfigCommand: yargs.CommandModule<unknown, InitArgs> = {
           'Send PKCE when logging in (the default). --no-pkce for a provider that refuses it, ' +
           'such as Okta',
         type: 'boolean',
+      })
+      .option('authScope', {
+        describe:
+          "OIDC scopes 'appshell login' asks for, such as the registry API's scope Entra ID needs",
+        type: 'string',
       }) as yargs.Argv<InitArgs>,
   handler: initConfigHandler,
 };
@@ -666,9 +671,11 @@ const loginCommand: yargs.CommandModule<unknown, LoginArgs> = {
          * Every account here is granted the offline_access role through
          * default-roles-appshell, so asking for it costs nothing when it is not wanted.
          */
-        default: 'openid profile offline_access',
+        default:
+          process.env.APPSHELL_AUTH_SCOPE || config.authScope || 'openid profile offline_access',
+        alias: 'auth-scope',
         type: 'string',
-        description: 'OIDC scopes to request',
+        description: "OIDC scopes to request. Set a default with 'appshell config set auth-scope'",
       }) as yargs.Argv<LoginArgs>,
   handler: loginHandler,
 };

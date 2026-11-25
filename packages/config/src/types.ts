@@ -77,6 +77,7 @@ export const CLI_SETTINGS = [
   'caFile',
   'api',
   'pkce',
+  'authScope',
 ] as const;
 
 export type CliSetting = (typeof CLI_SETTINGS)[number];
@@ -118,6 +119,13 @@ export type CliConfig = Record<string, string> & {
    * 'false' for a provider that refuses it, such as Okta. Read with `resolvePkce`.
    */
   pkce?: string;
+  /**
+   * The scopes `appshell login` asks for, when the default `openid profile offline_access`
+   * isn't enough: a provider that issues a token for an API only when asked for that API's
+   * scope, as Entra ID does (`api://<registry's client ID>/<scope>`). Named for the auth
+   * issuer because a bare `scope` here means an appshell namespace.
+   */
+  authScope?: string;
 };
 
 /* appshell.config.yaml types */

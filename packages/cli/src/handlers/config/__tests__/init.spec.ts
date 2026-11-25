@@ -71,6 +71,18 @@ describe('config init', () => {
     expect(written().pkce).toBe('false');
   });
 
+  /* For a provider that issues a token for an API only when asked for its scope, as Entra ID. */
+  it('writes the scopes login asks for', async () => {
+    await buildCli([
+      'config',
+      'init',
+      '--auth-scope',
+      'openid offline_access api://reg/access',
+    ]).parseAsync();
+
+    expect(written()['auth-scope']).toBe('openid offline_access api://reg/access');
+  });
+
   it('keeps a configured issuer when init is re-run without one', async () => {
     fs.writeFileSync(configPath, yaml.stringify({ 'auth-issuer': 'https://kept.example.com' }));
 
