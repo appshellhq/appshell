@@ -107,11 +107,18 @@ const ABOUT_PKCE = /pkce|code[_ ]?(challenge|verifier)/i;
 const pkceAdvice = (pkce: boolean, message: string) => {
   if (!ABOUT_PKCE.test(message)) return '';
 
-  return pkce
-    ? " This provider doesn't take PKCE on the device grant: log in again with --no-pkce, " +
-        "or keep it with 'appshell config set pkce false'."
-    : ' This provider requires PKCE: log in again without --no-pkce, or ' +
-        "'appshell config set pkce true'.";
+  if (pkce) {
+    return (
+      " This provider doesn't take PKCE on the device grant: log in again with --no-pkce, " +
+      "or keep it with 'appshell config set pkce false'."
+    );
+  }
+
+  // --pkce, not just dropping --no-pkce: a config that says false would still win.
+  return (
+    " This provider requires PKCE: log in again with --pkce, or keep it with 'appshell config " +
+    "set pkce true'."
+  );
 };
 
 const deviceGrant = async (

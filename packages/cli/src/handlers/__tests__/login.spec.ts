@@ -183,9 +183,10 @@ describe('login, device grant without PKCE', () => {
       },
     });
 
+    // --pkce rather than dropping --no-pkce, which a config saying false would override.
     await expect(login({ ...args, pkce: false })).rejects.toThrow(
       'Device authorization failed: Missing parameter: code_challenge_method This provider ' +
-        'requires PKCE',
+        "requires PKCE: log in again with --pkce, or keep it with 'appshell config set pkce true'.",
     );
   });
 
