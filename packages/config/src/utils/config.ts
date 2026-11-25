@@ -21,10 +21,10 @@ const readYaml = <T>(file: string) => yaml.parse(fs.readFileSync(file, 'utf-8'))
  * The addressing default: which namespace an unqualified name resolves to.
  *
  * Named `default-scope` and not `scope-id`, because the old name described identity —
- * *the scope this account has* — and the value has never been that. The registry takes a
- * caller's scope from the token and publishing takes it from the package name; this
- * reaches neither. A `scope-id` deciding where names resolved while something else decided
- * where writes landed is how the two came to disagree without anything saying so.
+ * *the scope this account has* — and the value has never been that: the registry takes a
+ * caller's scope from the token. A `scope-id` deciding where names resolved while something
+ * else decided where writes landed is how the two came to disagree without anything saying
+ * so, which is why an unscoped package publishes here too (`packageScope`).
  *
  * Stated once because the cli and the webpack plugin both need the answer, and two
  * precedence chains for one setting is how they drift apart.

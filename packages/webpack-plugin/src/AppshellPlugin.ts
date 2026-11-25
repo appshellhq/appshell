@@ -10,6 +10,7 @@ import {
   ModuleFederationPluginOptions,
   openOverlay,
   OverlayRemotePatch,
+  packageScope,
   parsePackageName,
   persistedContext,
   publish,
@@ -443,7 +444,7 @@ export default class AppshellPlugin {
      * nothing, and the developer would be told their code was being served when it was
      * not.
      */
-    const scopeId = declaredScope ?? contextScope;
+    const scopeId = packageScope(declaredScope, contextScope);
 
     /*
      * Refused rather than guessed. An overlay addresses remotes as
@@ -828,10 +829,12 @@ export default class AppshellPlugin {
           throw new Error(`No manifest was generated from ${outputFile}.`);
         }
 
-        const { name, version } = AppshellPlugin.identify(compiler.context);
+        const { scopeId: declared, name, version } = AppshellPlugin.identify(compiler.context);
         const { id, created } = await publish({
           registry,
           token,
+          // Where the overlay redirects it, so a published package and its dev server agree.
+          scopeId: packageScope(declared, context.scopeId),
           name,
           version,
           manifest,

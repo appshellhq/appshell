@@ -5,8 +5,8 @@ import path from 'path';
 /**
  * The registry needs a lowercase name and a version; module federation config carries
  * neither, so identity comes from the package being worked on. The npm scope is kept and
- * returned alongside them: it names where the package belongs, and the registry honours
- * it over the publisher's own namespace.
+ * returned alongside them: it names where the package belongs, over the default scope and
+ * the publisher's own namespace (`packageScope`).
  *
  * Shared so that `publish` and `dev` always agree on which package the current directory
  * is — an overlay that redirected a different package than the one you published would be
@@ -15,7 +15,7 @@ import path from 'path';
 export const identify = (cwd: string, nameOverride?: string, versionOverride?: string) => {
   if (nameOverride && versionOverride) {
     // Explicit overrides name the package outright, so there is no manifest to read a
-    // declared scope from — it falls back to the publisher's own, as it always did.
+    // declared scope from: it goes where any unscoped package does (`packageScope`).
     return { name: nameOverride, version: versionOverride };
   }
 

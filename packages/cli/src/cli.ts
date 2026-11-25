@@ -882,8 +882,8 @@ export const buildCli = (args: string[]) => {
        *
        * `default-scope`, not `scope-id`. The old name described identity — the scope this
        * account *has* — and the value has never been that: the registry takes a caller's
-       * scope from the token, publishing takes it from the package name, and this reaches
-       * neither. It says where an unqualified name resolves, and now says so.
+       * scope from the token. It says where an unqualified name resolves, an unscoped
+       * package's included, since that's where it's then looked for (`packageScope`).
        */
       .option('defaultScope', {
         describe: 'Scope that unqualified packages and applications resolve to',

@@ -99,11 +99,11 @@ export type CliConfig = Record<string, string> & {
   /**
    * Which namespace an unqualified name belongs to, absent anything better.
    *
-   * Addressing only, and named for it. It was `scope-id`, which read as *the scope this
-   * account has* — identity — and it is not: the registry takes a caller's scope from the
-   * token, and this value never reaches it. Publishing takes it from the package name.
-   * So a `scope-id` here decided where names resolved while something else decided where
-   * writes landed, and the two could disagree without anything saying so.
+   * Addressing, and named for it. It was `scope-id`, which read as *the scope this account
+   * has* — identity — and it is not: the registry takes a caller's scope from the token. A
+   * `scope-id` here decided where names resolved while something else decided where writes
+   * landed, and the two could disagree without anything saying so. So an unscoped package
+   * publishes here too, where it's then looked for (`packageScope`).
    *
    * It earns its place all the same: `resolveScopeId` falls back to the account's own
    * scope and deliberately refuses to guess when an account owns several, and this is how
