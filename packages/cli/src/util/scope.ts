@@ -1,7 +1,7 @@
 import { parsePackageName } from '@appshell/config';
 import fs from 'fs';
 import path from 'path';
-import { RegistryClient } from './registry';
+import { RegistryClient, statusOf } from './registry';
 
 /**
  * Which namespace an unqualified name belongs to.
@@ -58,8 +58,25 @@ export const declaredScope = (cwd: string): string | undefined => {
   }
 };
 
+/*
+ * Asking which scopes an account owns needs the write role. An account that may only read is
+ * refused, and the refusal alone doesn't say that a qualified name, or a default, avoids asking.
+ */
+const ownedScopes = async (registry: string) => {
+  try {
+    return await new RegistryClient(registry).listScopes();
+  } catch (error) {
+    if (statusOf((error as { cause?: unknown }).cause) !== 403) throw error;
+
+    throw new Error(
+      `${(error as Error).message} Qualify the name as 'scope/name', or set a default with ` +
+        "'appshell config set default-scope <name>'.",
+    );
+  }
+};
+
 const fromAccount = async (registry: string): Promise<string> => {
-  const scopes = await new RegistryClient(registry).listScopes();
+  const scopes = await ownedScopes(registry);
 
   if (scopes.length === 1) return scopes[0].id;
 
@@ -101,4 +118,26 @@ export const resolveScopeId = async (
 
     throw error;
   }
+};
+
+/**
+ * The default scope for a name on the command line, looked up only when the name doesn't say
+ * its own: `name` or `name@version`, not `scope/name`.
+ *
+ * Every command used to resolve the default before reading the name, so a fully qualified
+ * `acme/portal` still asked the registry which scopes the account owns. That question needs the
+ * write role, so an account that may only read couldn't run `app list` or `app revisions` at
+ * all, and a new account couldn't clone into `me/portal` before it owned a scope. Found trying
+ * the registry with PingFederate (appshellhq/appshell-services#125); the bundled Keycloak's bob
+ * was refused by it too.
+ */
+export const defaultScopeFor = async (
+  reference: string,
+  argv: { registry: string; defaultScope?: string },
+  cwd: string = process.cwd(),
+): Promise<string | undefined> => {
+  const at = reference.lastIndexOf('@');
+  const coordinates = at > 0 ? reference.slice(0, at) : reference;
+
+  return coordinates.includes('/') ? undefined : resolveScopeId(argv, cwd);
 };

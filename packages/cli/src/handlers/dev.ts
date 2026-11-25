@@ -14,7 +14,7 @@ import {
   RegistryClient,
   statusOf,
 } from '../util/registry';
-import { resolveScopeId } from '../util/scope';
+import { defaultScopeFor } from '../util/scope';
 import { findWorkspace, WorkspacePackage } from '../util/workspace';
 
 /*
@@ -49,7 +49,7 @@ const target = async (argv: GlobalArgs) => {
     );
   }
 
-  return parseApplication(argv.application, await resolveScopeId(argv));
+  return parseApplication(argv.application, await defaultScopeFor(argv.application, argv));
 };
 
 /**

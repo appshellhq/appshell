@@ -199,6 +199,56 @@ describe('login, device grant without PKCE', () => {
   });
 });
 
+/*
+ * appshellhq/appshell-services#125: renewal assumed Keycloak's token path. The credential now
+ * carries the endpoint discovery named, and the scope granted, for renewal to use.
+ */
+describe('login, what the credential keeps for renewal', () => {
+  beforeEach(() => {
+    jest.spyOn(console, 'log').mockImplementation(() => {});
+    get.mockResolvedValue({
+      data: { device_authorization_endpoint: deviceEndpoint, token_endpoint: tokenEndpoint },
+    });
+    post.mockResolvedValueOnce({
+      data: {
+        device_code: 'dc',
+        user_code: 'UC',
+        verification_uri: 'https://v',
+        expires_in: 60,
+        interval: 0,
+      },
+    });
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+    get.mockReset();
+    post.mockReset();
+  });
+
+  it('keeps the token endpoint discovery named, and the scope it asked for', async () => {
+    post.mockResolvedValueOnce({ data: { access_token: 'at', refresh_token: 'rt' } });
+
+    await login({ ...args, scope: 'openid api://registry/access' });
+
+    expect(saveCredential).toHaveBeenCalledWith(
+      args.registry,
+      expect.objectContaining({ tokenEndpoint, scope: 'openid api://registry/access' }),
+    );
+  });
+
+  it('keeps the scope granted, when the provider says it differs', async () => {
+    post.mockResolvedValueOnce({ data: { access_token: 'at', scope: 'api://registry/access' } });
+
+    await login({ ...args, scope: 'openid api://registry/access' });
+
+    expect(saveCredential).toHaveBeenCalledWith(
+      args.registry,
+      expect.objectContaining({ scope: 'api://registry/access' }),
+    );
+  });
+});
+
 describe('pkcePair', () => {
   it('makes a fresh 43-character verifier each time, with its S256 challenge', () => {
     const a = pkcePair();

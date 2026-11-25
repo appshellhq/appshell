@@ -22,6 +22,20 @@ export type Credential = {
    */
   issuer?: string;
   clientId?: string;
+  /**
+   * Where the issuer renews tokens, as its discovery document said at login. Renewal used to
+   * assume Keycloak's own path, `{issuer}/protocol/openid-connect/token`, which every other
+   * provider answers with a 404 (appshellhq/appshell-services#125). Absent from a credential
+   * written before this, and then discovered when it's first needed.
+   */
+  tokenEndpoint?: string;
+  /**
+   * The scope the token was granted, sent again when renewing. RFC 6749 lets a client resend it
+   * and treats it as the same grant, and Microsoft documents it as required for Entra ID. Entra
+   * renewed without it in the trial too, so it's sent for the standard's sake, not one
+   * provider's.
+   */
+  scope?: string;
 };
 
 /** Keyed by registry URL so one machine can hold tokens for several registries. */
@@ -86,7 +100,23 @@ export const resolveToken = (registry: string): string | undefined => {
 };
 
 /** The subset of an OIDC token response this cares about. */
-type Renewed = { access_token: string; refresh_token?: string; expires_in?: number };
+type Renewed = {
+  access_token: string;
+  refresh_token?: string;
+  expires_in?: number;
+  scope?: string;
+};
+
+/** The issuer's token endpoint, from its discovery document (OpenID Connect Discovery). */
+const discoverTokenEndpoint = async (issuer: string): Promise<string> => {
+  const { data } = await axios.get<{ token_endpoint?: string }>(
+    `${issuer.replace(/\/$/, '')}/.well-known/openid-configuration`,
+  );
+
+  if (!data.token_endpoint) throw new Error(`${issuer} advertises no token endpoint.`);
+
+  return data.token_endpoint;
+};
 
 /**
  * The stored access token, renewed first if it has expired.
@@ -118,18 +148,23 @@ export const ensureToken = async (registry: string): Promise<string | undefined>
   if (!credential.refreshToken || !credential.issuer || !credential.clientId) return undefined;
 
   try {
+    const tokenEndpoint =
+      credential.tokenEndpoint ?? (await discoverTokenEndpoint(credential.issuer));
     const { data } = await axios.post<Renewed>(
-      `${credential.issuer.replace(/\/$/, '')}/protocol/openid-connect/token`,
+      tokenEndpoint,
       new URLSearchParams({
         grant_type: 'refresh_token',
         refresh_token: credential.refreshToken,
         client_id: credential.clientId,
+        ...(credential.scope ? { scope: credential.scope } : {}),
       }).toString(),
       { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } },
     );
 
     saveCredential(registry, {
       ...credential,
+      tokenEndpoint,
+      scope: data.scope ?? credential.scope,
       accessToken: data.access_token,
       // Rotation is on by default in Keycloak, so the old refresh token may already be
       // spent. Keeping it when none comes back would store one that cannot be used twice.

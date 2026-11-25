@@ -262,7 +262,7 @@ export const detailOf = (error: unknown) => {
 
 /** The status of a failed request, when it got one. */
 export const statusOf = (error: unknown) =>
-  (error as { response?: { status?: number } }).response?.status;
+  (error as { response?: { status?: number } } | undefined)?.response?.status;
 
 export const describe = (error: unknown) => {
   const detail = detailOf(error);
@@ -839,10 +839,17 @@ export class RegistryClient {
   }
 }
 
-/** `scope/name`, defaulting the scope from config so `--application dev` works. */
-export const parseApplication = (application: string, defaultScopeId: string) => {
+/**
+ * `scope/name`, or a bare `name` in the default scope, so `--application dev` works. The default
+ * is resolved only for a bare name (`defaultScopeFor`), so it may be absent for a qualified one.
+ */
+export const parseApplication = (application: string, defaultScopeId?: string) => {
   const parts = application.split('/');
   if (parts.length === 1) {
+    if (!defaultScopeId) {
+      throw new Error(`No scope for '${application}'. Name it as 'scope/${application}'.`);
+    }
+
     return { scopeId: defaultScopeId, name: parts[0] };
   }
 
@@ -874,7 +881,7 @@ export const parseApplication = (application: string, defaultScopeId: string) =>
 export const absoluteUrl = (url: string, baseUrl: string): string =>
   new URL(url, baseUrl).toString();
 
-export const parsePackage = (reference: string, defaultScopeId: string) => {
+export const parsePackage = (reference: string, defaultScopeId?: string) => {
   const at = reference.lastIndexOf('@');
   const coordinates = at > 0 ? reference.slice(0, at) : reference;
   const version = at > 0 ? reference.slice(at + 1) : undefined;

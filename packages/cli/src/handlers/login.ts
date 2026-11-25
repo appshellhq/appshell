@@ -27,6 +27,8 @@ type TokenResponse = {
   access_token: string;
   refresh_token?: string;
   expires_in?: number;
+  /** What was granted, when it isn't what was asked for (RFC 6749 §5.1). */
+  scope?: string;
 };
 
 const wait = (seconds: number) =>
@@ -219,10 +221,13 @@ export default async (argv: LoginArgs) => {
     accessToken: token.access_token,
     refreshToken: token.refresh_token,
     expiresAt: token.expires_in ? Date.now() + token.expires_in * 1000 : undefined,
-    // Stored so the credential can renew itself later. Neither is derivable from the
-    // registry url, and without them a refresh token is a string nothing can spend.
+    // Stored so the credential can renew itself later. None is derivable from the registry
+    // url, and without them a refresh token is a string nothing can spend. The endpoint is the
+    // one discovery named, not a path one provider uses (appshellhq/appshell-services#125).
     issuer: authIssuer,
     clientId,
+    tokenEndpoint,
+    scope: token.scope ?? scope,
   });
 
   console.log(chalk.green(`Logged in to ${registry}`));

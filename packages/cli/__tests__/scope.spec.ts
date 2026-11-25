@@ -1,10 +1,13 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { RegistryClient } from '../src/util/registry';
-import { declaredScope, resetScopeCache, resolveScopeId } from '../src/util/scope';
+import { parseApplication, RegistryClient } from '../src/util/registry';
+import { declaredScope, defaultScopeFor, resetScopeCache, resolveScopeId } from '../src/util/scope';
 
-jest.mock('../src/util/registry');
+jest.mock('../src/util/registry', () => ({
+  ...jest.requireActual('../src/util/registry'),
+  RegistryClient: jest.fn(),
+}));
 
 const Client = RegistryClient as jest.MockedClass<typeof RegistryClient>;
 
@@ -143,5 +146,68 @@ describe('declaredScope', () => {
     fs.writeFileSync(path.join(dir, 'package.json'), '{ not json');
 
     expect(declaredScope(dir)).toBeUndefined();
+  });
+});
+
+/*
+ * appshellhq/appshell-services#125: every command resolved the default before reading the name,
+ * so a qualified name still asked which scopes the account owns, which needs the write role.
+ */
+describe('defaultScopeFor', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    resetScopeCache();
+  });
+
+  it.each(['acme/portal', 'acme/hello@1.0.0'])(
+    'asks nothing for %s, which says its scope',
+    async (name) => {
+      const listScopes = listing(['owned']);
+
+      await expect(
+        defaultScopeFor(name, { registry: 'r' }, dirWith(null)),
+      ).resolves.toBeUndefined();
+      expect(listScopes).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(['portal', 'hello@1.0.0'])('resolves the default for %s', async (name) => {
+    listing(['owned']);
+
+    await expect(defaultScopeFor(name, { registry: 'r' }, dirWith(null))).resolves.toBe('owned');
+  });
+});
+
+describe('resolveScopeId for an account that may only read', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    resetScopeCache();
+  });
+
+  it('says how to avoid the lookup when the registry refuses it', async () => {
+    const refused = Object.assign(
+      new Error("Failed to list scopes: 403 This action requires the 'publishers' role."),
+      { cause: { response: { status: 403 } } },
+    );
+    Client.mockImplementation(
+      () => ({ listScopes: jest.fn().mockRejectedValue(refused) } as never),
+    );
+
+    await expect(resolveScopeId({ registry: 'r' }, dirWith(null))).rejects.toThrow(
+      "Failed to list scopes: 403 This action requires the 'publishers' role. Qualify the name " +
+        "as 'scope/name', or set a default with 'appshell config set default-scope <name>'.",
+    );
+  });
+});
+
+describe('parseApplication without a default', () => {
+  it('takes the scope a qualified name says', () => {
+    expect(parseApplication('acme/portal')).toEqual({ scopeId: 'acme', name: 'portal' });
+  });
+
+  it('asks for the scope when a bare name has none to default to', () => {
+    expect(() => parseApplication('portal')).toThrow(
+      "No scope for 'portal'. Name it as 'scope/portal'.",
+    );
   });
 });

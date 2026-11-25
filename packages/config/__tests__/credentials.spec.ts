@@ -15,6 +15,9 @@ const mocked = axios as jest.Mocked<typeof axios>;
  */
 describe('ensureToken', () => {
   const REGISTRY = 'https://registry.example.com';
+  const ISSUER = 'https://auth.example.com/realms/x';
+  // Not Keycloak's own path, so a renewal that assumed one would miss it.
+  const TOKEN_ENDPOINT = 'https://auth.example.com/oauth2/v1/token';
   let dir: string;
 
   beforeEach(() => {
@@ -22,6 +25,7 @@ describe('ensureToken', () => {
     process.env.APPSHELL_CREDENTIALS = path.join(dir, 'credentials');
     delete process.env.APPSHELL_TOKEN;
     jest.resetAllMocks();
+    mocked.get.mockResolvedValue({ data: { token_endpoint: TOKEN_ENDPOINT } } as never);
   });
 
   afterEach(() => {
@@ -114,6 +118,76 @@ describe('ensureToken', () => {
     mocked.post.mockRejectedValue(new Error('invalid_grant'));
 
     await expect(ensureToken(REGISTRY)).resolves.toBeUndefined();
+  });
+
+  /*
+   * appshellhq/appshell-services#125. Renewal assumed Keycloak's path, which Okta, PingFederate
+   * and Entra ID each answered with a 404, so a session there ended with its first token.
+   */
+  it('should renew at the token endpoint discovery names, for a credential that has none', async () => {
+    stored();
+    mocked.post.mockResolvedValue({ data: { access_token: 'fresh', expires_in: 1800 } } as never);
+
+    await expect(ensureToken(REGISTRY)).resolves.toBe('fresh');
+
+    expect(mocked.get).toHaveBeenCalledWith(`${ISSUER}/.well-known/openid-configuration`);
+    expect(mocked.post.mock.calls[0][0]).toBe(TOKEN_ENDPOINT);
+  });
+
+  it('should keep the discovered endpoint, so it discovers once', async () => {
+    stored();
+    mocked.post.mockResolvedValue({ data: { access_token: 'fresh', expires_in: -1 } } as never);
+
+    await ensureToken(REGISTRY);
+    await ensureToken(REGISTRY);
+
+    expect(mocked.get).toHaveBeenCalledTimes(1);
+    expect(mocked.post).toHaveBeenCalledTimes(2);
+  });
+
+  it('should renew at the endpoint login stored, without asking discovery', async () => {
+    stored({ tokenEndpoint: 'https://idp.example.com/as/token.oauth2' });
+    mocked.post.mockResolvedValue({ data: { access_token: 'fresh', expires_in: 1800 } } as never);
+
+    await ensureToken(REGISTRY);
+
+    expect(mocked.get).not.toHaveBeenCalled();
+    expect(mocked.post.mock.calls[0][0]).toBe('https://idp.example.com/as/token.oauth2');
+  });
+
+  /*
+   * RFC 6749 lets a client resend the scope it was granted, and Microsoft documents it as
+   * required for Entra ID, though Entra renewed without it in the trial.
+   */
+  it('should send the granted scope again, and keep what the renewal grants', async () => {
+    stored({ scope: 'openid api://registry/access' });
+    mocked.post.mockResolvedValue({
+      data: { access_token: 'fresh', expires_in: -1, scope: 'api://registry/access' },
+    } as never);
+
+    await ensureToken(REGISTRY);
+    await ensureToken(REGISTRY);
+
+    const sent = mocked.post.mock.calls.map(([, body]) => new URLSearchParams(String(body)));
+    expect(sent[0].get('scope')).toBe('openid api://registry/access');
+    expect(sent[1].get('scope')).toBe('api://registry/access');
+  });
+
+  it('should send no scope when the credential records none', async () => {
+    stored();
+    mocked.post.mockResolvedValue({ data: { access_token: 'fresh', expires_in: 1800 } } as never);
+
+    await ensureToken(REGISTRY);
+
+    expect(new URLSearchParams(String(mocked.post.mock.calls[0][1])).has('scope')).toBe(false);
+  });
+
+  it('should give up quietly when discovery fails', async () => {
+    stored();
+    mocked.get.mockRejectedValue(new Error('404'));
+
+    await expect(ensureToken(REGISTRY)).resolves.toBeUndefined();
+    expect(mocked.post).not.toHaveBeenCalled();
   });
 
   it('should prefer APPSHELL_TOKEN and never renew in ci', async () => {
