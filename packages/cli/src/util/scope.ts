@@ -1,7 +1,7 @@
 import { parsePackageName } from '@appshell/config';
 import fs from 'fs';
 import path from 'path';
-import { RegistryClient } from './registry';
+import { RegistryClient, statusOf } from './registry';
 
 /**
  * Which namespace an unqualified name belongs to.
@@ -58,8 +58,25 @@ export const declaredScope = (cwd: string): string | undefined => {
   }
 };
 
+/*
+ * Asking which scopes an account owns needs the write role. An account that may only read is
+ * refused, and the refusal alone doesn't say that a qualified name, or a default, avoids asking.
+ */
+const ownedScopes = async (registry: string) => {
+  try {
+    return await new RegistryClient(registry).listScopes();
+  } catch (error) {
+    if (statusOf((error as { cause?: unknown }).cause) !== 403) throw error;
+
+    throw new Error(
+      `${(error as Error).message} Qualify the name as 'scope/name', or set a default with ` +
+        "'appshell config set default-scope <name>'.",
+    );
+  }
+};
+
 const fromAccount = async (registry: string): Promise<string> => {
-  const scopes = await new RegistryClient(registry).listScopes();
+  const scopes = await ownedScopes(registry);
 
   if (scopes.length === 1) return scopes[0].id;
 

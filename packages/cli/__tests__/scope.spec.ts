@@ -178,6 +178,28 @@ describe('defaultScopeFor', () => {
   });
 });
 
+describe('resolveScopeId for an account that may only read', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    resetScopeCache();
+  });
+
+  it('says how to avoid the lookup when the registry refuses it', async () => {
+    const refused = Object.assign(
+      new Error("Failed to list scopes: 403 This action requires the 'publishers' role."),
+      { cause: { response: { status: 403 } } },
+    );
+    Client.mockImplementation(
+      () => ({ listScopes: jest.fn().mockRejectedValue(refused) } as never),
+    );
+
+    await expect(resolveScopeId({ registry: 'r' }, dirWith(null))).rejects.toThrow(
+      "Failed to list scopes: 403 This action requires the 'publishers' role. Qualify the name " +
+        "as 'scope/name', or set a default with 'appshell config set default-scope <name>'.",
+    );
+  });
+});
+
 describe('parseApplication without a default', () => {
   it('takes the scope a qualified name says', () => {
     expect(parseApplication('acme/portal')).toEqual({ scopeId: 'acme', name: 'portal' });

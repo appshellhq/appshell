@@ -262,7 +262,7 @@ export const detailOf = (error: unknown) => {
 
 /** The status of a failed request, when it got one. */
 export const statusOf = (error: unknown) =>
-  (error as { response?: { status?: number } }).response?.status;
+  (error as { response?: { status?: number } } | undefined)?.response?.status;
 
 export const describe = (error: unknown) => {
   const detail = detailOf(error);
