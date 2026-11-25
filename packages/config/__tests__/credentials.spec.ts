@@ -156,8 +156,8 @@ describe('ensureToken', () => {
   });
 
   /*
-   * RFC 6749 lets a client resend the scope it was granted. Entra ID requires it: without it,
-   * the renewed token isn't for the registry's API.
+   * RFC 6749 lets a client resend the scope it was granted, and Microsoft documents it as
+   * required for Entra ID, though Entra renewed without it in the trial.
    */
   it('should send the granted scope again, and keep what the renewal grants', async () => {
     stored({ scope: 'openid api://registry/access' });

@@ -30,9 +30,10 @@ export type Credential = {
    */
   tokenEndpoint?: string;
   /**
-   * The scope the token was granted, sent again when renewing. RFC 6749 lets a client resend
-   * it and treats it as the same grant; Entra ID requires it, or the new token isn't for the
-   * API the first one was.
+   * The scope the token was granted, sent again when renewing. RFC 6749 lets a client resend it
+   * and treats it as the same grant, and Microsoft documents it as required for Entra ID. Entra
+   * renewed without it in the trial too, so it's sent for the standard's sake, not one
+   * provider's.
    */
   scope?: string;
 };
