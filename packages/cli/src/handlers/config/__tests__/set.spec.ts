@@ -41,6 +41,19 @@ describe('config set', () => {
     expect(written()['ca-file']).toBe('/certs/root.pem');
   });
 
+  it('sets pkce', async () => {
+    await buildCli(['config', 'set', 'pkce', 'false']).parseAsync();
+
+    expect(written().pkce).toBe('false');
+  });
+
+  // A switch, and a typo in one would read as on.
+  it('refuses a pkce that is neither true nor false', async () => {
+    await expect(
+      buildCli(['config', 'set', 'pkce', 'no']).exitProcess(false).parseAsync(),
+    ).rejects.toThrow("'pkce' is true or false, not 'no'.");
+  });
+
   // exitProcess(false) because yargs exits the process on a handler error otherwise, and
   // buildCli deliberately installs no fail handler of its own.
   it('still refuses a key that is not a setting', async () => {

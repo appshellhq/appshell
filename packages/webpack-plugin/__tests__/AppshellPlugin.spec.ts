@@ -439,6 +439,24 @@ describe('AppshellPlugin', () => {
       expect(mocked.publish).toHaveBeenCalledWith(expect.objectContaining({ registry }));
     });
 
+    /*
+     * Where its overlay redirects it. The fixture declares `@appshell/…`, and the publish used
+     * to drop that, sending the package to the publisher's own scope instead
+     * (appshellhq/appshell-services#125).
+     */
+    it('should publish into the scope the package declares, as its overlay does', async () => {
+      jest.spyOn(fs, 'writeFileSync').mockImplementation();
+      mocked.resolveContext.mockReturnValue({ scopeId: 'mine', registry });
+      const plugin = new AppshellPlugin({ config, publish: true });
+
+      plugin.apply(compiler as any);
+      await compiler.compile();
+
+      expect(mocked.publish).toHaveBeenCalledWith(
+        expect.objectContaining({ scopeId: 'appshell', name: 'webpack-plugin' }),
+      );
+    });
+
     it('should do nothing in a development build that is not serving', async () => {
       jest.spyOn(fs, 'writeFileSync').mockImplementation();
       compiler.options.mode = 'development';

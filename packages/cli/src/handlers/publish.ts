@@ -4,6 +4,7 @@ import {
   AppshellManifest,
   AppshellTemplate,
   generateManifest,
+  packageScope,
   publish,
   PublishError,
   PublishOptions,
@@ -24,8 +25,7 @@ import { resolveTemplate } from '../util/template';
 
 export type PublishArgs = {
   registry: string;
-  /* Unused: the scope comes from the package name, or the registry falls back to the
-   * publisher's own. Declared because it is a global option every handler receives. */
+  /** Where an unscoped package publishes: see `packageScope`. */
   defaultScope?: string;
   template?: string;
   name?: string;
@@ -203,7 +203,9 @@ const publishOnce = async (argv: PublishArgs) => {
   const declared = (JSON.parse(fs.readFileSync(template, 'utf-8')) as AppshellTemplate).visibility;
   const visibility = argv.visibility ?? declared;
 
-  const { scopeId, name, version } = identify(process.cwd(), argv.name, argv.packageVersion);
+  const identity = identify(process.cwd(), argv.name, argv.packageVersion);
+  const { name, version } = identity;
+  const scopeId = packageScope(identity.scopeId, argv.defaultScope);
 
   // Asked for last, immediately before the request it is for: a workflow token is
   // short-lived and single-use, and a build that fails above should not have minted one.

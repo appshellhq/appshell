@@ -1,8 +1,8 @@
 /**
  * An npm package name split into where it belongs and what it is called.
  *
- * `@acme/checkout` is scope `acme`, name `checkout`. A bare `checkout` declares no scope
- * and belongs wherever the publisher does.
+ * `@acme/checkout` is scope `acme`, name `checkout`. A bare `checkout` declares no scope,
+ * and `packageScope` says where it goes.
  *
  * One definition because three places used to strip the scope with their own copy of the
  * same regular expression — the cli's `identify`, its workspace scan, and the webpack
@@ -22,3 +22,19 @@ export const parsePackageName = (raw: string): PackageName => {
 
   return scoped ? { scopeId: scoped[1], name: scoped[2] } : { name: raw };
 };
+
+/**
+ * Where a package publishes, and so where a dev server overlays it: the scope its name
+ * declares, else the configured default scope, else none, for the registry to put it in the
+ * publisher's own. appshellhq/appshell-services#125.
+ *
+ * One rule for every path. Publishing used to ignore the default scope that overlays and
+ * every lookup honour, so an unqualified `checkout` published into the publisher's own scope
+ * and was then looked for in the default one. And an identity provider whose usernames are
+ * email addresses gives an account no own scope at all, so the default is the only way to
+ * publish an unscoped package there.
+ */
+export const packageScope = (
+  declared: string | undefined,
+  defaultScope: string | undefined,
+): string | undefined => declared || defaultScope || undefined;

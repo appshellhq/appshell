@@ -15,7 +15,7 @@ export type { Credential } from './credentials';
 export { default as generateManifest, manifestFrom } from './generate.manifest';
 export { loaderOf } from './loader';
 export { default as outdated } from './outdated';
-export { parsePackageName } from './package-name';
+export { packageScope, parsePackageName } from './package-name';
 export type { PackageName } from './package-name';
 export { activate, openOverlay, publish } from './publish';
 export type {

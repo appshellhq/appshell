@@ -117,6 +117,88 @@ describe('login, device grant', () => {
   });
 });
 
+/*
+ * The device grant's own standard (RFC 8628) has no PKCE, and Okta refuses the verifier once
+ * the person has approved, expiring the device code with it (appshellhq/appshell-services#125).
+ */
+describe('login, device grant without PKCE', () => {
+  beforeEach(() => {
+    jest.spyOn(console, 'log').mockImplementation(() => {});
+    get.mockResolvedValue({
+      data: { device_authorization_endpoint: deviceEndpoint, token_endpoint: tokenEndpoint },
+    });
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+    get.mockReset();
+    post.mockReset();
+  });
+
+  const authorization = {
+    data: {
+      device_code: 'dc',
+      user_code: 'UC',
+      verification_uri: 'https://v',
+      expires_in: 60,
+      interval: 0,
+    },
+  };
+
+  it('sends neither a challenge nor a verifier', async () => {
+    post
+      .mockResolvedValueOnce(authorization)
+      .mockResolvedValueOnce({ data: { access_token: 'at' } });
+
+    await login({ ...args, pkce: false });
+
+    const [authorize, redeem] = post.mock.calls;
+    expect(Object.keys(sent(authorize))).toEqual(['client_id', 'scope']);
+    expect(Object.keys(sent(redeem))).toEqual(['grant_type', 'device_code', 'client_id']);
+  });
+
+  it('says to switch PKCE off when the provider refuses the verifier', async () => {
+    post.mockResolvedValueOnce(authorization).mockRejectedValueOnce({
+      response: {
+        data: {
+          error: 'invalid_request',
+          error_description:
+            'PKCE code challenge should be specified in the authorize request for code verification.',
+        },
+      },
+    });
+
+    await expect(login(args)).rejects.toThrow(
+      "This provider doesn't take PKCE on the device grant: log in again with --no-pkce",
+    );
+  });
+
+  it('says to switch PKCE back on when the provider requires it', async () => {
+    post.mockRejectedValueOnce({
+      response: {
+        data: {
+          error: 'invalid_request',
+          error_description: 'Missing parameter: code_challenge_method',
+        },
+      },
+    });
+
+    // --pkce rather than dropping --no-pkce, which a config saying false would override.
+    await expect(login({ ...args, pkce: false })).rejects.toThrow(
+      'Device authorization failed: Missing parameter: code_challenge_method This provider ' +
+        "requires PKCE: log in again with --pkce, or keep it with 'appshell config set pkce true'.",
+    );
+  });
+
+  it('adds nothing to a refusal that isn’t about PKCE', async () => {
+    post.mockResolvedValueOnce(authorization).mockRejectedValueOnce({
+      response: { data: { error: 'access_denied', error_description: 'The user denied it.' } },
+    });
+
+    await expect(login(args)).rejects.toThrow(/^Authorization failed: The user denied it\.$/);
+  });
+});
+
 describe('pkcePair', () => {
   it('makes a fresh 43-character verifier each time, with its S256 challenge', () => {
     const a = pkcePair();

@@ -94,6 +94,37 @@ describe('declared visibility', () => {
   });
 
   /*
+   * Where it goes: the scope the name declares, else the default scope that lookups and
+   * overlays use, else the registry's own for the publisher (appshellhq/appshell-services#125).
+   */
+  describe('the scope', () => {
+    const named = (name: string) =>
+      fs.writeFileSync(path.join(dir, 'package.json'), JSON.stringify({ name, version: '1.2.3' }));
+
+    it('is the one the package declares, over the default', async () => {
+      await handler({ ...publishArgs(), defaultScope: 'mine' });
+
+      expect(config.publish).toHaveBeenCalledWith(expect.objectContaining({ scopeId: 'scope' }));
+    });
+
+    it('is the default scope for an unscoped package', async () => {
+      named('thing');
+
+      await handler({ ...publishArgs(), defaultScope: 'acme' });
+
+      expect(config.publish).toHaveBeenCalledWith(expect.objectContaining({ scopeId: 'acme' }));
+    });
+
+    it('is left to the registry without either', async () => {
+      named('thing');
+
+      await handler(publishArgs());
+
+      expect(config.publish).toHaveBeenCalledWith(expect.objectContaining({ scopeId: undefined }));
+    });
+  });
+
+  /*
    * Publishing a package says nothing about which application should serve it, and there
    * is no requirement that an application exist at all.
    *

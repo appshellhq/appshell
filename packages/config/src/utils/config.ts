@@ -21,10 +21,10 @@ const readYaml = <T>(file: string) => yaml.parse(fs.readFileSync(file, 'utf-8'))
  * The addressing default: which namespace an unqualified name resolves to.
  *
  * Named `default-scope` and not `scope-id`, because the old name described identity —
- * *the scope this account has* — and the value has never been that. The registry takes a
- * caller's scope from the token and publishing takes it from the package name; this
- * reaches neither. A `scope-id` deciding where names resolved while something else decided
- * where writes landed is how the two came to disagree without anything saying so.
+ * *the scope this account has* — and the value has never been that: the registry takes a
+ * caller's scope from the token. A `scope-id` deciding where names resolved while something
+ * else decided where writes landed is how the two came to disagree without anything saying
+ * so, which is why an unscoped package publishes here too (`packageScope`).
  *
  * Stated once because the cli and the webpack plugin both need the answer, and two
  * precedence chains for one setting is how they drift apart.
@@ -33,6 +33,14 @@ export const resolveDefaultScope = (
   config: { defaultScope?: string },
   env: NodeJS.ProcessEnv = process.env,
 ): string | undefined => env.APPSHELL_DEFAULT_SCOPE || config.defaultScope;
+
+/**
+ * Whether `appshell login` sends PKCE with the device grant. On unless the config says
+ * `false`: written as a string by `config set` and `config init`, and read as a boolean from
+ * a file somebody edited by hand.
+ */
+export const resolvePkce = (config: { pkce?: unknown }): boolean =>
+  String(config.pkce ?? 'true').toLowerCase() !== 'false';
 
 export const readConfig = (configPath: string) => {
   if (fs.existsSync(configPath)) {
