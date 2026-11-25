@@ -8,7 +8,7 @@ import {
   parsePackage,
   RegistryClient,
 } from '../../util/registry';
-import { resolveScopeId } from '../../util/scope';
+import { defaultScopeFor, resolveScopeId } from '../../util/scope';
 import { applyResource } from './deploy';
 
 export type AppArgs = {
@@ -25,7 +25,7 @@ const target = async (argv: AppArgs & { name?: string }) => {
     );
   }
 
-  return parseApplication(application, await resolveScopeId(argv));
+  return parseApplication(application, await defaultScopeFor(application, argv));
 };
 
 /**
@@ -180,7 +180,7 @@ export const activate = async (argv: AppArgs & { package: string; set?: string[]
     scopeId: pkgScopeId,
     name: pkgName,
     version,
-  } = parsePackage(argv.package, await resolveScopeId(argv));
+  } = parsePackage(argv.package, await defaultScopeFor(argv.package, argv));
   const client = new RegistryClient(argv.registry);
   // Only fetched when there is something to resolve against.
   const declared = argv.set?.length
@@ -211,7 +211,7 @@ export const deactivate = async (argv: AppArgs & { package: string }) => {
   const { scopeId, name } = await target(argv);
   const { scopeId: pkgScopeId, name: pkgName } = parseApplication(
     argv.package,
-    await resolveScopeId(argv),
+    await defaultScopeFor(argv.package, argv),
   );
   await new RegistryClient(argv.registry).deactivate(scopeId, name, pkgScopeId, pkgName);
 
@@ -272,14 +272,17 @@ export const sync = async (
     >;
   },
 ) => {
-  const source = parseApplication(argv.from, await resolveScopeId(argv));
+  const source = parseApplication(argv.from, await defaultScopeFor(argv.from, argv));
   const destinationName = argv.to ?? argv.application;
   if (!destinationName) {
     throw new Error(
       "No target application given. Pass --to or set one with 'appshell config set application <name>'.",
     );
   }
-  const destination = parseApplication(destinationName, await resolveScopeId(argv));
+  const destination = parseApplication(
+    destinationName,
+    await defaultScopeFor(destinationName, argv),
+  );
 
   await new RegistryClient(argv.registry).syncApplication(destination.scopeId, destination.name, {
     fromScopeId: source.scopeId,
@@ -303,14 +306,17 @@ export const clone = async (
     allowOverlays?: boolean;
   },
 ) => {
-  const source = parseApplication(argv.from, await resolveScopeId(argv));
+  const source = parseApplication(argv.from, await defaultScopeFor(argv.from, argv));
   const destinationName = argv.to ?? argv.application;
   if (!destinationName) {
     throw new Error(
       "No target application given. Pass --to or set one with 'appshell config set application <name>'.",
     );
   }
-  const destination = parseApplication(destinationName, await resolveScopeId(argv));
+  const destination = parseApplication(
+    destinationName,
+    await defaultScopeFor(destinationName, argv),
+  );
 
   // In the clone's own request, so the copy is never left without the overlays it asked for.
   await new RegistryClient(argv.registry).cloneApplication(destination.scopeId, destination.name, {

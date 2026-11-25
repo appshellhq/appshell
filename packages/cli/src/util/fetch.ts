@@ -40,7 +40,7 @@ const toSharedModules = (report: SharedDependencyReport) =>
 export const fetchSharedModules = async (
   registry: string,
   application: string | undefined,
-  scopeId: string,
+  scopeId: string | undefined,
 ): Promise<Record<string, SharedObject>> => {
   if (!application) {
     throw new Error(

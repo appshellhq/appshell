@@ -4,7 +4,7 @@ import chalk from 'chalk';
 import fs from 'fs';
 import { GlobalArgs } from '../../util/args';
 import { RegistryClient, Theme, ThemeResource } from '../../util/registry';
-import { resolveScopeId } from '../../util/scope';
+import { defaultScopeFor, resolveScopeId } from '../../util/scope';
 
 /*
  * `T | undefined` rather than `T?`: a declared option is always present on the parsed
@@ -26,7 +26,7 @@ export type ThemePublishArgs = GlobalArgs & { file: string };
  * A bare name resolves in the caller's scope, so `appshell theme get brand` works the way
  * `appshell app` does. Omitting the version resolves the highest published one.
  */
-export const parseRef = (ref: string, defaultScope: string) => {
+export const parseRef = (ref: string, defaultScope?: string) => {
   const [coordinates, version] = ref.split('@');
   const parts = coordinates.split('/');
 
@@ -34,9 +34,13 @@ export const parseRef = (ref: string, defaultScope: string) => {
     throw new Error(`'${ref}' is not a theme reference. Expected 'scope/name@version'.`);
   }
 
-  return parts.length === 2
-    ? { scopeId: parts[0], name: parts[1], version }
-    : { scopeId: defaultScope, name: parts[0], version };
+  if (parts.length === 2) return { scopeId: parts[0], name: parts[1], version };
+
+  if (!defaultScope) {
+    throw new Error(`No scope for '${ref}'. Name it as 'scope/${ref}'.`);
+  }
+
+  return { scopeId: defaultScope, name: parts[0], version };
 };
 
 export const list = async (argv: ThemeListArgs) => {
@@ -59,7 +63,7 @@ export const list = async (argv: ThemeListArgs) => {
 };
 
 export const get = async (argv: ThemeGetArgs) => {
-  const { scopeId, name, version } = parseRef(argv.ref, await resolveScopeId(argv));
+  const { scopeId, name, version } = parseRef(argv.ref, await defaultScopeFor(argv.ref, argv));
   const theme = await new RegistryClient(argv.registry).getTheme(scopeId, name, version);
 
   console.log(JSON.stringify(theme, null, 2));
@@ -77,7 +81,7 @@ export const get = async (argv: ThemeGetArgs) => {
  * finishes.
  */
 export const init = async (argv: ThemeInitArgs) => {
-  const { scopeId, name, version } = parseRef(argv.from, await resolveScopeId(argv));
+  const { scopeId, name, version } = parseRef(argv.from, await defaultScopeFor(argv.from, argv));
   const source = await new RegistryClient(argv.registry).getTheme(scopeId, name, version);
 
   const resource: ThemeResource = {
