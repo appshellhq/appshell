@@ -3,6 +3,905 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.151](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.150...v1.0.0-alpha.151) (2026-11-25)
+
+### Bug Fixes
+
+- **cli:** renew a session at any provider, and look up a default scope only for a bare name ([#105](https://github.com/appshellhq/appshell/issues/105)) ([d74b6a8](https://github.com/appshellhq/appshell/commit/d74b6a88371b76f384be9a623a838ad55de26ee5)), closes [appshellhq/appshell-services#125](https://github.com/appshellhq/appshell-services/issues/125) [appshellhq/appshell-services#125](https://github.com/appshellhq/appshell-services/issues/125) [appshellhq/appshell-services#125](https://github.com/appshellhq/appshell-services/issues/125) [appshellhq/appshell-services#125](https://github.com/appshellhq/appshell-services/issues/125)
+
+# [1.0.0-alpha.150](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.149...v1.0.0-alpha.150) (2026-11-25)
+
+### Features
+
+- **cli:** log in to any OpenID Connect provider, and publish unscoped packages into the default scope ([#104](https://github.com/appshellhq/appshell/issues/104)) ([0202b72](https://github.com/appshellhq/appshell/commit/0202b7246dbff1d70bb3892020b843960df96b0f)), closes [appshellhq/appshell-services#125](https://github.com/appshellhq/appshell-services/issues/125) [appshellhq/appshell-services#125](https://github.com/appshellhq/appshell-services/issues/125) [appshellhq/appshell-services#125](https://github.com/appshellhq/appshell-services/issues/125)
+
+# [1.0.0-alpha.149](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.148...v1.0.0-alpha.149) (2026-11-17)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.148](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.147...v1.0.0-alpha.148) (2026-10-29)
+
+### Bug Fixes
+
+- **example:** lucide icons for the examples' navigation entries ([#91](https://github.com/appshellhq/appshell/issues/91)) ([99de28a](https://github.com/appshellhq/appshell/commit/99de28a3e64834ee859ca3ed96c2376beace675b))
+
+# [1.0.0-alpha.147](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.146...v1.0.0-alpha.147) (2026-10-28)
+
+### Bug Fixes
+
+- **cli:** dev start --theme sends the theme alone beside a dev server for an unpublished package ([#89](https://github.com/appshellhq/appshell/issues/89)) ([88cb800](https://github.com/appshellhq/appshell/commit/88cb8002bd0293c8a77898bd55c349706193c095)), closes [#86](https://github.com/appshellhq/appshell/issues/86)
+
+# [1.0.0-alpha.146](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.145...v1.0.0-alpha.146) (2026-10-28)
+
+### Bug Fixes
+
+- **branding:** trim the logos to their artwork, so layouts line them up and give their own space ([#83](https://github.com/appshellhq/appshell/issues/83)) ([00406d7](https://github.com/appshellhq/appshell/commit/00406d7d5d9b4e65657921b04e0a368faeda075b)), closes [appshellhq/appshell-mfe#63](https://github.com/appshellhq/appshell-mfe/issues/63)
+
+# [1.0.0-alpha.145](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.144...v1.0.0-alpha.145) (2026-10-27)
+
+### Features
+
+- **cli:** app clone --allow-overlays, so a copy of the hosted example can be overlaid ([#82](https://github.com/appshellhq/appshell/issues/82)) ([0b6aacb](https://github.com/appshellhq/appshell/commit/0b6aacb6cb4b2ffca64c9a0ef53604ff82ee8402)), closes [#28](https://github.com/appshellhq/appshell/issues/28)
+
+# [1.0.0-alpha.144](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.143...v1.0.0-alpha.144) (2026-10-26)
+
+### Features
+
+- **react-shell:** the appshell logo in the console's blue, with SVG sources for every variant ([#80](https://github.com/appshellhq/appshell/issues/80)) ([ff972b7](https://github.com/appshellhq/appshell/commit/ff972b7eb581e94b850850e281467ad9204c6faf)), closes [#1c78c0](https://github.com/appshellhq/appshell/issues/1c78c0) [#348bd4](https://github.com/appshellhq/appshell/issues/348bd4) [appshellhq/appshell-mfe#51](https://github.com/appshellhq/appshell-mfe/issues/51) [#8ed5](https://github.com/appshellhq/appshell/issues/8ed5) [#8ed5](https://github.com/appshellhq/appshell/issues/8ed5) [#348bd4](https://github.com/appshellhq/appshell/issues/348bd4)
+
+# [1.0.0-alpha.143](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.142...v1.0.0-alpha.143) (2026-10-25)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.142](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.141...v1.0.0-alpha.142) (2026-10-25)
+
+### Features
+
+- **webpack-plugin:** appshellRemote(), the webpack configuration every appshell remote needs ([#75](https://github.com/appshellhq/appshell/issues/75)) ([40208c2](https://github.com/appshellhq/appshell/commit/40208c2724c01d6390910b2d27f809ab8b235394)), closes [#74](https://github.com/appshellhq/appshell/issues/74) [#72](https://github.com/appshellhq/appshell/issues/72)
+
+# [1.0.0-alpha.141](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.140...v1.0.0-alpha.141) (2026-10-24)
+
+### Features
+
+- **scripts:** release the examples to kind, as the release does to production ([#69](https://github.com/appshellhq/appshell/issues/69)) ([38bf8de](https://github.com/appshellhq/appshell/commit/38bf8de8835cc9267eef11979776455715a77bc3)), closes [navaris/argocd-deployment-repo#242](https://github.com/navaris/argocd-deployment-repo/issues/242)
+
+# [1.0.0-alpha.140](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.139...v1.0.0-alpha.140) (2026-10-22)
+
+### Bug Fixes
+
+- **cli:** appshell packages lists only the scope it names, not the catalogue ([145473c](https://github.com/appshellhq/appshell/commit/145473ca01b0361cd9c67cdb7ab35722c6cca09c)), closes [appshellhq/appshell-services#78](https://github.com/appshellhq/appshell-services/issues/78)
+
+# [1.0.0-alpha.139](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.138...v1.0.0-alpha.139) (2026-10-22)
+
+### Bug Fixes
+
+- **cli:** dev stop --package finds a package's overlay by what it exposes ([aad8d31](https://github.com/appshellhq/appshell/commit/aad8d3150206bdb1fb95f6dee0415583e6d101b2))
+
+# [1.0.0-alpha.138](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.137...v1.0.0-alpha.138) (2026-10-22)
+
+### Bug Fixes
+
+- **cli:** every stop command dev prints names its application, with a flag stop has ([ad3ca63](https://github.com/appshellhq/appshell/commit/ad3ca63f97387e03e2de3a77499837833871c901))
+
+# [1.0.0-alpha.137](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.136...v1.0.0-alpha.137) (2026-10-21)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.136](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.135...v1.0.0-alpha.136) (2026-10-21)
+
+### Features
+
+- **runtime:** getRemotes and getBasePath, what a container reads from the composition ([40e17b9](https://github.com/appshellhq/appshell/commit/40e17b9e4a10a00d78a17e7ca306867502ac7eaf)), closes [appshellhq/appshell-mfe#1](https://github.com/appshellhq/appshell-mfe/issues/1)
+
+# [1.0.0-alpha.135](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.134...v1.0.0-alpha.135) (2026-10-20)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.134](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.133...v1.0.0-alpha.134) (2026-10-20)
+
+### Bug Fixes
+
+- **ci:** give npm's malware scan up to ninety minutes before judging a release ([612d327](https://github.com/appshellhq/appshell/commit/612d32731d29d58755c00dd58ab86d424d76f736))
+
+# [1.0.0-alpha.133](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.132...v1.0.0-alpha.133) (2026-10-20)
+
+### Bug Fixes
+
+- **ci:** publish each package with npm, which gives Rekor its five-minute timeout ([394dc4f](https://github.com/appshellhq/appshell/commit/394dc4feff406860e07c4115c5eb5c74be4a54d3)), closes [appshellhq/appshell#49](https://github.com/appshellhq/appshell/issues/49)
+
+# [1.0.0-alpha.132](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.131...v1.0.0-alpha.132) (2026-10-20)
+
+### Bug Fixes
+
+- **ci:** give provenance signing npm's five-minute Rekor timeout ([0e8f514](https://github.com/appshellhq/appshell/commit/0e8f51440eb95a2e2b71363fa7f69c4dd77017f8)), closes [appshellhq/appshell#49](https://github.com/appshellhq/appshell/issues/49)
+- **ci:** install Playwright 1.64.1 now ubuntu-latest is Ubuntu 26.04 ([e9b54e0](https://github.com/appshellhq/appshell/commit/e9b54e0b03f0f895162417f43c3815f9d49b46fa))
+
+# [1.0.0-alpha.131](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.130...v1.0.0-alpha.131) (2026-10-20)
+
+### Bug Fixes
+
+- **react-shell:** the shell's reset normalises what Tailwind packages assume Preflight did ([db064ca](https://github.com/appshellhq/appshell/commit/db064ca6582ee29ef4beaef3f4a712999aff917b)), closes [#50](https://github.com/appshellhq/appshell/issues/50)
+
+# [1.0.0-alpha.130](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.129...v1.0.0-alpha.130) (2026-10-19)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.129](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.128...v1.0.0-alpha.129) (2026-10-19)
+
+### Bug Fixes
+
+- **tokens:** focus rings clear 3:1 on every surface, not just the page ([12499d0](https://github.com/appshellhq/appshell/commit/12499d08a028f4530bde791960a76aa371dfcd01))
+
+# [1.0.0-alpha.128](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.127...v1.0.0-alpha.128) (2026-10-19)
+
+### Features
+
+- **tokens:** a sunken surface, info and a control border, and status colours read as text ([5f0ee47](https://github.com/appshellhq/appshell/commit/5f0ee47b0e42284cbbb4498f5a7d72abeb9f8a67))
+
+# [1.0.0-alpha.127](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.126...v1.0.0-alpha.127) (2026-10-19)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.126](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.125...v1.0.0-alpha.126) (2026-10-19)
+
+### Features
+
+- **example:** theme the examples through the published @appshell/tokens/tailwind.css ([b888163](https://github.com/appshellhq/appshell/commit/b888163144ec9b6601052d474213b4e52dc19d2a)), closes [#44](https://github.com/appshellhq/appshell/issues/44)
+
+# [1.0.0-alpha.125](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.124...v1.0.0-alpha.125) (2026-10-19)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.124](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.123...v1.0.0-alpha.124) (2026-10-19)
+
+### Features
+
+- **tokens:** publish the Tailwind v4 adapter as tailwind.css, generated from the contract ([4e09bcc](https://github.com/appshellhq/appshell/commit/4e09bcc2ee07f3de85df74c50616a0014aa737f0)), closes [#44](https://github.com/appshellhq/appshell/issues/44)
+
+# [1.0.0-alpha.123](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.122...v1.0.0-alpha.123) (2026-10-18)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.122](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.121...v1.0.0-alpha.122) (2026-10-18)
+
+### Features
+
+- **example:** build the examples on React 19, and peer @appshell/react on ^19 ([482f261](https://github.com/appshellhq/appshell/commit/482f2613cb415b78f5185b15a0eb2220355ba121)), closes [#40](https://github.com/appshellhq/appshell/issues/40)
+
+# [1.0.0-alpha.121](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.120...v1.0.0-alpha.121) (2026-10-18)
+
+### Features
+
+- **react:** move the shell and the packages to React 19, the examples to follow ([72cec1e](https://github.com/appshellhq/appshell/commit/72cec1e793324bd604494f78602260025922f13d)), closes [#40](https://github.com/appshellhq/appshell/issues/40)
+
+# [1.0.0-alpha.120](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.119...v1.0.0-alpha.120) (2026-10-18)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.119](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.118...v1.0.0-alpha.119) (2026-10-17)
+
+### Bug Fixes
+
+- **cli:** never drop a version named with the package, and refuse malformed names ([5b6ddc3](https://github.com/appshellhq/appshell/commit/5b6ddc30f024830e3c14daea10219e2dc992ca2a)), closes [appshellhq/appshell#39](https://github.com/appshellhq/appshell/issues/39)
+
+# [1.0.0-alpha.118](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.117...v1.0.0-alpha.118) (2026-10-17)
+
+### Bug Fixes
+
+- **cli:** take a package as 'scope/name' everywhere, in one place ([ec0ad67](https://github.com/appshellhq/appshell/commit/ec0ad671461666da6c8394af61660db995e18476)), closes [appshellhq/appshell-services#33](https://github.com/appshellhq/appshell-services/issues/33)
+
+# [1.0.0-alpha.117](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.116...v1.0.0-alpha.117) (2026-10-17)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.116](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.115...v1.0.0-alpha.116) (2026-10-16)
+
+### Bug Fixes
+
+- **cli:** put the registry in every restore hint ([d433104](https://github.com/appshellhq/appshell/commit/d43310457c55e5c808f35559770c7d0a04037d41)), closes [#37](https://github.com/appshellhq/appshell/issues/37)
+
+# [1.0.0-alpha.115](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.114...v1.0.0-alpha.115) (2026-10-16)
+
+### Features
+
+- **cli:** restore and purge an unpublished version, and list what can be restored ([b874058](https://github.com/appshellhq/appshell/commit/b874058a4367db09b1f53e431b334dd3e0a36cb3)), closes [appshellhq/appshell-services#29](https://github.com/appshellhq/appshell-services/issues/29) [#29](https://github.com/appshellhq/appshell/issues/29)
+
+# [1.0.0-alpha.114](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.113...v1.0.0-alpha.114) (2026-10-15)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.113](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.112...v1.0.0-alpha.113) (2026-10-15)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.112](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.111...v1.0.0-alpha.112) (2026-10-14)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.111](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.110...v1.0.0-alpha.111) (2026-10-14)
+
+### Bug Fixes
+
+- **cli:** fall back without a token for an explicit workload token too ([a463adf](https://github.com/appshellhq/appshell/commit/a463adfc61efce4c47bc13837574fc7be9eb8f12))
+
+# [1.0.0-alpha.110](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.109...v1.0.0-alpha.110) (2026-10-14)
+
+### Bug Fixes
+
+- **cli:** second review round on trusted deployment ([acf0f3a](https://github.com/appshellhq/appshell/commit/acf0f3a4244cedac8b888bbe4fe74c4b307b7ec5))
+
+# [1.0.0-alpha.109](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.108...v1.0.0-alpha.109) (2026-10-14)
+
+### Bug Fixes
+
+- **cli:** address review on trusted deployment ([d32947c](https://github.com/appshellhq/appshell/commit/d32947cc8eedcbe7eaf4fe802fb5750bcd8ccaf9))
+
+# [1.0.0-alpha.108](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.107...v1.0.0-alpha.108) (2026-10-13)
+
+### Features
+
+- **cli:** trust workloads to apply an application, and apply as one ([e53a122](https://github.com/appshellhq/appshell/commit/e53a122468eef876f2712c2496c9df465bebe5ec)), closes [appshellhq/appshell-services#57](https://github.com/appshellhq/appshell-services/issues/57)
+
+# [1.0.0-alpha.107](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.106...v1.0.0-alpha.107) (2026-10-13)
+
+### Bug Fixes
+
+- **ci:** move the example's lockfile with npm update, and check it reached the release ([7783871](https://github.com/appshellhq/appshell/commit/7783871e0e618a42f9d62e1c44409490abf0067a)), closes [#30](https://github.com/appshellhq/appshell/issues/30)
+
+# [1.0.0-alpha.106](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.105...v1.0.0-alpha.106) (2026-10-13)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.105](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.104...v1.0.0-alpha.105) (2026-10-12)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.104](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.103...v1.0.0-alpha.104) (2026-10-12)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.103](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.102...v1.0.0-alpha.103) (2026-10-12)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.102](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.101...v1.0.0-alpha.102) (2026-10-12)
+
+### Bug Fixes
+
+- **ci:** give the npm check the replication budget the workflow already uses ([573e6e6](https://github.com/appshellhq/appshell/commit/573e6e63a9ca8098a7dc8b97ee8f668988b27008))
+
+# [1.0.0-alpha.101](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.100...v1.0.0-alpha.101) (2026-10-12)
+
+### Bug Fixes
+
+- **ci:** claim a version in git before publishing it, and judge the publish by npm ([e6f951c](https://github.com/appshellhq/appshell/commit/e6f951c6fa6093ff7aea6445bf51b855eda6a3d7)), closes [#20](https://github.com/appshellhq/appshell/issues/20) [#18](https://github.com/appshellhq/appshell/issues/18) [#19](https://github.com/appshellhq/appshell/issues/19)
+- **ci:** claim the version atomically and check npm past the cache ([f17952e](https://github.com/appshellhq/appshell/commit/f17952e2f912f4054dc774e08892c6eab7f29b7d))
+- **ci:** the registry check decides every release, and refuses to check nothing ([9d3175f](https://github.com/appshellhq/appshell/commit/9d3175f19224e9e5d89b8173734a8a2843256b3c)), closes [#21](https://github.com/appshellhq/appshell/issues/21)
+
+# [1.0.0-alpha.100](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.99...v1.0.0-alpha.100) (2026-10-11)
+
+### Bug Fixes
+
+- **cli:** normalize the issuer, and show an unrestricted record unmistakably ([2cda7f7](https://github.com/appshellhq/appshell/commit/2cda7f70ff0674cc87661ce6f8db79fd9cb458c9)), closes [#19](https://github.com/appshellhq/appshell/issues/19)
+- **cli:** trust records name one GitHub instance, and only workflows GitHub can run ([cc32b5c](https://github.com/appshellhq/appshell/commit/cc32b5c3e7d4f1c9f5d062fc111dd42091ee38cb)), closes [#19](https://github.com/appshellhq/appshell/issues/19)
+- **config:** ca-file adds to Node's roots instead of replacing them ([455d852](https://github.com/appshellhq/appshell/commit/455d85241432ab6315e9e4f57819ae5b765a0f3b))
+- **config:** ca-file keeps the roots Node was given at runtime too ([c86442c](https://github.com/appshellhq/appshell/commit/c86442cda9767c875052a5845d456e72edc39016)), closes [#18](https://github.com/appshellhq/appshell/issues/18)
+
+### Features
+
+- **cli:** appshell trust, and publishing from GitHub Actions through trusted publishing ([0bd1758](https://github.com/appshellhq/appshell/commit/0bd1758f55243fd00ec54abfdd8d9d5a1fafd820)), closes [appshellhq/appshell-services#51](https://github.com/appshellhq/appshell-services/issues/51)
+
+# [1.0.0-alpha.99](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.98...v1.0.0-alpha.99) (2026-10-11)
+
+### Features
+
+- **cli:** appshell org create | members add | members list, and appshell whoami ([d1b2052](https://github.com/appshellhq/appshell/commit/d1b2052ad096a308251329e43b4962557874f769)), closes [appshellhq/appshell#15](https://github.com/appshellhq/appshell/issues/15) [navaris/argocd-deployment-repo#236](https://github.com/navaris/argocd-deployment-repo/issues/236)
+
+# [1.0.0-alpha.98](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.97...v1.0.0-alpha.98) (2026-10-09)
+
+### Bug Fixes
+
+- **cli:** the device grant sends PKCE, as appshell's realm requires ([6ff25e0](https://github.com/appshellhq/appshell/commit/6ff25e08635744fbc5ca0c6ab718e5df37691dd6)), closes [navaris/argocd-deployment-repo#208](https://github.com/navaris/argocd-deployment-repo/issues/208)
+
+# [1.0.0-alpha.97](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.96...v1.0.0-alpha.97) (2026-09-19)
+
+### Features
+
+- **cli:** give up a scope with 'scopes release' ([61fd258](https://github.com/appshellhq/appshell/commit/61fd258881eab0c98c454a576d9e9afb7cd894da)), closes [appshellhq/appshell-services#32](https://github.com/appshellhq/appshell-services/issues/32)
+
+# [1.0.0-alpha.96](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.95...v1.0.0-alpha.96) (2026-09-19)
+
+### Features
+
+- **cli:** hand a scope to an organization ([7b70e89](https://github.com/appshellhq/appshell/commit/7b70e894509b0b72035205c274b27845c5b2b9fb)), closes [appshellhq/appshell-services#32](https://github.com/appshellhq/appshell-services/issues/32)
+
+# [1.0.0-alpha.95](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.94...v1.0.0-alpha.95) (2026-09-19)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.94](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.93...v1.0.0-alpha.94) (2026-09-19)
+
+### Bug Fixes
+
+- **cli:** stop calling an organization's namespace one you own ([4070a65](https://github.com/appshellhq/appshell/commit/4070a65b64d027a17dfe38157bfde671e2160471))
+
+# [1.0.0-alpha.93](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.92...v1.0.0-alpha.93) (2026-09-18)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.92](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.91...v1.0.0-alpha.92) (2026-09-18)
+
+### Bug Fixes
+
+- **cli:** resolve the scope to address instead of defaulting it ([c2ebc5e](https://github.com/appshellhq/appshell/commit/c2ebc5e2f8c4ebfb5594c54f07c6f7a9bd0d0f59)), closes [appshellhq/appshell#3](https://github.com/appshellhq/appshell/issues/3)
+- **config:** stop inventing a scope when none is configured ([2867adc](https://github.com/appshellhq/appshell/commit/2867adc9123f95170dca0fe4c3e70caf22879442)), closes [appshellhq/appshell#3](https://github.com/appshellhq/appshell/issues/3)
+
+### Features
+
+- **cli:** add packages visibility, and stop publish pretending to set it ([af36fbb](https://github.com/appshellhq/appshell/commit/af36fbb007a511ca0573d94da939837d6772fb53))
+- **cli:** read the publisher as a subject and a name ([6c58b28](https://github.com/appshellhq/appshell/commit/6c58b28836c80ec536f37bea50207008265eb715))
+
+# [1.0.0-alpha.91](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.90...v1.0.0-alpha.91) (2026-09-12)
+
+### Bug Fixes
+
+- **ci:** stop retrying a dependency conflict as though it were replication lag ([b95d43f](https://github.com/appshellhq/appshell/commit/b95d43ff8a5ef6923c681bafc750c67273fe635b))
+- **examples:** pin react-dom wherever react is pinned ([5a3d115](https://github.com/appshellhq/appshell/commit/5a3d115d5621999572a8fea08fdcc708674d82f2))
+
+# [1.0.0-alpha.90](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.89...v1.0.0-alpha.90) (2026-09-12)
+
+### Bug Fixes
+
+- **ci:** the version bump no longer looks for local workspaces on npm ([e33e143](https://github.com/appshellhq/appshell/commit/e33e14354bb20079fe3dafbe9dedcc85ec51810a))
+- **cli:** lifting a deprecation sent a blank reason instead of none ([2387863](https://github.com/appshellhq/appshell/commit/23878636439e1c3384eec6112c02e2a4aa788f35))
+- **examples:** declare every dependency the apps import ([b4f833f](https://github.com/appshellhq/appshell/commit/b4f833f3edaffe5adfae0aca27904b5645e0a6d1))
+
+### Features
+
+- **cli:** claim and inspect the scopes packages publish into ([ac483f7](https://github.com/appshellhq/appshell/commit/ac483f79517e06acd32d0c40e83ba66ea3cc88e5))
+- **examples:** the sample apps declare the scope they publish into ([9d87859](https://github.com/appshellhq/appshell/commit/9d8785977a5786935236ebc377c2571bbb22de87)), closes [appshellhq/appshell-services#14](https://github.com/appshellhq/appshell-services/issues/14)
+
+# [1.0.0-alpha.89](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.88...v1.0.0-alpha.89) (2026-09-12)
+
+### Features
+
+- **cli:** a package declares the scope it belongs to ([68ce4db](https://github.com/appshellhq/appshell/commit/68ce4db30971e7e515dbc47431efba24373be613)), closes [appshellhq/appshell-services#14](https://github.com/appshellhq/appshell-services/issues/14)
+
+# [1.0.0-alpha.88](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.87...v1.0.0-alpha.88) (2026-09-12)
+
+### Features
+
+- **cli:** deprecate a version, and show it wherever a version is chosen ([09f5e98](https://github.com/appshellhq/appshell/commit/09f5e989d753696e391d736202465c92b4eb6d33))
+
+# [1.0.0-alpha.87](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.86...v1.0.0-alpha.87) (2026-09-12)
+
+### Features
+
+- **cli:** list, get and describe packages ([02cd011](https://github.com/appshellhq/appshell/commit/02cd011ee2c9329a961e42f32a33a1dac9ce5012)), closes [#9](https://github.com/appshellhq/appshell/issues/9) [appshellhq/appshell-services#26](https://github.com/appshellhq/appshell-services/issues/26)
+
+# [1.0.0-alpha.86](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.85...v1.0.0-alpha.86) (2026-09-12)
+
+### Features
+
+- **cli:** stay logged in, using the refresh token it already stored ([275ec2e](https://github.com/appshellhq/appshell/commit/275ec2ebd45164f05b7aab27f4db90458bf57494)), closes [#6](https://github.com/appshellhq/appshell/issues/6)
+
+# [1.0.0-alpha.85](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.84...v1.0.0-alpha.85) (2026-09-12)
+
+### Bug Fixes
+
+- **ci:** move the lockfile, not the declared ranges ([52fe077](https://github.com/appshellhq/appshell/commit/52fe07709481dfdf18c5c93a2b8f47c32f14aaec))
+
+# [1.0.0-alpha.84](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.83...v1.0.0-alpha.84) (2026-09-12)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.83](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.82...v1.0.0-alpha.83) (2026-09-12)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.82](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.81...v1.0.0-alpha.82) (2026-09-12)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.81](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.80...v1.0.0-alpha.81) (2026-09-11)
+
+### Bug Fixes
+
+- **ci:** build example images from the tree the bump landed in ([3bf675d](https://github.com/appshellhq/appshell/commit/3bf675dbc58f2cb81f0c7c1e3ab23cccf9a0dee9))
+
+# [1.0.0-alpha.80](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.79...v1.0.0-alpha.80) (2026-09-11)
+
+### Bug Fixes
+
+- **ci:** retry the install rather than waiting on a guessed list of packages ([ab74f34](https://github.com/appshellhq/appshell/commit/ab74f34a8f9160c65c83c04c40215ef2e0bddd0c))
+
+# [1.0.0-alpha.79](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.78...v1.0.0-alpha.79) (2026-09-11)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.78](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.77...v1.0.0-alpha.78) (2026-09-11)
+
+### Bug Fixes
+
+- **plugin:** ask whether the hot reload address is dialable, not whether it is set ([64609ce](https://github.com/appshellhq/appshell/commit/64609ce3afe1a737a759d34d4ed420eb2c673c9d))
+
+# [1.0.0-alpha.77](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.76...v1.0.0-alpha.77) (2026-09-11)
+
+### Bug Fixes
+
+- **dev:** give hot reload an address it can dial, and a shell it works in ([d8c25f9](https://github.com/appshellhq/appshell/commit/d8c25f90f9550e90fd76d91fce52f0887715cfd3))
+
+# [1.0.0-alpha.76](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.75...v1.0.0-alpha.76) (2026-09-11)
+
+### Bug Fixes
+
+- **cli:** read the manifest shape the registry actually sends ([5c06dea](https://github.com/appshellhq/appshell/commit/5c06dea4b3308d7611e61c5307c5e343d3b80251))
+- **plugin:** always print the overlay confirm url ([d6bfbdb](https://github.com/appshellhq/appshell/commit/d6bfbdb18cf0d5b1bd791712d28badaf7a571cfc))
+
+# [1.0.0-alpha.75](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.74...v1.0.0-alpha.75) (2026-09-11)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.74](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.73...v1.0.0-alpha.74) (2026-09-11)
+
+### Bug Fixes
+
+- **overlay:** send a manifest url, which an introduced remote cannot inherit ([b79a3e5](https://github.com/appshellhq/appshell/commit/b79a3e5133ea2824bd949a964125d694e35eb421)), closes [appshellhq/appshell-services#22](https://github.com/appshellhq/appshell-services/issues/22)
+
+# [1.0.0-alpha.73](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.72...v1.0.0-alpha.73) (2026-09-11)
+
+### Features
+
+- **manifest:** stop hashing the bundle into the manifest ([48d2710](https://github.com/appshellhq/appshell/commit/48d2710cb8beb929b198bca3c7734ac38e3db669)), closes [appshellhq/appshell-services#21](https://github.com/appshellhq/appshell-services/issues/21)
+- **overlay:** send this build's loader with the overlay patch ([dae09b2](https://github.com/appshellhq/appshell/commit/dae09b26c651d2abfcf8ee3ff13246b32eaac893)), closes [appshellhq/appshell-services#22](https://github.com/appshellhq/appshell-services/issues/22)
+- **shell:** say which overlay remotes the application does not publish ([c841bba](https://github.com/appshellhq/appshell/commit/c841bbaf9acbca06b4883fd9df5e04cf5f6e04e0)), closes [appshellhq/appshell-services#22](https://github.com/appshellhq/appshell-services/issues/22)
+
+# [1.0.0-alpha.72](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.71...v1.0.0-alpha.72) (2026-09-10)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.71](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.70...v1.0.0-alpha.71) (2026-09-10)
+
+### Features
+
+- **webpack-plugin:** pin the code a manifest describes ([664425b](https://github.com/appshellhq/appshell/commit/664425b6dc22c414f27e9cfaaf6ab309be448278))
+
+# [1.0.0-alpha.70](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.69...v1.0.0-alpha.70) (2026-09-10)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.69](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.68...v1.0.0-alpha.69) (2026-09-10)
+
+### Features
+
+- **config:** state the shared contract, not the plugin options it came from ([c77c914](https://github.com/appshellhq/appshell/commit/c77c914966a8c119218f03102fc42ac0208f8023))
+
+# [1.0.0-alpha.68](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.67...v1.0.0-alpha.68) (2026-09-10)
+
+### Features
+
+- **config:** say components and remotes, and mean what MF means ([e3430f4](https://github.com/appshellhq/appshell/commit/e3430f49b4e03e82464e99642ddcadc307aa9ebe)), closes [#5](https://github.com/appshellhq/appshell/issues/5)
+
+# [1.0.0-alpha.67](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.66...v1.0.0-alpha.67) (2026-09-09)
+
+### Bug Fixes
+
+- **cli:** find the manifest template instead of guessing at it ([252dfde](https://github.com/appshellhq/appshell/commit/252dfde1fd58f713c800909aea96a000a89b80c8))
+
+# [1.0.0-alpha.66](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.65...v1.0.0-alpha.66) (2026-09-09)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.65](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.64...v1.0.0-alpha.65) (2026-09-09)
+
+### Features
+
+- **runtime:** name how a remote is loaded, as one kind among possible kinds ([f2600b6](https://github.com/appshellhq/appshell/commit/f2600b6be48a728d5ac019f28d9de175f9b3c557))
+
+# [1.0.0-alpha.64](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.63...v1.0.0-alpha.64) (2026-09-09)
+
+### Bug Fixes
+
+- **cli:** publishing a package no longer activates it ([10a75d3](https://github.com/appshellhq/appshell/commit/10a75d36f9058c5c6ef9d3ce013a7d36c821e7d7)), closes [#4](https://github.com/appshellhq/appshell/issues/4)
+
+# [1.0.0-alpha.63](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.62...v1.0.0-alpha.63) (2026-09-09)
+
+### Bug Fixes
+
+- **cli:** let config set write ca-file ([af932de](https://github.com/appshellhq/appshell/commit/af932de341afbb257c4d6e63f3348e2dc66202a6))
+
+# [1.0.0-alpha.62](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.61...v1.0.0-alpha.62) (2026-09-09)
+
+### Bug Fixes
+
+- **config:** stop readConfig printing the config, credential included ([27af8c8](https://github.com/appshellhq/appshell/commit/27af8c8d9646e2eb5e8256042eb654bb49110c98))
+
+# [1.0.0-alpha.61](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.60...v1.0.0-alpha.61) (2026-09-09)
+
+### Features
+
+- **cli:** trust a private CA through config, not an environment variable ([6701781](https://github.com/appshellhq/appshell/commit/67017816474ca61c026ca2193e90dbb4928bd4f7))
+
+# [1.0.0-alpha.60](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.59...v1.0.0-alpha.60) (2026-09-09)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.59](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.58...v1.0.0-alpha.59) (2026-09-09)
+
+### Features
+
+- **config:** declare visibility in appshell.config.yaml ([5633310](https://github.com/appshellhq/appshell/commit/56333103fc2b552803f3c97a0a0918fbb7abd596))
+
+# [1.0.0-alpha.58](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.57...v1.0.0-alpha.58) (2026-09-09)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.57](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.56...v1.0.0-alpha.57) (2026-09-09)
+
+### Bug Fixes
+
+- **config:** typecheck against source, so it runs on a clean checkout ([01434dc](https://github.com/appshellhq/appshell/commit/01434dcab1fe3ed4eb616850394c1fa546a2c3ca))
+- **webpack-plugin:** derive the overlay filename from the Module Federation config ([26878c9](https://github.com/appshellhq/appshell/commit/26878c9eaf50c0d8254af41a3f69055614855758))
+
+### Features
+
+- **config:** publish a manifest that names no origin ([dde5e82](https://github.com/appshellhq/appshell/commit/dde5e82e511cf107504aea4d0b9e3051a3ec532e))
+
+# [1.0.0-alpha.56](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.55...v1.0.0-alpha.56) (2026-09-08)
+
+### Bug Fixes
+
+- **cli:** make config init's auth options discoverable, and say what is missing ([972d1f8](https://github.com/appshellhq/appshell/commit/972d1f84f1f16051097ccfbc2a609b07af0052f6))
+
+# [1.0.0-alpha.55](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.54...v1.0.0-alpha.55) (2026-09-07)
+
+### Bug Fixes
+
+- **ci:** record the bare digest, which is what the manifest step reads ([ff74d4d](https://github.com/appshellhq/appshell/commit/ff74d4d866383db1ab77a3813b361077415c05e9))
+
+# [1.0.0-alpha.54](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.53...v1.0.0-alpha.54) (2026-09-07)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.53](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.52...v1.0.0-alpha.53) (2026-09-07)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.52](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.51...v1.0.0-alpha.52) (2026-09-07)
+
+### Features
+
+- **config:** declare remote overrides on AppshellOverrides ([3b3a9f6](https://github.com/appshellhq/appshell/commit/3b3a9f6743bbff19a0d203844b593839005f1d48))
+
+# [1.0.0-alpha.51](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.50...v1.0.0-alpha.51) (2026-09-07)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.50](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.49...v1.0.0-alpha.50) (2026-09-07)
+
+### Features
+
+- **webpack-plugin:** warn when a local build shares differently ([ba7a35b](https://github.com/appshellhq/appshell/commit/ba7a35b75c1c649b9ac0669e5b9907127834b46b))
+
+# [1.0.0-alpha.49](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.48...v1.0.0-alpha.49) (2026-09-07)
+
+### Features
+
+- **webpack-plugin:** send this build's metadata with the overlay ([a4d28ea](https://github.com/appshellhq/appshell/commit/a4d28eaa5187d71f6046f6ecd3c65ff7c2b7514e))
+
+# [1.0.0-alpha.48](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.47...v1.0.0-alpha.48) (2026-09-07)
+
+### Features
+
+- **webpack-plugin:** a dev server opens an overlay instead of publishing ([c9bae9a](https://github.com/appshellhq/appshell/commit/c9bae9a0037aadaa543bed53163e29aff0dbe9ee)), closes [appshellhq/appshell#3](https://github.com/appshellhq/appshell/issues/3)
+
+# [1.0.0-alpha.47](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.46...v1.0.0-alpha.47) (2026-09-07)
+
+### Features
+
+- **example:** show who is looking at the page ([4d3ea9a](https://github.com/appshellhq/appshell/commit/4d3ea9aed2bdb2f81215aaad3f92a1b283c9ee76))
+
+# [1.0.0-alpha.46](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.45...v1.0.0-alpha.46) (2026-09-06)
+
+### Features
+
+- **runtime:** let a package read who is looking at the page ([2ddfbb8](https://github.com/appshellhq/appshell/commit/2ddfbb8c8cff66662a838e3437e66ba733d4088f))
+
+# [1.0.0-alpha.45](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.44...v1.0.0-alpha.45) (2026-09-05)
+
+### Bug Fixes
+
+- **cli:** resolve the registry's browser URLs instead of concatenating them ([08eac66](https://github.com/appshellhq/appshell/commit/08eac66692d75bc4e7500d3f5bcec905c00c8466))
+
+# [1.0.0-alpha.44](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.43...v1.0.0-alpha.44) (2026-09-05)
+
+### Bug Fixes
+
+- **cli:** stop opening a browser tab for an overlay already confirmed ([6fda7b0](https://github.com/appshellhq/appshell/commit/6fda7b0db846974ebdbd1b40c43920a17ffd1cd3))
+
+# [1.0.0-alpha.43](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.42...v1.0.0-alpha.43) (2026-09-04)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.42](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.41...v1.0.0-alpha.42) (2026-09-04)
+
+### Features
+
+- **cli,examples:** address remotes by scope/package/Component ([fa89e54](https://github.com/appshellhq/appshell/commit/fa89e5477d8d9b53db582c676e255e85432a1890))
+
+# [1.0.0-alpha.41](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.40...v1.0.0-alpha.41) (2026-09-04)
+
+### Features
+
+- **cli:** appshell app activate, with --set for the vars a package declares ([adbfb16](https://github.com/appshellhq/appshell/commit/adbfb16308d06d4f95da7db55720321c3a4870d4))
+
+# [1.0.0-alpha.40](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.39...v1.0.0-alpha.40) (2026-09-04)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.39](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.38...v1.0.0-alpha.39) (2026-09-04)
+
+### Bug Fixes
+
+- **config:** resolve deployment coordinates at publish, and leave vars declared ([42f95a5](https://github.com/appshellhq/appshell/commit/42f95a5016dabafd7705f6a3cb2d32e549184375))
+
+# [1.0.0-alpha.38](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.37...v1.0.0-alpha.38) (2026-09-03)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.37](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.36...v1.0.0-alpha.37) (2026-09-03)
+
+### Bug Fixes
+
+- **examples:** set globalObject so the components bundle loads outside a browser ([adf7705](https://github.com/appshellhq/appshell/commit/adf7705084ecf3689260672d8563c276fa669819))
+
+# [1.0.0-alpha.36](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.35...v1.0.0-alpha.36) (2026-09-03)
+
+### Bug Fixes
+
+- **config:** stop manifestFrom substituting into the template it was given ([3b99509](https://github.com/appshellhq/appshell/commit/3b99509a6028c0f19334a0751875e16efbb28374))
+
+# [1.0.0-alpha.35](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.34...v1.0.0-alpha.35) (2026-09-03)
+
+### Bug Fixes
+
+- **cli:** refuse an unknown command instead of exiting 0 ([96f2ab9](https://github.com/appshellhq/appshell/commit/96f2ab9b8c7c9cabb4c6208eaaf54df7f2cc28cc))
+- **webpack-plugin:** share the jsx runtime, which the react key does not cover ([4ba21b6](https://github.com/appshellhq/appshell/commit/4ba21b672c765eb30672d0d17cc964cc495c0641))
+
+# [1.0.0-alpha.34](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.33...v1.0.0-alpha.34) (2026-09-03)
+
+### Bug Fixes
+
+- **cli:** declare theme on the create-overlay response ([acf4787](https://github.com/appshellhq/appshell/commit/acf478784f4ad88e5bb439a3dd05ad7a1c22b8fe))
+- **cli:** report the theme dev start applied ([71e39a7](https://github.com/appshellhq/appshell/commit/71e39a752e0a9e79e7a3ff941d2c8ce63e385346))
+
+# [1.0.0-alpha.33](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.32...v1.0.0-alpha.33) (2026-09-03)
+
+### Bug Fixes
+
+- **cli:** use an unconfirmed dev-server hint instead of redirecting nothing ([69d963f](https://github.com/appshellhq/appshell/commit/69d963f0bd1b457ea927b32ba1590467cf9c2955))
+- **webpack-plugin:** serve the manifest a package's manifestUrl promises ([8284334](https://github.com/appshellhq/appshell/commit/8284334099a04dacf1517a1cfd7c807b663c6e1e))
+
+# [1.0.0-alpha.32](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.31...v1.0.0-alpha.32) (2026-09-02)
+
+### Bug Fixes
+
+- **examples:** repair two package names the vocabulary rename corrupted ([e780197](https://github.com/appshellhq/appshell/commit/e780197730e7616c571fa67385e33b7ba2600ab3))
+
+# [1.0.0-alpha.31](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.30...v1.0.0-alpha.31) (2026-09-02)
+
+### Bug Fixes
+
+- **examples:** restore the React import AppShowcase needs to compile ([5a2eddd](https://github.com/appshellhq/appshell/commit/5a2eddd856a5805427e87d42f4cc7f8f06e9fd0c))
+
+# [1.0.0-alpha.30](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.29...v1.0.0-alpha.30) (2026-09-01)
+
+### Features
+
+- **cli:** appshell dev --theme ([a566418](https://github.com/appshellhq/appshell/commit/a56641847448c39cd9c27742223ffff15dfd6925))
+- **examples:** put the accent somewhere it can be seen ([a654fcc](https://github.com/appshellhq/appshell/commit/a654fcc9db6cc69ab755140e31c9f655511ce928))
+
+# [1.0.0-alpha.29](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.28...v1.0.0-alpha.29) (2026-08-31)
+
+### Bug Fixes
+
+- **react-shell:** declare the workspace plugin it builds with ([035c271](https://github.com/appshellhq/appshell/commit/035c271bc6eb435597b69701152c5bfa24771a30))
+
+# [1.0.0-alpha.28](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.27...v1.0.0-alpha.28) (2026-08-30)
+
+### Features
+
+- **cli:** add theme commands ([2dc7cfe](https://github.com/appshellhq/appshell/commit/2dc7cfe46512e909fe8586b8110603988440b81e))
+
+# [1.0.0-alpha.27](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.26...v1.0.0-alpha.27) (2026-08-29)
+
+### Bug Fixes
+
+- **cli:** add --force to publish and unbreak the unpublish version positional ([6e881ac](https://github.com/appshellhq/appshell/commit/6e881ac885d696f86d924b598ea7b6c6070a200c))
+- **tokens:** destructure in the resolved-theme test, and lint before committing ([d93ce98](https://github.com/appshellhq/appshell/commit/d93ce9843a16efef64d10fa3c3c8358261881792))
+
+### Features
+
+- **tokens:** separate theme resolution from CSS emission ([1b11caa](https://github.com/appshellhq/appshell/commit/1b11caa59d8ee11051bb10b4f9830c9dcb67ab49))
+
+# [1.0.0-alpha.26](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.25...v1.0.0-alpha.26) (2026-08-29)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.25](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.24...v1.0.0-alpha.25) (2026-08-29)
+
+### Bug Fixes
+
+- pin commitlint to 19 so lerna's dependency tree stays valid ([aca0aab](https://github.com/appshellhq/appshell/commit/aca0aab6eb2bf4f0f4a089670f5bd4676d4d5a7f))
+- resolve the UMD self reference in loader and react ([bcb2097](https://github.com/appshellhq/appshell/commit/bcb2097944be44a449f335e60a9f9275b0fb39d6))
+
+- feat!: fold @appshell/vars into the @appshell/runtime/vars subpath ([8936237](https://github.com/appshellhq/appshell/commit/893623759236bbbd5436607ec6ae1162ce92de45))
+- feat!: delete @appshell/core and move the wire types into runtime ([9b3ed20](https://github.com/appshellhq/appshell/commit/9b3ed2094fba8909531049d354a2763c6c1f80db))
+
+### Features
+
+- **webpack-plugin:** provide the shared block instead of asking for it ([a31755d](https://github.com/appshellhq/appshell/commit/a31755da36cc8a80aacd4798fb59f5f2f7673bde))
+
+### BREAKING CHANGES
+
+- @appshell/vars is removed. Replace
+  `import { getVars } from '@appshell/vars'` with
+  `import { getVars } from '@appshell/runtime/vars'`.
+- @appshell/core is removed. Import AppshellRemote, AppshellIndex
+  and Metadata from @appshell/runtime, or from @appshell/react which re-exports
+  them. AppshellManifest stays in @appshell/config.
+
+# [1.0.0-alpha.24](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.23...v1.0.0-alpha.24) (2026-08-28)
+
+### Bug Fixes
+
+- **webpack-plugin:** read token usage while the sources still exist ([df4597d](https://github.com/appshellhq/appshell/commit/df4597dd812df533b83b145d7570f6ba217bf864))
+
+### Features
+
+- **webpack-plugin:** observe which design tokens a package reaches for ([014c9fa](https://github.com/appshellhq/appshell/commit/014c9fa5c33bff8c2fa9de2461179b85a24ec3b0)), closes [#0284c7](https://github.com/appshellhq/appshell/issues/0284c7)
+
+# [1.0.0-alpha.23](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.22...v1.0.0-alpha.23) (2026-08-27)
+
+### Features
+
+- **tokens:** let an application pin a colour scheme, and emit color-scheme ([a428d04](https://github.com/appshellhq/appshell/commit/a428d047a9bf57dc5eb3d15763b211bec760beff))
+
+# [1.0.0-alpha.22](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.21...v1.0.0-alpha.22) (2026-08-27)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.21](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.20...v1.0.0-alpha.21) (2026-08-27)
+
+### Features
+
+- **react-shell:** remove the registry's splash once the root package mounts ([3957f5d](https://github.com/appshellhq/appshell/commit/3957f5d1fbf306f0ca8cea7baa2b122ff7c34cf5))
+
+# [1.0.0-alpha.20](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.19...v1.0.0-alpha.20) (2026-08-27)
+
+### Bug Fixes
+
+- **examples:** colour the webpack wordmark, not its cube, and let react scale ([5996678](https://github.com/appshellhq/appshell/commit/5996678cce8034e8b9c686beded11d41e9866387)), closes [#F5](https://github.com/appshellhq/appshell/issues/F5)
+
+# [1.0.0-alpha.19](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.18...v1.0.0-alpha.19) (2026-08-27)
+
+### Bug Fixes
+
+- **examples:** let the logos follow the theme instead of assuming a dark page ([af2900a](https://github.com/appshellhq/appshell/commit/af2900a8fca3644146d071f6a632f75da32db5ea))
+
+# [1.0.0-alpha.18](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.17...v1.0.0-alpha.18) (2026-08-27)
+
+### Bug Fixes
+
+- **examples:** scan the shared components package for Tailwind classes ([6c1928e](https://github.com/appshellhq/appshell/commit/6c1928e0db9394a337a9a5ba7c362036da06e05d))
+
+# [1.0.0-alpha.17](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.16...v1.0.0-alpha.17) (2026-08-27)
+
+### Features
+
+- **examples:** consume the design tokens through Tailwind, drop styled-components ([bf126a7](https://github.com/appshellhq/appshell/commit/bf126a7a42defee5324fd28f9f6f8a35fbfa4f85))
+
+# [1.0.0-alpha.16](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.14...v1.0.0-alpha.16) (2026-08-27)
+
+### Bug Fixes
+
+- add @appshell/tokens to the lock file ([bc88994](https://github.com/appshellhq/appshell/commit/bc889942cb6a5ed5394b21af8a1eaa5fbf75392b))
+- **cli:** stop publish silently ignoring the version flag ([3073127](https://github.com/appshellhq/appshell/commit/3073127862355f2e29959005e2eeedd50452ae63))
+- **react:** rename MetadataProvider prop metata -> metadata ([63ef090](https://github.com/appshellhq/appshell/commit/63ef090b29789df45d591a9a0b33bacc55477350))
+
+### Features
+
+- **cli:** add dev stop --app ([72b1c62](https://github.com/appshellhq/appshell/commit/72b1c62b75ea28e73c637ac30d3ab1da29db4f1d))
+- **cli:** make dev status print the command to stop each app ([9233c86](https://github.com/appshellhq/appshell/commit/9233c8641ce7b8ba60daafbfdcd4d3d126bd75be))
+- **cli:** report the overlay that is actually in effect ([5822cb2](https://github.com/appshellhq/appshell/commit/5822cb2b74436017b54c92e5dd3413c7f574497c))
+- **cli:** take a port for the local app instead of inferring one ([6c40728](https://github.com/appshellhq/appshell/commit/6c40728e06adb2e382c0580452b33024d6df5d7a))
+- **cli:** use the dev server hint when no port is given ([0939867](https://github.com/appshellhq/appshell/commit/0939867063de1a35be912b98edb54f8db675b53c))
+- deliver package vars through a shared runtime, not a global ([9473f62](https://github.com/appshellhq/appshell/commit/9473f6204b75885cd55b12a9ec71a44a74d6aa41))
+- rename core vocabulary to Package / Application / Remote ([418b7e0](https://github.com/appshellhq/appshell/commit/418b7e010b6caa1af661f7fd9c05e751e69315a9))
+- **tokens:** add the design token contract and its presets ([302ae55](https://github.com/appshellhq/appshell/commit/302ae55352f68b02986dec9d22997207cc3d638e))
+- **webpack-plugin:** record where the dev server is serving from ([fd10939](https://github.com/appshellhq/appshell/commit/fd10939e3c7b7414c4d799396be07b8329074d44))
+
+# [1.0.0-alpha.14](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.13...v1.0.0-alpha.14) (2026-08-23)
+
+### Features
+
+- **cli:** add appshell dev to open and manage development overlays ([1e55585](https://github.com/appshell-org/appshell/commit/1e5558503c815af742cf2cd394a2e1232b4c17ae))
+- **react-shell:** announce an overlay that only changed the shell ([55a5faf](https://github.com/appshell-org/appshell/commit/55a5faf25255c33494d1fbbec86f38a71b2875b2))
+
+# [1.0.0-alpha.13](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.12...v1.0.0-alpha.13) (2026-08-22)
+
+### Bug Fixes
+
+- **loader,react:** stop forcing a full page reload on remote updates ([36b96c4](https://github.com/appshell-org/appshell/commit/36b96c471dcedf1d29847ef5e41fb21c04864d45))
+
+### Features
+
+- **hmr:** checkpoint current composed app hot reload work ([165788d](https://github.com/appshell-org/appshell/commit/165788d2f276e5f82b750d84abf6cab2e73f8f64))
+- **react-shell:** add a development-flavored shell bundle ([ea13c06](https://github.com/appshell-org/appshell/commit/ea13c061fd945c5d89f8bb155aa3dd90ee7c65fc))
+- **react-shell:** surface an active development overlay ([22bea41](https://github.com/appshell-org/appshell/commit/22bea418afabcc1fb04f0567b0f49aa0e8ed8fd2))
+
+# [1.0.0-alpha.12](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.11...v1.0.0-alpha.12) (2026-08-21)
+
+### Bug Fixes
+
+- **examples:** silence federation dts errors and bundled-react warning noise ([7a49b11](https://github.com/appshell-org/appshell/commit/7a49b118e9e745ab3c09fe38fd6ab4587512fd3d)), closes [#TYPE-001](https://github.com/appshell-org/appshell/issues/TYPE-001)
+- **examples:** stop dev-server overlay from catching unrelated runtime errors ([10b4b86](https://github.com/appshell-org/appshell/commit/10b4b8676d9e7776377138ac9299a7fc99a7e910))
+- improve local federation HMR and shell share behavior ([463d85c](https://github.com/appshell-org/appshell/commit/463d85ce0f18f6111a09b5d94d39d24fb813abc8))
+
+# [1.0.0-alpha.11](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.10...v1.0.0-alpha.11) (2026-08-20)
+
+### Features
+
+- **loader:** migrate remote loading to @module-federation/enhanced runtime ([fda2d5d](https://github.com/appshell-org/appshell/commit/fda2d5ddfa5487f9aae55669392a08e55a491461)), closes [#RUNTIME-010](https://github.com/appshell-org/appshell/issues/RUNTIME-010)
+
+# [1.0.0-alpha.10](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.9...v1.0.0-alpha.10) (2026-08-19)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.9](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.8...v1.0.0-alpha.9) (2026-08-19)
+
+### Bug Fixes
+
+- **example:** resolve CSP/module-federation issues blocking local dev ([f8de4e1](https://github.com/appshell-org/appshell/commit/f8de4e1cfe495a7d4ae8e6374189384847c21309))
+
+# [1.0.0-alpha.8](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.7...v1.0.0-alpha.8) (2026-08-19)
+
+### Bug Fixes
+
+- **webpack-plugin:** trim publish toggle env var ([07a7a9e](https://github.com/appshell-org/appshell/commit/07a7a9e4e9977c98f108bc99b7c50726c19c99d9))
+
+# [1.0.0-alpha.7](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.6...v1.0.0-alpha.7) (2026-08-18)
+
+**Note:** Version bump only for package appshell
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.6](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.5...v1.0.0-alpha.6) (2026-08-18)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.5](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.4...v1.0.0-alpha.5) (2026-08-18)
+
+**Note:** Version bump only for package appshell
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.4](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.3...v1.0.0-alpha.4) (2026-08-18)
+
+**Note:** Version bump only for package appshell
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.3](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.2...v1.0.0-alpha.3) (2026-08-18)
+
+**Note:** Version bump only for package appshell
+
+# [1.0.0-alpha.1](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.0...v1.0.0-alpha.1) (2026-08-18)
+
+### Bug Fixes
+
+- **config:** tolerate empty cli config file ([dc483ae](https://github.com/appshell-org/appshell/commit/dc483ae88cfbf0f437c1700f273ff6a8b8b23dfb))
+
 # 0.12.0 (2026-04-20)
 
 ### Bug Fixes

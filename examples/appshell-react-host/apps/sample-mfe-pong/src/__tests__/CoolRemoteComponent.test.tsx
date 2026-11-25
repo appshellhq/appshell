@@ -1,5 +1,4 @@
 import { render, screen } from '@testing-library/react';
-import React from 'react';
 import CoolRemoteComponent from '../CoolRemoteComponent';
 
 test('should render without crashing', () => {

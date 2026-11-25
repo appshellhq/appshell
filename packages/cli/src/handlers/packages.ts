@@ -1,0 +1,251 @@
+/* eslint-disable no-console */
+import chalk from 'chalk';
+import { resolvePackage } from '../util/address';
+import { GlobalArgs } from '../util/args';
+import { ApplicationSummary, PackageSummary, RegistryClient } from '../util/registry';
+import { restoreCommand } from '../util/restoreHint';
+import { resolveScopeId } from '../util/scope';
+
+type PackagesArgs = GlobalArgs & { scope?: string };
+type PackageArgs = PackagesArgs & { name: string };
+
+/**
+ * Which applications activate a given `scope/name@version`.
+ *
+ * The listing is worth little without this. It is the one fact needed before unpublishing
+ * anything, and it lived in a different endpoint that a developer had to know to join by
+ * hand — which is how the wrong version came to be named for removal.
+ *
+ * Taken from the applications listing, which carries each application's activated set
+ * inline, so this is one request rather than one per application.
+ */
+const activations = (applications: ApplicationSummary[]): Map<string, string[]> => {
+  const byPackageId = new Map<string, string[]>();
+
+  applications.forEach((application) => {
+    Object.values(application.packages ?? {}).forEach(({ packageId }) => {
+      const held = byPackageId.get(packageId) ?? [];
+
+      byPackageId.set(packageId, [...held, `${application.scopeId}/${application.name}`]);
+    });
+  });
+
+  return byPackageId;
+};
+
+const idOf = (pkg: PackageSummary) => `${pkg.scopeId}/${pkg.name}@${pkg.version}`;
+
+/** Newest first, by publish time, so the version most likely wanted reads first. */
+const newestFirst = (a: PackageSummary, b: PackageSummary) =>
+  Date.parse(b.publishedAt) - Date.parse(a.publishedAt);
+
+const versionLine = (pkg: PackageSummary, held: Map<string, string[]>, width: number) => {
+  const where = held.get(idOf(pkg));
+  const mark = where?.length
+    ? chalk.green(`activated in ${where.join(', ')}`)
+    : chalk.dim('not activated');
+
+  // Shown on the same line as the activation, because the two together are the whole
+  // decision: a deprecated version still in use is the one that needs moving off.
+  const notice = pkg.deprecated ? `  ${chalk.yellow(`deprecated — ${pkg.deprecated.reason}`)}` : '';
+
+  return `  ${pkg.version.padEnd(width)}  ${chalk.dim(pkg.visibility.padEnd(7))}  ${mark}${notice}`;
+};
+
+/**
+ * Reclassifies a package, across every version.
+ *
+ * Its own command because publishing could not do it. Visibility is not part of a
+ * package's digest — it is not what a package *is* — and publish short-circuits on a
+ * digest match, so `publish --visibility private` on an existing version matched on
+ * content, returned early, and printed success while changing nothing.
+ */
+export const visibility = async (argv: PackageArgs & { visibility: 'public' | 'private' }) => {
+  const client = new RegistryClient(argv.registry);
+  const { scopeId, name } = await resolvePackage(argv, 'none');
+
+  const result = await client.setPackageVisibility(scopeId, name, argv.visibility);
+
+  console.log(
+    result.versions
+      ? chalk.green(`${scopeId}/${name} is now ${argv.visibility} (${result.versions} version(s))`)
+      : chalk.dim(`${scopeId}/${name} was already ${argv.visibility}`),
+  );
+};
+
+export const deprecate = async (argv: PackageArgs & { reason?: string; undo?: boolean }) => {
+  const client = new RegistryClient(argv.registry);
+  const { scopeId, name, version } = await resolvePackage(argv, 'optional');
+
+  if (!version) {
+    throw new Error(`Name a version to deprecate, as '${name}@1.2.3'.`);
+  }
+
+  const result = await client.deprecatePackage(
+    scopeId,
+    name,
+    version,
+    argv.undo ? undefined : argv.reason,
+  );
+
+  console.log(
+    result.deprecated
+      ? chalk.yellow(`Deprecated ${scopeId}/${name}@${version}: ${result.deprecated.reason}`)
+      : chalk.green(`Lifted the deprecation on ${scopeId}/${name}@${version}`),
+  );
+};
+
+export const list = async (argv: PackagesArgs) => {
+  const client = new RegistryClient(argv.registry);
+  const scopeId = argv.scope ?? (await resolveScopeId(argv));
+  const [catalogue, applications] = await Promise.all([
+    client.listPackages(scopeId),
+    client.listApplications(scopeId),
+  ]);
+  // The registry's listing is the catalogue, which carries every public package from any scope
+  // beside this one's, so they'd be listed here under "Packages in <scope>". This lists what the
+  // scope has published.
+  const packages = catalogue.filter((pkg) => pkg.scopeId === scopeId);
+
+  if (!packages.length) {
+    console.log(`\nNo packages published in ${scopeId}.`);
+
+    return;
+  }
+
+  const held = activations(applications);
+  const byName = new Map<string, PackageSummary[]>();
+
+  packages.forEach((pkg) => byName.set(pkg.name, [...(byName.get(pkg.name) ?? []), pkg]));
+
+  console.log(chalk.bold(`\nPackages in ${scopeId}\n`));
+
+  [...byName.keys()].sort().forEach((name) => {
+    const versions = (byName.get(name) ?? []).sort(newestFirst);
+    const width = Math.max(...versions.map(({ version }) => version.length));
+
+    console.log(`  ${chalk.cyan(name)}`);
+    versions.forEach((pkg) => console.log(versionLine(pkg, held, width)));
+    console.log('');
+  });
+};
+
+export const get = async (argv: PackageArgs) => {
+  const client = new RegistryClient(argv.registry);
+  const { scopeId, name } = await resolvePackage(argv, 'none');
+
+  const [versions, applications] = await Promise.all([
+    client.packageVersions(scopeId, name),
+    client.listApplications(scopeId),
+  ]);
+
+  if (!versions.length) {
+    console.log(`\nNo versions of ${scopeId}/${name} are published.`);
+
+    return;
+  }
+
+  const held = activations(applications);
+  const ordered = [...versions].sort(newestFirst);
+  const width = Math.max(...ordered.map(({ version }) => version.length));
+
+  console.log(chalk.bold(`\n${scopeId}/${name}\n`));
+  ordered.forEach((pkg) => console.log(versionLine(pkg, held, width)));
+  console.log('');
+};
+
+export const describe = async (argv: PackageArgs) => {
+  const client = new RegistryClient(argv.registry);
+  const { scopeId, name, version } = await resolvePackage(argv, 'optional');
+
+  const [pkg, applications] = await Promise.all([
+    client.getPackage(scopeId, name, version),
+    client.listApplications(scopeId),
+  ]);
+
+  const where = activations(applications).get(idOf(pkg)) ?? [];
+
+  console.log(chalk.bold(`\n${scopeId}/${name}@${pkg.version}\n`));
+  console.log(`  ${chalk.dim('visibility')}  ${pkg.visibility}`);
+  console.log(`  ${chalk.dim('published')}   ${new Date(pkg.publishedAt).toLocaleString()}`);
+  console.log(`  ${chalk.dim('published by')} ${pkg.publishedBy.username}`);
+  // Named rather than counted: it is what decides whether this version can be removed.
+  console.log(
+    `  ${chalk.dim('activated')}   ${where.length ? where.join(', ') : chalk.dim('nowhere')}`,
+  );
+
+  if (pkg.deprecated) {
+    console.log(`  ${chalk.dim('deprecated')}  ${chalk.yellow(pkg.deprecated.reason)}`);
+  }
+  // The surface, which is what a version *is* — and the fastest way to answer whether it
+  // changed, without diffing two manifests by eye.
+  console.log(`  ${chalk.dim('digest')}      ${pkg.digest}`);
+
+  const components = Object.keys(pkg.manifest?.components ?? {});
+
+  if (components.length) {
+    console.log(`\n  ${chalk.bold('components')}`);
+    components.forEach((key) => {
+      const component = key.split('/').slice(1).join('/');
+
+      console.log(`    ${scopeId}/${name}/${component}  ${chalk.dim(key)}`);
+    });
+  }
+
+  const consumes = pkg.manifest?.remotes ?? [];
+
+  if (consumes.length) {
+    console.log(`\n  ${chalk.bold('consumes')}  ${consumes.join(', ')}`);
+  }
+
+  const shared = pkg.manifest?.shared?.scopes ?? {};
+
+  Object.entries(shared).forEach(([shareScope, deps]) => {
+    console.log(`\n  ${chalk.bold(`shared (${shareScope})`)}`);
+    Object.entries(deps).forEach(([dependency, config]) => {
+      const range =
+        typeof config === 'string'
+          ? config
+          : (config as { requiredVersion?: string })?.requiredVersion;
+
+      console.log(`    ${dependency}  ${chalk.dim(range ?? 'any')}`);
+    });
+  });
+
+  console.log('');
+};
+
+/**
+ * A package's unpublished versions that can still be restored, and until when.
+ * appshellhq/appshell-services#29.
+ *
+ * Newest version first, as the registry returns them, each with the command that brings it
+ * back, since that is the only thing to do with one. The command names the scope and the
+ * registry, so it is right however either was chosen.
+ */
+export const unpublished = async (argv: PackageArgs) => {
+  const client = new RegistryClient(argv.registry);
+  const { scopeId, name } = await resolvePackage(argv, 'none');
+
+  const versions = await client.unpublishedVersions(scopeId, name);
+
+  if (!versions.length) {
+    console.log(chalk.dim(`${scopeId}/${name} has no unpublished versions that can be restored`));
+    return;
+  }
+
+  const width = Math.max(...versions.map((v) => v.version.length));
+
+  console.log(chalk.bold(`${scopeId}/${name}`));
+  versions.forEach((v) => {
+    const until = new Date(v.restorableUntil).toISOString().slice(0, 10);
+    const by = v.unpublishedBy.username ?? v.unpublishedBy.id;
+
+    const when = chalk.dim(`unpublished by ${by}, restorable until ${until}`);
+    const how = chalk.cyan(
+      restoreCommand({ name, version: v.version, scopeId, registry: argv.registry }),
+    );
+
+    console.log(`  ${v.version.padEnd(width)}  ${when}  ${how}`);
+  });
+};

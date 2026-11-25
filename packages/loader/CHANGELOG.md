@@ -3,6 +3,633 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.151](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.150...v1.0.0-alpha.151) (2026-11-25)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.150](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.149...v1.0.0-alpha.150) (2026-11-25)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.149](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.148...v1.0.0-alpha.149) (2026-11-17)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.148](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.147...v1.0.0-alpha.148) (2026-10-29)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.147](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.146...v1.0.0-alpha.147) (2026-10-28)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.146](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.145...v1.0.0-alpha.146) (2026-10-28)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.145](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.144...v1.0.0-alpha.145) (2026-10-27)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.144](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.143...v1.0.0-alpha.144) (2026-10-26)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.143](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.142...v1.0.0-alpha.143) (2026-10-25)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.142](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.141...v1.0.0-alpha.142) (2026-10-25)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.141](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.140...v1.0.0-alpha.141) (2026-10-24)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.140](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.139...v1.0.0-alpha.140) (2026-10-22)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.139](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.138...v1.0.0-alpha.139) (2026-10-22)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.138](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.137...v1.0.0-alpha.138) (2026-10-22)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.137](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.136...v1.0.0-alpha.137) (2026-10-21)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.136](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.135...v1.0.0-alpha.136) (2026-10-21)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.135](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.134...v1.0.0-alpha.135) (2026-10-20)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.134](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.133...v1.0.0-alpha.134) (2026-10-20)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.133](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.132...v1.0.0-alpha.133) (2026-10-20)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.132](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.131...v1.0.0-alpha.132) (2026-10-20)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.131](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.130...v1.0.0-alpha.131) (2026-10-20)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.130](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.129...v1.0.0-alpha.130) (2026-10-19)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.129](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.128...v1.0.0-alpha.129) (2026-10-19)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.128](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.127...v1.0.0-alpha.128) (2026-10-19)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.127](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.126...v1.0.0-alpha.127) (2026-10-19)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.126](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.125...v1.0.0-alpha.126) (2026-10-19)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.125](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.124...v1.0.0-alpha.125) (2026-10-19)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.124](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.123...v1.0.0-alpha.124) (2026-10-19)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.123](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.122...v1.0.0-alpha.123) (2026-10-18)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.122](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.121...v1.0.0-alpha.122) (2026-10-18)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.121](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.120...v1.0.0-alpha.121) (2026-10-18)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.120](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.119...v1.0.0-alpha.120) (2026-10-18)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.119](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.118...v1.0.0-alpha.119) (2026-10-17)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.118](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.117...v1.0.0-alpha.118) (2026-10-17)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.117](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.116...v1.0.0-alpha.117) (2026-10-17)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.116](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.115...v1.0.0-alpha.116) (2026-10-16)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.115](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.114...v1.0.0-alpha.115) (2026-10-16)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.114](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.113...v1.0.0-alpha.114) (2026-10-15)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.113](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.112...v1.0.0-alpha.113) (2026-10-15)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.112](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.111...v1.0.0-alpha.112) (2026-10-14)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.111](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.110...v1.0.0-alpha.111) (2026-10-14)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.110](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.109...v1.0.0-alpha.110) (2026-10-14)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.109](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.108...v1.0.0-alpha.109) (2026-10-14)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.108](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.107...v1.0.0-alpha.108) (2026-10-13)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.107](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.106...v1.0.0-alpha.107) (2026-10-13)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.106](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.105...v1.0.0-alpha.106) (2026-10-13)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.105](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.104...v1.0.0-alpha.105) (2026-10-12)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.104](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.103...v1.0.0-alpha.104) (2026-10-12)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.103](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.102...v1.0.0-alpha.103) (2026-10-12)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.102](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.101...v1.0.0-alpha.102) (2026-10-12)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.101](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.100...v1.0.0-alpha.101) (2026-10-12)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.100](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.99...v1.0.0-alpha.100) (2026-10-11)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.99](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.98...v1.0.0-alpha.99) (2026-10-11)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.98](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.97...v1.0.0-alpha.98) (2026-10-09)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.97](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.96...v1.0.0-alpha.97) (2026-09-19)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.96](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.95...v1.0.0-alpha.96) (2026-09-19)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.95](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.94...v1.0.0-alpha.95) (2026-09-19)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.94](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.93...v1.0.0-alpha.94) (2026-09-19)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.93](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.92...v1.0.0-alpha.93) (2026-09-18)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.92](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.91...v1.0.0-alpha.92) (2026-09-18)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.91](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.90...v1.0.0-alpha.91) (2026-09-12)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.90](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.89...v1.0.0-alpha.90) (2026-09-12)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.89](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.88...v1.0.0-alpha.89) (2026-09-12)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.88](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.87...v1.0.0-alpha.88) (2026-09-12)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.87](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.86...v1.0.0-alpha.87) (2026-09-12)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.86](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.85...v1.0.0-alpha.86) (2026-09-12)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.85](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.84...v1.0.0-alpha.85) (2026-09-12)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.84](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.83...v1.0.0-alpha.84) (2026-09-12)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.83](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.82...v1.0.0-alpha.83) (2026-09-12)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.82](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.81...v1.0.0-alpha.82) (2026-09-12)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.81](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.80...v1.0.0-alpha.81) (2026-09-11)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.80](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.79...v1.0.0-alpha.80) (2026-09-11)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.79](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.78...v1.0.0-alpha.79) (2026-09-11)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.78](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.77...v1.0.0-alpha.78) (2026-09-11)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.77](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.76...v1.0.0-alpha.77) (2026-09-11)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.76](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.75...v1.0.0-alpha.76) (2026-09-11)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.75](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.74...v1.0.0-alpha.75) (2026-09-11)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.74](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.73...v1.0.0-alpha.74) (2026-09-11)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.73](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.72...v1.0.0-alpha.73) (2026-09-11)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.72](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.71...v1.0.0-alpha.72) (2026-09-10)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.71](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.70...v1.0.0-alpha.71) (2026-09-10)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.70](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.69...v1.0.0-alpha.70) (2026-09-10)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.69](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.68...v1.0.0-alpha.69) (2026-09-10)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.68](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.67...v1.0.0-alpha.68) (2026-09-10)
+
+### Features
+
+- **config:** say components and remotes, and mean what MF means ([e3430f4](https://github.com/appshellhq/appshell/commit/e3430f49b4e03e82464e99642ddcadc307aa9ebe)), closes [#5](https://github.com/appshellhq/appshell/issues/5)
+
+# [1.0.0-alpha.67](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.66...v1.0.0-alpha.67) (2026-09-09)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.66](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.65...v1.0.0-alpha.66) (2026-09-09)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.65](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.64...v1.0.0-alpha.65) (2026-09-09)
+
+### Features
+
+- **runtime:** name how a remote is loaded, as one kind among possible kinds ([f2600b6](https://github.com/appshellhq/appshell/commit/f2600b6be48a728d5ac019f28d9de175f9b3c557))
+
+# [1.0.0-alpha.64](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.63...v1.0.0-alpha.64) (2026-09-09)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.63](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.62...v1.0.0-alpha.63) (2026-09-09)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.62](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.61...v1.0.0-alpha.62) (2026-09-09)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.61](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.60...v1.0.0-alpha.61) (2026-09-09)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.60](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.59...v1.0.0-alpha.60) (2026-09-09)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.59](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.58...v1.0.0-alpha.59) (2026-09-09)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.58](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.57...v1.0.0-alpha.58) (2026-09-09)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.57](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.56...v1.0.0-alpha.57) (2026-09-09)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.56](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.55...v1.0.0-alpha.56) (2026-09-08)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.55](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.54...v1.0.0-alpha.55) (2026-09-07)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.54](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.53...v1.0.0-alpha.54) (2026-09-07)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.53](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.52...v1.0.0-alpha.53) (2026-09-07)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.52](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.51...v1.0.0-alpha.52) (2026-09-07)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.51](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.50...v1.0.0-alpha.51) (2026-09-07)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.50](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.49...v1.0.0-alpha.50) (2026-09-07)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.49](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.48...v1.0.0-alpha.49) (2026-09-07)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.48](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.47...v1.0.0-alpha.48) (2026-09-07)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.47](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.46...v1.0.0-alpha.47) (2026-09-07)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.46](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.45...v1.0.0-alpha.46) (2026-09-06)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.45](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.44...v1.0.0-alpha.45) (2026-09-05)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.44](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.43...v1.0.0-alpha.44) (2026-09-05)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.43](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.42...v1.0.0-alpha.43) (2026-09-04)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.42](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.41...v1.0.0-alpha.42) (2026-09-04)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.41](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.40...v1.0.0-alpha.41) (2026-09-04)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.40](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.39...v1.0.0-alpha.40) (2026-09-04)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.39](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.38...v1.0.0-alpha.39) (2026-09-04)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.38](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.37...v1.0.0-alpha.38) (2026-09-03)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.37](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.36...v1.0.0-alpha.37) (2026-09-03)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.36](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.35...v1.0.0-alpha.36) (2026-09-03)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.35](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.34...v1.0.0-alpha.35) (2026-09-03)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.34](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.33...v1.0.0-alpha.34) (2026-09-03)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.33](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.32...v1.0.0-alpha.33) (2026-09-03)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.32](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.31...v1.0.0-alpha.32) (2026-09-02)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.31](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.30...v1.0.0-alpha.31) (2026-09-02)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.30](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.29...v1.0.0-alpha.30) (2026-09-01)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.29](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.28...v1.0.0-alpha.29) (2026-08-31)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.28](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.27...v1.0.0-alpha.28) (2026-08-30)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.27](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.26...v1.0.0-alpha.27) (2026-08-29)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.26](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.25...v1.0.0-alpha.26) (2026-08-29)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.25](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.24...v1.0.0-alpha.25) (2026-08-29)
+
+### Bug Fixes
+
+- resolve the UMD self reference in loader and react ([bcb2097](https://github.com/appshellhq/appshell/commit/bcb2097944be44a449f335e60a9f9275b0fb39d6))
+
+- feat!: fold @appshell/vars into the @appshell/runtime/vars subpath ([8936237](https://github.com/appshellhq/appshell/commit/893623759236bbbd5436607ec6ae1162ce92de45))
+
+### BREAKING CHANGES
+
+- @appshell/vars is removed. Replace
+  `import { getVars } from '@appshell/vars'` with
+  `import { getVars } from '@appshell/runtime/vars'`.
+
+# [1.0.0-alpha.24](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.23...v1.0.0-alpha.24) (2026-08-28)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.23](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.22...v1.0.0-alpha.23) (2026-08-27)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.22](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.21...v1.0.0-alpha.22) (2026-08-27)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.21](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.20...v1.0.0-alpha.21) (2026-08-27)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.20](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.19...v1.0.0-alpha.20) (2026-08-27)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.19](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.18...v1.0.0-alpha.19) (2026-08-27)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.18](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.17...v1.0.0-alpha.18) (2026-08-27)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.17](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.16...v1.0.0-alpha.17) (2026-08-27)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.16](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.14...v1.0.0-alpha.16) (2026-08-27)
+
+### Features
+
+- deliver package vars through a shared runtime, not a global ([9473f62](https://github.com/appshellhq/appshell/commit/9473f6204b75885cd55b12a9ec71a44a74d6aa41))
+- rename core vocabulary to Package / Application / Remote ([418b7e0](https://github.com/appshellhq/appshell/commit/418b7e010b6caa1af661f7fd9c05e751e69315a9))
+
+# [1.0.0-alpha.14](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.13...v1.0.0-alpha.14) (2026-08-23)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.13](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.12...v1.0.0-alpha.13) (2026-08-22)
+
+### Bug Fixes
+
+- **loader,react:** stop forcing a full page reload on remote updates ([36b96c4](https://github.com/appshell-org/appshell/commit/36b96c471dcedf1d29847ef5e41fb21c04864d45))
+
+### Features
+
+- **hmr:** checkpoint current composed app hot reload work ([165788d](https://github.com/appshell-org/appshell/commit/165788d2f276e5f82b750d84abf6cab2e73f8f64))
+
+# [1.0.0-alpha.12](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.11...v1.0.0-alpha.12) (2026-08-21)
+
+### Bug Fixes
+
+- improve local federation HMR and shell share behavior ([463d85c](https://github.com/appshell-org/appshell/commit/463d85ce0f18f6111a09b5d94d39d24fb813abc8))
+
+# [1.0.0-alpha.11](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.10...v1.0.0-alpha.11) (2026-08-20)
+
+### Features
+
+- **loader:** migrate remote loading to @module-federation/enhanced runtime ([fda2d5d](https://github.com/appshell-org/appshell/commit/fda2d5ddfa5487f9aae55669392a08e55a491461)), closes [#RUNTIME-010](https://github.com/appshell-org/appshell/issues/RUNTIME-010)
+
+# [1.0.0-alpha.10](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.9...v1.0.0-alpha.10) (2026-08-19)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.9](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.8...v1.0.0-alpha.9) (2026-08-19)
+
+### Bug Fixes
+
+- **example:** resolve CSP/module-federation issues blocking local dev ([f8de4e1](https://github.com/appshell-org/appshell/commit/f8de4e1cfe495a7d4ae8e6374189384847c21309))
+
+# [1.0.0-alpha.8](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.7...v1.0.0-alpha.8) (2026-08-19)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.7](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.6...v1.0.0-alpha.7) (2026-08-18)
+
+**Note:** Version bump only for package @appshell/loader
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.6](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.5...v1.0.0-alpha.6) (2026-08-18)
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.5](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.4...v1.0.0-alpha.5) (2026-08-18)
+
+**Note:** Version bump only for package @appshell/loader
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.4](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.3...v1.0.0-alpha.4) (2026-08-18)
+
+**Note:** Version bump only for package @appshell/loader
+
+**Note:** Version bump only for package @appshell/loader
+
+# [1.0.0-alpha.3](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.2...v1.0.0-alpha.3) (2026-08-18)
+
+**Note:** Version bump only for package @appshell/loader
+
 # 0.12.0 (2026-04-20)
 
 ### Bug Fixes

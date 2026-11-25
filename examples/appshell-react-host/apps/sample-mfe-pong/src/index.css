@@ -1,0 +1,6 @@
+/*
+ * Tailwind, with its theme mapped onto the Appshell token contract. The registry inlines
+ * the Application's token values into the document, so these utilities resolve to
+ * whatever that Application supplies — no rebuild, no republish.
+ */
+@import '@appshell/react-host-components/src/appshell.css';

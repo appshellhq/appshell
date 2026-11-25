@@ -1,0 +1,285 @@
+import {
+  describeOverlay,
+  effectLines,
+  hintedOrigin,
+  OverlayEffects,
+  remotesOf,
+} from '../src/handlers/dev';
+import * as devHint from '../src/util/devHint';
+import { DevHint } from '../src/util/devHint';
+import { OVERLAY_EFFECTS, OverlayEffect, RegistryClient } from '../src/util/registry';
+
+const HINT: DevHint = {
+  version: 1,
+  origin: 'http://localhost:3002',
+  remoteEntryPath: 'remoteEntry.js',
+  writtenAt: new Date(0).toISOString(),
+};
+
+/*
+ * The decision this file exists for: an unconfirmed hint is still used. `dev start` used
+ * to answer a failed probe by opening an overlay that redirected nothing, and then hand
+ * over a confirmation page for it — a no-op wearing a confirmation dialog, with the reason
+ * visible only in terminal output nobody was looking at any more.
+ */
+describe('hintedOrigin', () => {
+  const respond = (body: unknown, ok = true, status = 200) =>
+    jest.fn().mockResolvedValue({ ok, status, json: async () => body });
+
+  const withFetch = (impl: jest.Mock) => {
+    globalThis.fetch = impl as unknown as typeof fetch;
+  };
+
+  beforeEach(() => {
+    jest.spyOn(console, 'log').mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  // eslint-disable-next-line no-console
+  const messages = () => (console.log as jest.Mock).mock.calls.flat().join('\n');
+
+  it('should use a confirmed origin', async () => {
+    withFetch(respond({ remotes: { 'PongModule/Pong': {} } }));
+
+    await expect(hintedOrigin(HINT, ['PongModule/Pong'], 'default/pong')).resolves.toBe(
+      HINT.origin,
+    );
+  });
+
+  // Not started yet is indistinguishable from stale, and it is far the more common of
+  // the two. Redirecting is wrong at worst, visible, and undone by `appshell dev stop`.
+  it('should redirect anyway when the dev server is not up yet', async () => {
+    withFetch(jest.fn().mockRejectedValue(new Error('ECONNREFUSED')));
+
+    await expect(hintedOrigin(HINT, ['PongModule/Pong'], 'default/pong')).resolves.toBe(
+      HINT.origin,
+    );
+  });
+
+  it('should say why it could not confirm, and how to override it', async () => {
+    withFetch(jest.fn().mockRejectedValue(new Error('ECONNREFUSED')));
+
+    await hintedOrigin(HINT, ['PongModule/Pong'], 'default/pong');
+
+    expect(messages()).toContain('nothing answered at http://localhost:3002');
+    expect(messages()).toContain('--port');
+  });
+
+  // The one outcome that is disproved rather than unconfirmed, so the one worth refusing
+  // over: redirecting at another package's bundle is a wrong answer, not a missing one.
+  it('should refuse a port that now belongs to another package', async () => {
+    withFetch(respond({ remotes: { 'PingModule/Ping': {} } }));
+
+    await expect(hintedOrigin(HINT, ['PongModule/Pong'], 'default/pong')).rejects.toThrow(
+      /is serving PingModule\/Ping, not default\/pong/,
+    );
+  });
+
+  it('should name --port when it refuses, since that is the way past it', async () => {
+    withFetch(respond({ remotes: { 'PingModule/Ping': {} } }));
+
+    await expect(hintedOrigin(HINT, ['PongModule/Pong'], 'default/pong')).rejects.toThrow(/--port/);
+  });
+});
+
+/*
+ * Generated from OVERLAY_EFFECTS rather than written out, so neither describer can fall
+ * behind the overlay shape. Both omitted the theme when it was added; `dev start`'s output
+ * was the last to be fixed, because inline console.log calls left nothing to assert on.
+ *
+ * Two stages, and only the first is a compile error. Adding a field to OpenOverlay fails
+ * to compile until it is classified as an effect or as identity, because that check lives
+ * in src, which is typechecked. Classifying it as an effect then makes `it.each` iterate a
+ * key these Records have no entry for, and both cases fail — at test time, since spec files
+ * are not in the typecheck include. Enough to stop a surface drifting, and worth stating
+ * accurately rather than claiming the types catch more than they do.
+ *
+ * The expectations are per surface on purpose. `status` prints a one-line summary and
+ * counts redirected remotes; `start` lists them by name with their targets. Both report
+ * the effect; neither is wrong; a single shared assertion would have to pick one idiom and
+ * call the other a failure.
+ */
+describe('every effect an overlay carries', () => {
+  const only: Record<OverlayEffect, OverlayEffects> = {
+    remotes: { remotes: ['PongModule/Pong'], shellFlavor: 'prod' },
+    shellFlavor: { remotes: [], shellFlavor: 'dev' },
+    theme: { remotes: [], shellFlavor: 'prod', theme: 'acme/brand@2.0.0' },
+  };
+
+  const inStatus: Record<OverlayEffect, RegExp> = {
+    remotes: /1 redirected/,
+    shellFlavor: /development shell/,
+    theme: /acme\/brand@2\.0\.0/,
+  };
+
+  const inStart: Record<OverlayEffect, RegExp> = {
+    remotes: /PongModule\/Pong/,
+    shellFlavor: /development bundle/,
+    theme: /acme\/brand@2\.0\.0/,
+  };
+
+  it.each(OVERLAY_EFFECTS)('should be described by dev status when only %s is set', (effect) => {
+    expect(describeOverlay(only[effect])).toMatch(inStatus[effect]);
+  });
+
+  it.each(OVERLAY_EFFECTS)('should be reported by dev start when only %s is set', (effect) => {
+    const redirected = Object.fromEntries(
+      only[effect].remotes.map((key) => [
+        key,
+        { remoteEntryUrl: `http://localhost:3002/${key}.js` },
+      ]),
+    );
+
+    expect(effectLines(only[effect], redirected).join('\n')).toMatch(inStart[effect]);
+  });
+
+  // Not "no changes": that is what a theme-only overlay used to report while having
+  // changed what the entire page looks like.
+  it('should say so only when there is genuinely nothing', () => {
+    expect(describeOverlay({ remotes: [], shellFlavor: 'prod' })).toBe('no changes');
+  });
+});
+
+/*
+ * `dev start` built its overlay from the published manifest and had no test over that
+ * path at all, so it failed for every package with "publishes no remotes" and nothing
+ * noticed. Two renames ago the exposed set became `components` and `remotes` became what
+ * a package consumes; urls left the manifest entirely when an origin became a property of
+ * a deployment. The registry client's type still described the old shape, and `send`
+ * casts rather than validates, so the compiler had nothing to object to.
+ */
+describe('remotesOf', () => {
+  const MANIFEST = {
+    components: {
+      'PingModule/Ping': {
+        id: 'abc',
+        loader: {
+          apiVersion: 'federation.appshell.org/v1',
+          kind: 'ModuleFederation',
+          scope: 'PingModule',
+          module: './Ping',
+          filename: 'remoteEntry.js',
+        },
+        metadata: { route: '/ping' },
+      },
+    },
+    // What the package consumes. Reading this as the exposed set is the bug.
+    remotes: [],
+  };
+
+  const clientFor = (manifest: unknown) =>
+    ({ packageManifest: jest.fn().mockResolvedValue(manifest) } as never);
+
+  const argv = { url: 'http://localhost:3001', package: 'sample-mfe-ping' } as never;
+
+  it('should read the exposed set from components, not from remotes', async () => {
+    const remotes = await remotesOf(argv, clientFor(MANIFEST), 'appshell');
+
+    expect(Object.keys(remotes)).toEqual(['appshell/sample-mfe-ping/Ping']);
+  });
+
+  it('should refuse a package whose consumed list is the only thing populated', async () => {
+    await expect(
+      remotesOf(argv, clientFor({ components: {}, remotes: ['pong'] }), 'appshell'),
+    ).rejects.toThrow(/publishes no components/);
+  });
+
+  /*
+   * A published manifest carries no urls — the registry composes them from where a
+   * package is deployed — so these are built from the dev server's origin. Rewriting the
+   * host of a url that is not there is `new URL(undefined)`.
+   */
+  it('should build urls from the origin rather than from the manifest', async () => {
+    const remotes = await remotesOf(argv, clientFor(MANIFEST), 'appshell');
+
+    expect(remotes['appshell/sample-mfe-ping/Ping']).toMatchObject({
+      remoteEntryUrl: 'http://localhost:3001/remoteEntry.js',
+      manifestUrl: 'http://localhost:3001/appshell.manifest.json',
+    });
+  });
+
+  it('should carry the loader, so the overlay describes the code it points at', async () => {
+    const remotes = await remotesOf(argv, clientFor(MANIFEST), 'appshell');
+
+    expect(remotes['appshell/sample-mfe-ping/Ping'].loader).toMatchObject({
+      scope: 'PingModule',
+      module: './Ping',
+    });
+  });
+});
+
+// So a caller can tell a package nobody published from a registry that failed.
+describe('a failed request', () => {
+  afterEach(() => jest.restoreAllMocks());
+
+  it('should keep the response as its cause', async () => {
+    jest.spyOn(RegistryClient.prototype as never, 'request').mockRejectedValue({
+      response: { status: 404, data: { message: "Package 'hello' was not found" } },
+    } as never);
+
+    await expect(
+      new RegistryClient('https://registry.example').packageManifest('quickstart-check', 'hello'),
+    ).rejects.toMatchObject({
+      message: expect.stringContaining('404'),
+      cause: { response: { status: 404 } },
+    });
+  });
+});
+
+/*
+ * appshellhq/appshell#86. Beside appshell-quickstart's dev server, whose AppshellPlugin
+ * introduced a package nobody has published, `dev start --theme` failed fetching a manifest
+ * that doesn't exist, before it sent the theme. The dev server's overlay already serves the
+ * package, so the theme goes alone and extends it.
+ */
+describe('remotesOf, for a package nobody has published', () => {
+  const failure = (status: number) =>
+    Object.assign(new Error(`Failed to fetch the published manifest: ${status}`), {
+      cause: { response: { status } },
+    });
+
+  const clientFailing = (status: number) =>
+    ({ packageManifest: jest.fn().mockRejectedValue(failure(status)) } as never);
+
+  const args = (more: Record<string, unknown> = {}) =>
+    ({ package: 'hello', shell: 'dev', ...more } as never);
+
+  beforeEach(() => {
+    jest.spyOn(devHint, 'readDevHint').mockReturnValue(HINT);
+    jest.spyOn(console, 'log').mockImplementation(() => undefined);
+  });
+
+  afterEach(() => jest.restoreAllMocks());
+
+  it('should send the theme alone, beside the dev server whose overlay serves it', async () => {
+    await expect(
+      remotesOf(args({ theme: 'midnight-violet' }), clientFailing(404), 'quickstart-check'),
+    ).resolves.toEqual({});
+  });
+
+  it('should refuse a request with nothing else in it, saying the dev server serves it', async () => {
+    await expect(remotesOf(args(), clientFailing(404), 'quickstart-check')).rejects.toThrow(
+      /quickstart-check\/hello isn't published.*Pass --theme/,
+    );
+  });
+
+  // A port is a request to redirect, which an unpublished package can't have.
+  it('should refuse a port passed explicitly, theme or not', async () => {
+    await expect(
+      remotesOf(
+        args({ theme: 'midnight-violet', port: 7400 }),
+        clientFailing(404),
+        'quickstart-check',
+      ),
+    ).rejects.toThrow(/isn't published, so there's nothing to redirect to http:\/\/localhost:7400/);
+  });
+
+  it('should still fail as it did on anything but a 404', async () => {
+    await expect(
+      remotesOf(args({ theme: 'midnight-violet' }), clientFailing(500), 'quickstart-check'),
+    ).rejects.toThrow('Failed to fetch the published manifest: 500');
+  });
+});

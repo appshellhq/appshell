@@ -1,0 +1,39 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "timezone": "America/New_York",
+  "schedule": ["before 6am on monday"],
+  "prConcurrentLimit": 5,
+  "labels": ["dependencies"],
+  "rangeStrategy": "bump",
+  "lockFileMaintenance": { "enabled": true, "schedule": ["before 6am on monday"] },
+  "packageRules": [
+    {
+      "description": "Workspace cross-dependencies are set by lerna during a release, not by Renovate. A PR bumping them would fight the version job and lose.",
+      "matchPackagePatterns": ["^@appshell/"],
+      "enabled": false
+    },
+    {
+      "description": "Dev tooling moves constantly and cannot break a consumer. One grouped PR a week rather than a stream of them.",
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "dev dependencies"
+    },
+    {
+      "description": "React and webpack are shared singletons across every micro-frontend on the page. A version change here is a coordination event, so it gets its own PR and a human.",
+      "matchPackageNames": ["react", "react-dom", "webpack"],
+      "matchPackagePatterns": ["^@module-federation/"],
+      "groupName": "federation runtime",
+      "minimumReleaseAge": "7 days"
+    },
+    {
+      "description": "Majors are never grouped — each one is a decision.",
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "labels": ["security"],
+    "schedule": ["at any time"]
+  }
+}

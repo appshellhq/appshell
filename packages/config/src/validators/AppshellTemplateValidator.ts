@@ -7,24 +7,24 @@ import schema from '../schemas/appshell.template.json';
 import { AppshellTemplate, ConfigValidator } from '../types';
 
 const hasIDCollisions = (...documents: AppshellTemplate[]) => {
-  const allRemotes = compact(documents.flatMap((document) => values(document.remotes)));
-  const uniqueIds = uniqBy(allRemotes, (remote) => remote.id);
+  const allComponents = compact(documents.flatMap((document) => values(document.components)));
+  const uniqueIds = uniqBy(allComponents, (remote) => remote.id);
 
-  return uniqueIds.length !== allRemotes.length;
+  return uniqueIds.length !== allComponents.length;
 };
 
 const hasRemoteCollisions = (...documents: AppshellTemplate[]) => {
-  const allRemoteKeys = documents.flatMap((document) => keys(document.remotes));
-  const uniqueRemotes = uniq(allRemoteKeys);
+  const allComponentKeys = documents.flatMap((document) => keys(document.components));
+  const uniqueRemotes = uniq(allComponentKeys);
 
-  return uniqueRemotes.length !== allRemoteKeys.length;
+  return uniqueRemotes.length !== allComponentKeys.length;
 };
 
-const hasEnvironmentCollisions = (...documents: AppshellTemplate[]) => {
-  const allEnvironmentKeys = documents.flatMap((document) => keys(document.environment));
-  const uniqueEnvironments = uniq(allEnvironmentKeys);
+const hasVarsCollisions = (...documents: AppshellTemplate[]) => {
+  const allVarKeys = documents.flatMap((document) => keys(document.vars));
+  const uniqueVars = uniq(allVarKeys);
 
-  return uniqueEnvironments.length !== allEnvironmentKeys.length;
+  return uniqueVars.length !== allVarKeys.length;
 };
 
 export default {
@@ -41,8 +41,8 @@ export default {
       console.log(chalk.yellow('Multiple remotes with the same key'));
     }
 
-    if (hasEnvironmentCollisions(...documents)) {
-      console.log(chalk.yellow('Multiple environments with the same key'));
+    if (hasVarsCollisions(...documents)) {
+      console.log(chalk.yellow('Multiple vars with the same key'));
     }
   },
 } as ConfigValidator;

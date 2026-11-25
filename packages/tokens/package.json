@@ -1,0 +1,44 @@
+{
+  "name": "@appshell/tokens",
+  "version": "1.0.0-alpha.151",
+  "description": "The Appshell design token contract, its presets, and contrast validation",
+  "main": "dist/main.js",
+  "types": "dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "default": "./dist/main.js"
+    },
+    "./tailwind.css": "./dist/tailwind.css",
+    "./package.json": "./package.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/appshellhq/appshell.git"
+  },
+  "author": "Robert Hamilton <rh@navaris.com>",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "scripts": {
+    "build": "webpack --mode production && npm run build:types && npm run build:tailwind",
+    "build:tailwind": "node scripts/emit-tailwind.cjs",
+    "build:types": "tsc --emitDeclarationOnly",
+    "clean": "rm -rf dist",
+    "prebuild": "npm run clean",
+    "start": "webpack --watch --mode development && npm run build:types",
+    "stats": "webpack --json > stats.json",
+    "typecheck": "tsc --noEmit"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "design tokens",
+    "theming",
+    "micro-frontends",
+    "appshell"
+  ],
+  "license": "MIT"
+}

@@ -1,35 +1,74 @@
 /* eslint-disable no-console */
 import fs from 'fs';
+import { isUndefined, omitBy } from 'lodash';
 import path from 'path';
-import util from 'util';
-import { writeConfig } from '../../../../config/src/utils';
+import { CliConfig } from '../../../../config/src/types';
+import { readConfig, writeConfig } from '../../../../config/src/utils';
 
 export type InitArgs = {
-  apiKey: string | undefined;
-  registry: string | undefined;
   config: string;
+  registry?: string;
+  application?: string;
+  defaultScope?: string;
+  authIssuer?: string;
+  clientId?: string;
+  pkce?: boolean;
+  authScope?: string;
 };
 
 export default async (argv: InitArgs) => {
-  const { apiKey, config, registry } = argv;
+  const { config, registry, application, defaultScope, authIssuer, clientId, pkce, authScope } =
+    argv;
 
-  try {
-    console.log(`init --api-key=${apiKey} --registry=${registry} --config=${config}`);
+  if (!fs.existsSync(config)) {
+    console.log(`Creating configuration file at ${config}`);
+    fs.mkdirSync(path.dirname(config), { recursive: true });
+  }
 
-    if (!fs.existsSync(config)) {
-      console.log(`Creating default configuration file at ${config}`);
+  const existing = readConfig(config);
 
-      fs.mkdirSync(path.dirname(config), { recursive: true });
-    }
+  /*
+   * Only values that mean something are written.
+   *
+   * `application` and `default-scope` used to be seeded with the literal 'default'. Neither is
+   * a default anybody chose: there is no requirement that an application exist to publish
+   * a package, and 'default' stopped being a scope a principal can write into when scope
+   * started coming from the account. Writing them made a placeholder look like a decision,
+   * and `application` in particular was read by publish as consent to activate.
+   *
+   * registry and clientId keep defaults because theirs are real: a local registry listens
+   * on 7150, and the cli authenticates as appshell-cli.
+   */
+  const next = omitBy(
+    {
+      ...existing,
+      registry: registry ?? existing.registry ?? 'http://localhost:7150',
+      application: application ?? existing.application,
+      defaultScope: defaultScope ?? existing.defaultScope,
+      authIssuer: authIssuer ?? existing.authIssuer,
+      clientId: clientId ?? existing.clientId ?? 'appshell-cli',
+      // Written only when asked: on is the default, and a written default reads as a choice.
+      pkce: pkce === undefined ? existing.pkce : String(pkce),
+      authScope: authScope ?? existing.authScope,
+    },
+    isUndefined,
+  ) as CliConfig;
 
-    writeConfig(config, {
-      apiKey: apiKey || '<Add your API key here>',
-      registry: registry || 'http://localhost:3030',
-    });
+  writeConfig(config, next);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (err: any) {
-    console.log('Error initializing appshell cli configuration:', err.message);
-    console.log(util.inspect(err));
+  console.log(`Wrote ${config}`);
+
+  // A config that parses is not a config that works. Every other value has a default
+  // worth having; auth-issuer has none, and its absence surfaces much later as a failed
+  // `appshell login` that says nothing about where the value was supposed to come from.
+  //
+  // Read off what was written rather than off the arguments, so this asks the question it
+  // claims to — whether the config now has an issuer — and cannot drift from the merge
+  // above if a later edit changes where the value comes from.
+  if (!next.authIssuer) {
+    console.log(
+      "\nauth-issuer is unset, so 'appshell login' will fail. Set it with:\n" +
+        '  appshell config init --auth-issuer <issuer-url>',
+    );
   }
 };

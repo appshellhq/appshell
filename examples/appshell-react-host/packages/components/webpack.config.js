@@ -11,6 +11,9 @@ module.exports = (env, { mode }) => {
       filename: '[name].js',
       pathinfo: false,
       libraryTarget: 'umd',
+      // `self` is the UMD default and is absent under Node, which would break server
+      // rendering and any node-environment test that loads the built package.
+      globalObject: 'this',
     },
     resolve: {
       extensions: ['.js', '.ts', '.tsx'],
@@ -25,7 +28,7 @@ module.exports = (env, { mode }) => {
             {
               loader: 'babel-loader',
               options: {
-                presets: ['@babel/preset-react', '@babel/preset-typescript'],
+                presets: [['@babel/preset-react', { runtime: 'automatic' }], '@babel/preset-typescript'],
               },
             },
           ],
@@ -35,8 +38,18 @@ module.exports = (env, { mode }) => {
     // plugins: [isDevelopment && new Visualizer()].filter(Boolean),
     externals: {
       react: 'react',
+      // The automatic JSX runtime resolves these rather than reaching for `React`, so
+      // they need externalising alongside it — otherwise this library imports React from
+      // the host while bundling its own copy of the element factory.
+      'react/jsx-runtime': 'react/jsx-runtime',
+      'react/jsx-dev-runtime': 'react/jsx-dev-runtime',
       'react-dom': 'reactDOM',
-      'styled-components': 'styled-components',
+      // Externalised for the same reason React is, and one more: the store behind
+      // `readVars` is a module-level Map, so a bundled copy would be a second
+      // instance — a component reading vars would look in a map the loader never
+      // wrote to. `getIdentity` happens to be safe either way because it reads a
+      // global, which is exactly what would make this easy to get wrong later.
+      '@appshell/runtime': '@appshell/runtime',
     },
   };
 };

@@ -1,9 +1,12 @@
 {
   "name": "@appshell/cli",
-  "version": "0.12.0",
+  "version": "1.0.0-alpha.151",
   "description": "cli utility to generate a global appshell artifacts for module federation micro-frontends",
   "main": "dist/main.js",
-  "repository": "https://github.com/appshell-org/appshell.git",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/appshellhq/appshell.git"
+  },
   "author": "Robert Hamilton <rh@navaris.com>",
   "publishConfig": {
     "access": "public",
@@ -13,6 +16,7 @@
     "build": "webpack --mode production",
     "postbuild": "chmod +x dist/main.js",
     "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit",
     "prebuild": "npm run clean",
     "start": "webpack --watch --mode development",
     "stats": "webpack --json > stats.json"
@@ -31,6 +35,9 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "change-case": "^5.4.4"
-  }
+    "change-case": "^5.4.4",
+    "chokidar": "^3.6.0",
+    "fast-glob": "^3.3.3"
+  },
+  "gitHead": "e8105f3c5eeb4aec8e3f0e06b151d0a0ef394d12"
 }

@@ -2,11 +2,7 @@
   "title": "AppshellTemplate",
   "type": "object",
   "properties": {
-    "name": {
-      "description": "Name of the module",
-      "type": "string"
-    },
-    "remotes": {
+    "components": {
       "description": "Collection of remote entrypoints",
       "type": "object",
       "additionalProperties": {
@@ -21,18 +17,34 @@
       "description": "Module federation configuration",
       "type": "object"
     },
-    "environment": {
-      "description": "Runtime environment configuration",
-      "type": "object"
+    "name": {
+      "description": "Name of the module",
+      "type": "string"
     },
     "overrides": {
       "description": "Overrides to apply",
       "type": "object",
       "properties": {
-        "environment": {
+        "vars": {
           "type": "object"
         }
       }
+    },
+    "remotes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Names of remotes this package consumes; the application binds each to an address"
+    },
+    "vars": {
+      "description": "Runtime environment configuration",
+      "type": "object"
+    },
+    "visibility": {
+      "type": "string",
+      "enum": ["public", "private"],
+      "description": "Visibility the registry publishes this package as; --visibility overrides it"
     }
   },
   "definitions": {
@@ -44,24 +56,13 @@
           "description": "ID of the remote app",
           "type": "string"
         },
-        "url": {
-          "description": "Url of the remote app",
-          "type": "string"
-        },
-        "filename": {
-          "description": "Path to the module federation entrypoint",
-          "type": "string"
-        },
         "metadata": {
           "description": "Metadata associated with the remote app",
           "type": "object",
           "additionalProperties": true
         }
       },
-      "required": [
-        "url",
-        "filename"
-      ],
+      "required": [],
       "additionalProperties": false
     }
   },

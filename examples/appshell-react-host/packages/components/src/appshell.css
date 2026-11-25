@@ -1,0 +1,31 @@
+/*
+ * Points Tailwind's theme at the Appshell token contract, so every utility in these
+ * examples resolves to whatever the Application's registry record supplies. Change the
+ * Application's theme and the whole page reskins with no rebuild and no republish.
+ *
+ * The mapping is @appshell/tokens', published as @appshell/tokens/tailwind.css and
+ * generated from the contract, so it covers every role and can't fall behind. What's left
+ * here is what each consuming package writes for itself: no preflight, and an @source.
+ */
+
+/*
+ * Tailwind without Preflight. Preflight is a global reset, and several packages each
+ * shipping one means several resets fighting each other and the shell. The shell owns
+ * the single structural reset on the page; packages defer to it.
+ */
+@layer theme, base, components, utilities;
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+@import '@appshell/tokens/tailwind.css';
+
+/*
+ * Tailwind generates a utility only if it finds the class written down somewhere, and it
+ * looks relative to the stylesheet that asks for it. An app importing this file gets its
+ * own sources scanned automatically; this package's do not come along for the ride, so
+ * every class used by AppShowcase and Remote would silently produce no CSS.
+ *
+ * Any package contributing markup needs a line like this. A published one would point at
+ * its `dist` directory instead (class names survive compilation as string literals), and
+ * name the directory rather than a glob: Tailwind skips a gitignored path under a glob.
+ */
+@source "./**/*.{ts,tsx}";

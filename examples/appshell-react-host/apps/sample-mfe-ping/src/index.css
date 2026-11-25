@@ -1,13 +1,6 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
-}
+/*
+ * Tailwind, with its theme mapped onto the Appshell token contract. The registry inlines
+ * the Application's token values into the document, so these utilities resolve to
+ * whatever that Application supplies — no rebuild, no republish.
+ */
+@import '@appshell/react-host-components/src/appshell.css';

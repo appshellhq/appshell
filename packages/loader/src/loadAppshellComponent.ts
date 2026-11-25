@@ -1,48 +1,97 @@
-import { ModuleContainer, ShareScope } from './types';
+import type { RemoteLoader } from '@appshell/runtime';
+import {
+  getInstance,
+  init,
+  loadRemote,
+  registerRemotes,
+} from '@module-federation/enhanced/runtime';
 
-/* eslint-disable @typescript-eslint/naming-convention */
-declare global {
-  function __webpack_init_sharing__(id: string): Promise<void>;
-  // eslint-disable-next-line no-underscore-dangle
-  const __webpack_share_scopes__: { default: ShareScope };
-  interface Window {
-    [key: string]: unknown;
-    __webpack_share_scopes__: Record<string, ShareScope>;
-  }
-}
+const HOST_NAME = 'Appshell';
 
-type ShareScopes = keyof typeof __webpack_share_scopes__;
+// The runtime instance and each remote's registration only need to happen once per page load.
+let initialized = false;
+const registeredScopes = new Set<string>();
 
-export default async <TComponent>(scope: string, module: string, shareScope = 'default') => {
+const ensureInitialized = () => {
+  if (initialized) return;
+  initialized = true;
+
+  // A host that ships its own ModuleFederationPlugin (e.g. @appshell/react-shell) already
+  // created the global federation instance during its own bootstrap. Re-calling `init()`
+  // with a different name throws (#RUNTIME-010), so reuse whatever instance already exists.
+  if (getInstance()) return;
+
+  init({ name: HOST_NAME, remotes: [] });
+};
+
+const loadModuleFederation = async <TComponent>(
+  scope: string,
+  module: string,
+  remoteEntryUrl: string,
+  shareScope = 'default',
+) => {
   // eslint-disable-next-line no-console
   console.debug(
     `loading Appshell component: { scope: ${scope}, module: ${module}, shareScope: ${shareScope} }`,
   );
 
-  // Initializes the share scope. This fills it with known provided modules from this build and all remotes
-  await __webpack_init_sharing__(shareScope);
-  const container = window[scope] as ModuleContainer<TComponent>;
+  ensureInitialized();
 
-  if (!container) {
+  // Registered exactly once, and never re-registered or cache-busted afterwards.
+  //
+  // A remote served by a dev server updates itself: its `remoteEntry` already carries
+  // webpack's HMR runtime and a dev-server client, so an edit is applied in place
+  // behind a container identity that does not move. Re-registering the same scope, or
+  // appending a cache-busting query to its entry, changes that identity and the
+  // `publicPath` derived from it mid-flight, which strands the `*.hot-update.json` and
+  // `*.hot-update.js` requests the remote is midway through making.
+  if (!registeredScopes.has(scope)) {
+    registeredScopes.add(scope);
+    registerRemotes([{ name: scope, entry: remoteEntryUrl }]);
+  }
+
+  // Federation ids drop the leading `./` that `exposes` keys use.
+  const exposed = module.replace(/^\.\//, '');
+  const Module = await loadRemote<{ default: TComponent }>(`${scope}/${exposed}`);
+
+  if (!Module) {
     throw new Error(`Failed to find module container ${scope}`);
   }
-
-  // Initialize the container, it may provide shared modules
-  await container.init(__webpack_share_scopes__[shareScope as ShareScopes]);
-  const factory = await container.get(module);
-
-  if (!factory) {
-    throw new Error(`Invalid factory produced by container for module ${module}.`);
-  }
-
-  const Module = factory();
 
   // eslint-disable-next-line no-console
   console.debug(
     `Appshell component loaded: { scope: ${scope}, module: ${module}, shareScope: ${shareScope} }`,
   );
 
-  const Component = Module.default;
-
-  return Component;
+  return Module.default;
 };
+
+/**
+ * Dispatches on the loader's kind rather than assuming federation.
+ *
+ * There is one kind today. Naming it is what lets a second — single-spa, import maps —
+ * arrive without reinterpreting manifests already published, and what stops federation's
+ * vocabulary reading as though it were appshell's.
+ */
+export const load = async <TComponent>(remote: {
+  loader: RemoteLoader;
+  remoteEntryUrl: string;
+}) => {
+  const { loader } = remote;
+
+  if (loader.kind !== 'ModuleFederation') {
+    // Unreachable while one kind exists, and the reason the field is a discriminant: a
+    // manifest published under a kind this host cannot load should say so, rather than
+    // failing somewhere inside a loader that assumed otherwise.
+    throw new Error(`No loader for kind '${(loader as { kind: string }).kind}'.`);
+  }
+
+  return loadModuleFederation<TComponent>(
+    loader.scope,
+    loader.module,
+    remote.remoteEntryUrl,
+    loader.shareScope,
+  );
+};
+
+export default load;

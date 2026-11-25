@@ -1,42 +1,24 @@
-import React, { FC, ReactNode } from 'react';
-import styled from 'styled-components';
-
-const Header = styled.header`
-  font-size: 24px;
-`;
-
-const Body = styled.div`
-  display: flex;
-  flex-grow: 1;
-`;
-
-const Wrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-  max-width: 100%;
-  align-content: center;
-  min-width: 0px;
-  min-height: 0px;
-  flex-direction: column;
-  width: 400px;
-  padding: 0 24px 24px 24px;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px;
-  background: orangered;
-`;
+import { FC, ReactNode } from 'react';
 
 type AppShowcaseProps = {
   header: ReactNode | string;
   children: ReactNode;
 };
 
+/**
+ * The card each micro-frontend renders itself into.
+ *
+ * The rule along the top is the accent, and it is here rather than decoration: an
+ * application pins `colorScheme: dark`, so every base renders a near-black surface and
+ * switching one is almost invisible. The accent is what actually distinguishes a theme,
+ * and until something on the page used it, `appshell dev --theme` looked like it had done
+ * nothing. A demo that does not demonstrate is worse than no demo.
+ */
 const AppShowcase: FC<AppShowcaseProps> = ({ header, children }) => (
-  <Wrapper>
-    <Header>{header}</Header>
-    <Body>{children}</Body>
-  </Wrapper>
+  <div className="flex w-[400px] min-w-0 max-w-full flex-col overflow-hidden rounded-lg border-2 border-primary bg-surface-raised px-lg pb-lg text-on-surface-raised shadow-md">
+    <header className="text-h3">{header}</header>
+    <div className="flex min-h-0 grow">{children}</div>
+  </div>
 );
 
 export default AppShowcase;

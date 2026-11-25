@@ -2,15 +2,16 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
+      "@appshell/runtime/vars": ["./packages/runtime/src/vars"],
       "@appshell/*": ["./packages/*/src"]
     },
     "allowJs": true,
     "alwaysStrict": true,
     "declaration": true,
-    "declarationMap": true,
+    "declarationMap": false,
     "emitDeclarationOnly": false,
     "esModuleInterop": true,
-    "jsx": "react",
+    "jsx": "react-jsx",
     "lib": ["esnext", "dom"],
     "module": "commonjs",
     "moduleResolution": "node",
@@ -21,6 +22,12 @@
     "target": "esnext",
     "plugins": [{ "name": "@typescript-eslint" }]
   },
-  "include": ["./packages/*/src", "./examples/**/src", "./**/__tests__", "./**/__fixtures__"],
+  "include": [
+    "./packages/*/src",
+    "./examples/**/src",
+    "./**/__tests__",
+    "./**/__fixtures__",
+    "./**/__mocks__"
+  ],
   "exclude": ["dist", "node_modules"]
 }

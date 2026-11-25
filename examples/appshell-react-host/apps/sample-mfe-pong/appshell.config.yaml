@@ -1,20 +1,20 @@
-remotes:
+# Demo code from a public repo, so published public. The registry defaults to private.
+visibility: public
+
+components:
   PongModule/Pong:
-    url: ${SAMPLE_MFE_PONG_URL}
-    filename: ${REMOTE_ENTRY_PATH}
     metadata:
       route: /pong
       displayName: Pong Micro-Frontend
-      displayGroup: main
+      displayGroup: primary
       order: 20
-      icon: ViewList
+      # One of lucide's icons, by name, which a workspace's navigation draws beside the entry.
+      icon: reply
 
   PongModule/CoolComponent:
-    url: ${SAMPLE_MFE_PONG_URL}
-    filename: ${REMOTE_ENTRY_PATH}
     metadata:
       route: /cool
       displayName: Cool Shared Component
-      displayGroup: main
+      displayGroup: primary
       order: 30
-      icon: ViewList
+      icon: puzzle

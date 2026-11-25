@@ -1,5 +1,5 @@
 {
-  "remotes": {
+  "components": {
     "FooModule/Foo": {
       "url": "${APPS_TEST_URL}",
       "metadata": {

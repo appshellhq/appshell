@@ -44,12 +44,22 @@ export const syncDependencies = async (
 
   const action = packageManager === 'npm' ? 'install' : 'add';
 
-  await new Promise((resolve, reject) => {
-    const command = `${packageManager} ${action} ${packages.join(' ')} --force`;
-    console.log(command);
-    const process = spawn(command, { stdio: 'inherit', cwd: workingDir });
+  const args = [action, ...packages, '--force'];
 
-    process.on('exit', (code) => {
+  await new Promise((resolve, reject) => {
+    console.log(`${packageManager} ${args.join(' ')}`);
+    // On Windows npm/yarn are .cmd shims, which spawn cannot execute directly.
+    const child = spawn(packageManager, args, {
+      stdio: 'inherit',
+      cwd: workingDir,
+      shell: process.platform === 'win32',
+    });
+
+    child.on('error', (err) =>
+      reject(new Error(`${packageManager} failed to ${action} dependencies: ${err.message}`)),
+    );
+
+    child.on('exit', (code) => {
       console.debug(`${packageManager} process exited with code: ${code}`);
       if (code === 0) {
         console.log(`Successfully synced shared dependencies with ${registry}!`);

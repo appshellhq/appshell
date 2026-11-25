@@ -1,4 +1,18 @@
+import type { AppshellIndex, AppshellRemote, Metadata, RemoteLoader } from '@appshell/runtime';
 import { JSONSchema4, JSONSchema6, JSONSchema7 } from 'json-schema';
+
+/*
+ * The wire types moved to @appshell/runtime: a package that only wants to type a remote
+ * should not install build tooling to get it. Re-exported so nothing importing them from
+ * here had to change.
+ */
+export type {
+  AppshellIndex,
+  AppshellRemote,
+  Metadata,
+  ModuleFederationLoader,
+  RemoteLoader,
+} from '@appshell/runtime';
 
 export type Schema = JSONSchema4 | JSONSchema6 | JSONSchema7;
 
@@ -46,65 +60,276 @@ export type ComparisonTarget = {
   dependencies: Record<string, string | undefined>;
 };
 
+/**
+ * Every key `appshell config set` accepts, kept adjacent to the type it must agree with.
+ *
+ * It used to live in the set handler, and adding `caFile` to CliConfig without touching it
+ * produced a setting the cli could read and refuse to write.
+ */
+export const CLI_SETTINGS = [
+  'registry',
+  'application',
+  'defaultScope',
+  'authIssuer',
+  'clientId',
+  'apiKey',
+  'apiKeyHeader',
+  'caFile',
+  'api',
+  'pkce',
+  'authScope',
+] as const;
+
+export type CliSetting = (typeof CLI_SETTINGS)[number];
+
 export type CliConfig = Record<string, string> & {
   apiKey: string;
+  /**
+   * PEM bundle to trust in addition to Node's built-ins, for a registry behind a private
+   * CA. Optional, and absent from `config init` output: an empty path is not a default
+   * worth writing, and its absence means "use Node's defaults".
+   */
+  caFile?: string;
+  /**
+   * The platform api the registry's organizations live on, e.g. https://api.appshell.org.
+   * Optional: absent, `appshell org` derives it from the auth issuer's host (auth.<domain> →
+   * api.<domain>), and a registry run without a platform behind it has no organizations.
+   */
+  api?: string;
   registry: string;
+  application: string;
+  /**
+   * Which namespace an unqualified name belongs to, absent anything better.
+   *
+   * Addressing, and named for it. It was `scope-id`, which read as *the scope this account
+   * has* — identity — and it is not: the registry takes a caller's scope from the token. A
+   * `scope-id` here decided where names resolved while something else decided where writes
+   * landed, and the two could disagree without anything saying so. So an unscoped package
+   * publishes here too, where it's then looked for (`packageScope`).
+   *
+   * It earns its place all the same: `resolveScopeId` falls back to the account's own
+   * scope and deliberately refuses to guess when an account owns several, and this is how
+   * that is settled without passing a flag to every command.
+   */
+  defaultScope: string;
+  authIssuer: string;
+  clientId: string;
+  /**
+   * Whether `appshell login` sends PKCE with the device grant: 'true', the default, or
+   * 'false' for a provider that refuses it, such as Okta. Read with `resolvePkce`.
+   */
+  pkce?: string;
+  /**
+   * The scopes `appshell login` asks for, when the default `openid profile offline_access`
+   * isn't enough: a provider that issues a token for an API only when asked for that API's
+   * scope, as Entra ID does (`api://<registry's client ID>/<scope>`). Named for the auth
+   * issuer because a bare `scope` here means an appshell namespace.
+   */
+  authScope?: string;
 };
 
 /* appshell.config.yaml types */
+/**
+ * Neither `url` nor `filename`.
+ *
+ * `url` is an origin, and an origin belongs to a deployment: a package is published once
+ * and deployed many times, so a url here would freeze one environment's answer into an
+ * immutable version and make the artifact's digest depend on where it was built.
+ *
+ * `filename` was a hand-written copy of the Module Federation `filename`, which is what
+ * actually decides the file webpack emits. Two statements of one fact, and only one of
+ * them is enforced by anything.
+ */
 export type AppshellConfigRemote<TMetadata = Metadata> = {
   id: string;
-  url: string;
-  filename: string;
   metadata: TMetadata;
 };
 
 export type AppshellConfig<TMetadata = Metadata> = {
   name?: string;
-  remotes?: Record<string, AppshellConfigRemote<TMetadata>>;
-  environment?: Record<string, unknown>;
+  /**
+   * What the registry should publish this package as. `--visibility` overrides it.
+   *
+   * Declared here but deliberately absent from the manifest, as `name` already is: the
+   * manifest is hashed into the package digest, and visibility is not a property of the
+   * artifact. Keeping it out is what lets a package be made public later without its
+   * content changing identity.
+   */
+  visibility?: 'public' | 'private';
+  /**
+   * What this package publishes, keyed by federation entrypoint.
+   *
+   * Appshell's own word rather than a framework's. It was `remotes`, which is MF's word
+   * for the opposite — what a package consumes — so the file read inverted to anyone who
+   * knew the framework. `exposes` would fix that and put MF's vocabulary at the top level
+   * of appshell's model, which is what the loader recipe exists to prevent.
+   */
+  components?: Record<string, AppshellConfigRemote<TMetadata>>;
+  /**
+   * What this package consumes, by the name it refers to them by.
+   *
+   * A flat list because a referenced remote is required by definition: unbound, the region
+   * renders an error. `RemoteSlot`'s `fallback` is a loading placeholder — it shows while
+   * the remote arrives, not when it is absent — so unlike a design token's `var()`
+   * fallback it describes no degraded-but-working state.
+   *
+   * The application binds each name to a registry address, so a package never states the
+   * scope its siblings were published into — which it cannot know, since scope is assigned
+   * by whoever publishes.
+   */
+  remotes?: string[];
+  vars?: Record<string, unknown>;
   overrides?: AppshellOverrides;
 };
 
 /* appshell.template.json */
 export type AppshellTemplate<TMetadata = Metadata> = {
   name?: string;
-  remotes?: Record<string, AppshellConfigRemote<TMetadata>>;
+  /** Carried from the yaml for publish to read; never mapped into the manifest. */
+  visibility?: 'public' | 'private';
+  components?: Record<string, AppshellConfigRemote<TMetadata>>;
+  remotes?: string[];
   module: ModuleFederationPluginOptions;
-  environment?: Record<string, unknown>;
+  vars?: Record<string, unknown>;
+  tokens?: Record<string, AppshellTokenUsage>;
   overrides?: AppshellOverrides;
 };
 
 /** Appshell manifest types */
-export type AppshellRemote<TMetadata = Metadata> = {
-  id: string;
-  manifestUrl: string;
-  remoteEntryUrl: string;
-  scope: string;
-  module: string;
-  shareScope?: string;
-  metadata: TMetadata;
+/** The parts of a remote an application may point somewhere else. */
+export type RemoteOverride = {
+  remoteEntryUrl?: string;
+  manifestUrl?: string;
 };
 
 export type AppshellOverrides = {
-  environment: Record<string, Record<string, string | number | undefined>>;
+  vars: Record<string, Record<string, string | number | undefined>>;
+  /**
+   * Where an application loads a remote from, keyed by registry address.
+   *
+   * A package is published once; an application is deployed many times, per environment.
+   * The origin a bundle is served from is a property of a deployment, so it belongs to
+   * whoever deploys rather than being frozen into an immutable artifact at publish — which
+   * is also what makes adopting someone else's package and serving it yourself a spec edit
+   * rather than a republish.
+   *
+   * `filename` stays in the manifest: `remoteEntry.js` is genuinely build output. Only the
+   * origin varies by environment.
+   */
+  remotes?: Record<string, RemoteOverride>;
+};
+
+/**
+ * Which design tokens a package's own output reaches for. Observed from the emitted
+ * assets rather than declared: the CSS already says it, and a hand-kept list is a copy
+ * that drifts the first time someone adds a token and forgets the yaml.
+ *
+ * `required` is a reference with no fallback — the package has no plan B. `optional` is
+ * `var(--appshell-x, something)`, which degrades on its own. That split is read off what
+ * the author wrote rather than asked of them.
+ */
+export type AppshellTokenUsage = {
+  required: string[];
+  optional: string[];
+};
+
+/** A shared-dependency contract, named as one framework's model among possible models. */
+export type SharedContract = {
+  apiVersion: 'federation.appshell.org/v1';
+  kind: 'ModuleFederation';
+  /** Keyed by share scope, as Module Federation groups them. */
+  scopes: Record<string, SharedObject>;
 };
 
 export type AppshellManifest<TMetadata = Metadata> = {
-  remotes: Record<string, AppshellRemote<TMetadata>>;
-  modules: Record<string, ModuleFederationPluginOptions>;
-  environment: Record<string, Record<string, string | number | undefined>>;
+  /** What this package publishes, keyed by federation entrypoint. */
+  components: Record<string, PublishedRemote<TMetadata>>;
+  /** What it consumes, by local name; the application binds each to an address. */
+  remotes?: string[];
+  /**
+   * The shared-dependency contract this package was built against.
+   *
+   * Tagged like the loader recipe, and for the same reason: share scopes, singletons and
+   * version ranges are Module Federation's model of the problem, which single-spa and
+   * import maps solve differently. This replaced `modules`, which stored MF's plugin
+   * options verbatim — one reader took two fields from it, while its source paths and
+   * type-generation flags sat inside the package digest.
+   */
+  shared?: SharedContract;
+  vars: Record<string, Record<string, string | number | undefined>>;
+  /** Keyed by federation scope, so a merged manifest still says which package needs what. */
+  tokens?: Record<string, AppshellTokenUsage>;
   overrides?: AppshellOverrides;
 };
 
-export type AppshellIndex = Record<string, string>;
+/**
+ * A remote as a package publishes it: what the build knows about itself, and nothing
+ * about where it ends up.
+ *
+ * Distinct from `AppshellRemote`, which is the same remote after the registry has
+ * resolved it for the browser. They were one type, which is why the origin ended up in
+ * the artifact: the browser genuinely needs a url, so the published form appeared to as
+ * well. The registry supplies it at composition, from the address and its serving plane.
+ */
+export type PublishedRemote<TMetadata = Metadata> = {
+  id: string;
+  loader: RemoteLoader;
+  metadata: TMetadata;
+};
 
-export type Metadata = Record<string, unknown>;
+/** An `AppshellRemote` the registry already resolved, so the browser needs no manifest fetch. */
+export type ResolvedRemote<TMetadata = Metadata> = AppshellRemote<TMetadata>;
 
-export type AppshellGlobalConfig<TMetadata = Metadata> = {
+/**
+ * The wire contract for `window.__appshell_config__`. Deliberately not an
+ * `AppshellManifest`: that is a build artifact, and reusing it left it unclear
+ * which fields the browser actually needs. `modules` is build-time webpack
+ * config and never crosses the wire; `vars` arrives already merged with the
+ * application's overrides, leaving the browser only local overrides to apply.
+ */
+export type AppshellComposition<TMetadata = Metadata> = {
+  /** `scope/name` — makes the payload self-describing for fetch-on-miss and for `env diff`. */
+  applicationId: string;
+  revision: number;
+  /**
+   * The path the shell was rendered under: `/a/{scope}/{name}` on the shared serving plane,
+   * or the application's mount on a host of its own, `/` included. The application's router
+   * takes it as its base (`getBasePath` in `@appshell/runtime`). Absent from registries
+   * before appshellhq/appshell-services#68.
+   */
+  basePath?: string;
+  /** The remote key the host mounts at the root, and the props it is given. */
+  root: string;
+  rootProps: Record<string, unknown>;
   index: AppshellIndex;
-  metadata?: Record<string, TMetadata>;
-  overrides?: AppshellOverrides;
+  remotes: Record<string, ResolvedRemote<TMetadata>>;
+  vars: Record<string, Record<string, string | number | undefined>>;
+  /**
+   * Present whenever a per-developer overlay changed anything about this render — a
+   * redirected remote, a different shell bundle, a substituted theme, or any combination.
+   * The shell is expected to surface it: a page that quietly runs code from somewhere
+   * else is the one thing this feature must never be, and swapping the shell or the theme
+   * out counts.
+   *
+   * `shellFlavor` is what was actually served, not what was asked for. `theme` is the ref
+   * the overlay substituted, present only when it substituted one.
+   */
+  overlay?: {
+    id: string;
+    remotes: string[];
+    /**
+     * Those of `remotes` the overlay introduced rather than redirected — components the
+     * application does not publish, running for this developer and nobody else.
+     *
+     * Separate from `remotes` because the two are not the same claim. A redirected
+     * component exists for everyone and this browser runs a different copy of it; an
+     * added one does not exist outside this overlay at all, so a feature built on top of
+     * one works here and is absent everywhere else.
+     */
+    added?: string[];
+    shellFlavor: 'prod' | 'dev';
+    theme?: string;
+  };
 };
 
 /**

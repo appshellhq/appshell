@@ -1,0 +1,52 @@
+{
+  "name": "@appshell/react-shell",
+  "version": "1.0.0-alpha.151",
+  "description": "Appshell shell bundle for React",
+  "main": "dist/main.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/appshellhq/appshell.git"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "generate": "run-p generate:*",
+    "start": "dotenv -- npm run start:bundle",
+    "start:bundle": "webpack serve --mode development",
+    "prebuild": "npm run clean",
+    "build": "run-s build:prod build:dev",
+    "build:prod": "webpack --mode production",
+    "build:dev": "webpack --mode development --env flavor=dev",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "author": "Robert Hamilton <rh@navaris.com>",
+  "devDependencies": {
+    "@appshell/webpack-plugin": "^1.0.0-alpha.151",
+    "@module-federation/enhanced": "^2.8.2"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "keywords": [
+    "module federation",
+    "micro-frontends",
+    "appshell"
+  ],
+  "license": "MIT",
+  "gitHead": "e8105f3c5eeb4aec8e3f0e06b151d0a0ef394d12"
+}

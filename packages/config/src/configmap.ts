@@ -33,11 +33,23 @@ const apply = <T extends object>(obj: T, configMap: ConfigMap): T => {
         VARS.forEach((v) => {
           const cur = obj[key as keyof T] as string;
           const value = configMap[v];
-          if (!value) {
+          /*
+           * Left as a placeholder when nothing supplies it, rather than substituted.
+           *
+           * This used to write the string "undefined" — not a value, not absent, and
+           * truthy, so nothing downstream could catch it and a package would render a link
+           * to `undefined`. A placeholder that survives says exactly what happened: this
+           * name was declared and nobody supplied it, at whichever layer was meant to. It
+           * is also what makes an unsupplied var detectable at all, since the rule is
+           * simply "still matches ${...}".
+           */
+          if (value === undefined) {
             // eslint-disable-next-line no-console
-            console.log(`warning: value for ${v} is ${value}`);
+            console.warn(`${v} is not set; leaving its placeholder unresolved.`);
+            return;
           }
-          set<string>(obj, key, cur.replace(`$\{${v}}`, configMap[v]));
+
+          set<string>(obj, key, cur.replace(`$\{${v}}`, value));
         });
       }
     } else if (typeof val === 'object') {

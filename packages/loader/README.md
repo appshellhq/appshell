@@ -20,39 +20,58 @@ Working examples can be found [here](https://github.com/navaris/appshell/tree/ma
 To begin, you'll need to install `@appshell/loader`:
 
 ```console
-npm install @appshell/loader --save-dev
+npm install @appshell/loader
 ```
 
 or
 
 ```console
-yarn add -D @appshell/loader
+yarn add @appshell/loader
 ```
 
 or
 
 ```console
-pnpm add -D @appshell/loader
+pnpm add @appshell/loader
 ```
 
-The default export from this package is the loader function. It is given the global appshell configuration, and returns an async function that can be called to dynamically load Appshell components.
+The default export is the loader factory. It returns an async function that resolves a remote
+key and loads the component behind it. It needs no configuration — the composition is read
+from the document the registry served.
 
 ```ts
 import componentLoader from '@appshell/loader';
 
-const load = componentLoader(config);
+const load = componentLoader();
 
 const Component = load<MyComponent>('MyModule/MyComponent');
 
 render(<Component />);
 ```
 
-**Where does the global appshell configuration come from?**
+**Where does the composition come from?**
 
-> See [@appshell/cli](https://www.npmjs.com/package/@appshell/cli)
+> The registry inlines it into the document it serves, as `window.__appshell_config__`.
 
-```bash
-appshell generate global-config --registry appshell_registry_path
+## How a remote is resolved
+
+The loader walks a chain of resolvers and uses the first one that answers:
+
+| Resolver           | Source                                    | When it answers                                                            |
+| ------------------ | ----------------------------------------- | -------------------------------------------------------------------------- |
+| `inlineResolver`   | `window.__appshell_config__`              | The registry served the page and inlined the composition. No network call. |
+| `registryResolver` | `GET /v1/applications/:id/remotes/:key`   | The remote was activated after this page was served.                       |
+
+A package's vars are delivered into the `@appshell/runtime` store immediately before
+its remote is loaded, so they are in place before the package's modules evaluate. They
+arrive already merged with the application's overrides, because the registry does that
+merge server side — the browser applies nothing. The package reads them with `getVars()`
+from [`@appshell/runtime/vars`](../runtime/README.md).
+
+You can bypass the chain entirely, which is mainly useful for tests and embedders:
+
+```ts
+const load = componentLoader({ resolver: myResolver });
 ```
 
 **Do you have any framework specific loaders?**

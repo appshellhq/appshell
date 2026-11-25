@@ -3,36 +3,52 @@
 exports[`should match snapshot 1`] = `
 <div>
   <div
-    class="sc-fBEEOr jxkmG"
+    class="flex w-[400px] min-w-0 max-w-full flex-col overflow-hidden rounded-lg border-2 border-primary bg-surface-raised px-lg pb-lg text-on-surface-raised shadow-md"
   >
     <header
-      class="sc-hfDuwB gXOGqX"
+      class="text-h3"
     >
-      <pre>
-        sample-mfe-ping
-         v
-        0.0.1
-      </pre>
+      <div
+        class="flex items-baseline gap-sm"
+      >
+        <pre
+          class="min-w-0 truncate"
+        >
+          @appshell/sample-mfe-ping
+        </pre>
+        <span
+          class="rounded-sm bg-primary px-sm text-small text-on-primary"
+        >
+          v
+          <version>
+        </span>
+      </div>
     </header>
     <div
-      class="sc-jCIOXC eelIQs"
+      class="flex min-h-0 grow"
     >
       <textarea
-        class="sc-dBwcjI dFAvjM"
+        aria-label="Remote definition"
+        class="min-h-[30rem] w-full resize-none rounded-sm border border-border bg-transparent p-sm font-mono text-small leading-tight text-on-surface-raised"
         readonly=""
       >
         {
   "id": "2009efad",
   "manifestUrl": "http://localhost:3001/appshell.manifest.json",
   "remoteEntryUrl": "http://localhost:3001/remoteEntry.js",
-  "scope": "PingModule",
-  "module": "./Ping",
   "metadata": {
     "route": "/ping",
     "displayName": "Ping Micro-Frontend",
-    "displayGroup": "main",
+    "displayGroup": "primary",
     "order": 10,
     "icon": "ViewList"
+  },
+  "loader": {
+    "apiVersion": "federation.appshell.org/v1",
+    "kind": "ModuleFederation",
+    "scope": "PingModule",
+    "module": "./Ping",
+    "filename": "remoteEntry.js"
   }
 }
       </textarea>

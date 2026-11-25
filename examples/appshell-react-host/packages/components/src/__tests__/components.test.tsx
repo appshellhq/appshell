@@ -1,6 +1,5 @@
-import type { AppshellRemote } from '@appshell/core';
+import type { AppshellRemote } from '@appshell/react';
 import { render, screen } from '@testing-library/react';
-import React from 'react';
 import { AppShowcase, PackageBlock, Remote } from '../index';
 
 describe('PackageBlock', () => {
@@ -42,8 +41,13 @@ describe('Remote', () => {
     id: 'abc123',
     manifestUrl: 'http://localhost:3001/appshell.manifest.json',
     remoteEntryUrl: 'http://localhost:3001/remoteEntry.js',
-    scope: 'TestModule',
-    module: './Test',
+    loader: {
+      apiVersion: 'federation.appshell.org/v1',
+      kind: 'ModuleFederation',
+      scope: 'TestModule',
+      module: './Test',
+      filename: 'remoteEntry.js',
+    },
     metadata: {
       route: '/test',
       displayName: 'Test MFE',

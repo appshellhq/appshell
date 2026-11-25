@@ -12,10 +12,18 @@ module.exports = (env, { mode }) => {
       filename: '[name].js',
       pathinfo: false,
       libraryTarget: 'umd',
+      // `self` is the UMD default and is absent under Node, which would break server
+      // rendering and any node-environment test that loads the built package.
+      globalObject: 'this',
     },
     resolve: {
       extensions: ['.js', '.ts'],
       plugins: [new TsconfigPathsPlugin()],
+    },
+    // Externalised, not bundled: `@appshell/runtime` is a shared singleton, and a copy
+    // inlined here would be a second store that no package ever reads from.
+    externals: {
+      '@appshell/runtime': '@appshell/runtime',
     },
     module: {
       rules: [

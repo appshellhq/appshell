@@ -1,0 +1,566 @@
+# Change Log
+
+All notable changes to this project will be documented in this file.
+See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
+
+# [1.0.0-alpha.151](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.150...v1.0.0-alpha.151) (2026-11-25)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.150](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.149...v1.0.0-alpha.150) (2026-11-25)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.149](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.148...v1.0.0-alpha.149) (2026-11-17)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.148](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.147...v1.0.0-alpha.148) (2026-10-29)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.147](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.146...v1.0.0-alpha.147) (2026-10-28)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.146](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.145...v1.0.0-alpha.146) (2026-10-28)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.145](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.144...v1.0.0-alpha.145) (2026-10-27)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.144](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.143...v1.0.0-alpha.144) (2026-10-26)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.143](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.142...v1.0.0-alpha.143) (2026-10-25)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.142](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.141...v1.0.0-alpha.142) (2026-10-25)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.141](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.140...v1.0.0-alpha.141) (2026-10-24)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.140](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.139...v1.0.0-alpha.140) (2026-10-22)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.139](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.138...v1.0.0-alpha.139) (2026-10-22)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.138](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.137...v1.0.0-alpha.138) (2026-10-22)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.137](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.136...v1.0.0-alpha.137) (2026-10-21)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.136](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.135...v1.0.0-alpha.136) (2026-10-21)
+
+### Features
+
+- **runtime:** getRemotes and getBasePath, what a container reads from the composition ([40e17b9](https://github.com/appshellhq/appshell/commit/40e17b9e4a10a00d78a17e7ca306867502ac7eaf)), closes [appshellhq/appshell-mfe#1](https://github.com/appshellhq/appshell-mfe/issues/1)
+
+# [1.0.0-alpha.135](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.134...v1.0.0-alpha.135) (2026-10-20)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.134](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.133...v1.0.0-alpha.134) (2026-10-20)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.133](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.132...v1.0.0-alpha.133) (2026-10-20)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.132](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.131...v1.0.0-alpha.132) (2026-10-20)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.131](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.130...v1.0.0-alpha.131) (2026-10-20)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.130](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.129...v1.0.0-alpha.130) (2026-10-19)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.129](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.128...v1.0.0-alpha.129) (2026-10-19)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.128](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.127...v1.0.0-alpha.128) (2026-10-19)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.127](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.126...v1.0.0-alpha.127) (2026-10-19)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.126](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.125...v1.0.0-alpha.126) (2026-10-19)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.125](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.124...v1.0.0-alpha.125) (2026-10-19)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.124](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.123...v1.0.0-alpha.124) (2026-10-19)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.123](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.122...v1.0.0-alpha.123) (2026-10-18)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.122](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.121...v1.0.0-alpha.122) (2026-10-18)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.121](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.120...v1.0.0-alpha.121) (2026-10-18)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.120](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.119...v1.0.0-alpha.120) (2026-10-18)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.119](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.118...v1.0.0-alpha.119) (2026-10-17)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.118](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.117...v1.0.0-alpha.118) (2026-10-17)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.117](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.116...v1.0.0-alpha.117) (2026-10-17)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.116](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.115...v1.0.0-alpha.116) (2026-10-16)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.115](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.114...v1.0.0-alpha.115) (2026-10-16)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.114](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.113...v1.0.0-alpha.114) (2026-10-15)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.113](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.112...v1.0.0-alpha.113) (2026-10-15)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.112](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.111...v1.0.0-alpha.112) (2026-10-14)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.111](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.110...v1.0.0-alpha.111) (2026-10-14)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.110](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.109...v1.0.0-alpha.110) (2026-10-14)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.109](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.108...v1.0.0-alpha.109) (2026-10-14)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.108](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.107...v1.0.0-alpha.108) (2026-10-13)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.107](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.106...v1.0.0-alpha.107) (2026-10-13)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.106](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.105...v1.0.0-alpha.106) (2026-10-13)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.105](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.104...v1.0.0-alpha.105) (2026-10-12)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.104](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.103...v1.0.0-alpha.104) (2026-10-12)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.103](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.102...v1.0.0-alpha.103) (2026-10-12)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.102](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.101...v1.0.0-alpha.102) (2026-10-12)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.101](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.100...v1.0.0-alpha.101) (2026-10-12)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.100](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.99...v1.0.0-alpha.100) (2026-10-11)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.99](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.98...v1.0.0-alpha.99) (2026-10-11)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.98](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.97...v1.0.0-alpha.98) (2026-10-09)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.97](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.96...v1.0.0-alpha.97) (2026-09-19)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.96](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.95...v1.0.0-alpha.96) (2026-09-19)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.95](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.94...v1.0.0-alpha.95) (2026-09-19)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.94](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.93...v1.0.0-alpha.94) (2026-09-19)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.93](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.92...v1.0.0-alpha.93) (2026-09-18)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.92](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.91...v1.0.0-alpha.92) (2026-09-18)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.91](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.90...v1.0.0-alpha.91) (2026-09-12)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.90](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.89...v1.0.0-alpha.90) (2026-09-12)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.89](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.88...v1.0.0-alpha.89) (2026-09-12)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.88](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.87...v1.0.0-alpha.88) (2026-09-12)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.87](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.86...v1.0.0-alpha.87) (2026-09-12)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.86](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.85...v1.0.0-alpha.86) (2026-09-12)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.85](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.84...v1.0.0-alpha.85) (2026-09-12)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.84](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.83...v1.0.0-alpha.84) (2026-09-12)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.83](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.82...v1.0.0-alpha.83) (2026-09-12)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.82](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.81...v1.0.0-alpha.82) (2026-09-12)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.81](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.80...v1.0.0-alpha.81) (2026-09-11)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.80](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.79...v1.0.0-alpha.80) (2026-09-11)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.79](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.78...v1.0.0-alpha.79) (2026-09-11)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.78](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.77...v1.0.0-alpha.78) (2026-09-11)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.77](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.76...v1.0.0-alpha.77) (2026-09-11)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.76](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.75...v1.0.0-alpha.76) (2026-09-11)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.75](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.74...v1.0.0-alpha.75) (2026-09-11)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.74](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.73...v1.0.0-alpha.74) (2026-09-11)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.73](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.72...v1.0.0-alpha.73) (2026-09-11)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.72](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.71...v1.0.0-alpha.72) (2026-09-10)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.71](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.70...v1.0.0-alpha.71) (2026-09-10)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.70](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.69...v1.0.0-alpha.70) (2026-09-10)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.69](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.68...v1.0.0-alpha.69) (2026-09-10)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.68](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.67...v1.0.0-alpha.68) (2026-09-10)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.67](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.66...v1.0.0-alpha.67) (2026-09-09)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.66](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.65...v1.0.0-alpha.66) (2026-09-09)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.65](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.64...v1.0.0-alpha.65) (2026-09-09)
+
+### Features
+
+- **runtime:** name how a remote is loaded, as one kind among possible kinds ([f2600b6](https://github.com/appshellhq/appshell/commit/f2600b6be48a728d5ac019f28d9de175f9b3c557))
+
+# [1.0.0-alpha.64](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.63...v1.0.0-alpha.64) (2026-09-09)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.63](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.62...v1.0.0-alpha.63) (2026-09-09)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.62](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.61...v1.0.0-alpha.62) (2026-09-09)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.61](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.60...v1.0.0-alpha.61) (2026-09-09)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.60](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.59...v1.0.0-alpha.60) (2026-09-09)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.59](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.58...v1.0.0-alpha.59) (2026-09-09)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.58](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.57...v1.0.0-alpha.58) (2026-09-09)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.57](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.56...v1.0.0-alpha.57) (2026-09-09)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.56](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.55...v1.0.0-alpha.56) (2026-09-08)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.55](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.54...v1.0.0-alpha.55) (2026-09-07)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.54](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.53...v1.0.0-alpha.54) (2026-09-07)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.53](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.52...v1.0.0-alpha.53) (2026-09-07)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.52](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.51...v1.0.0-alpha.52) (2026-09-07)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.51](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.50...v1.0.0-alpha.51) (2026-09-07)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.50](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.49...v1.0.0-alpha.50) (2026-09-07)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.49](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.48...v1.0.0-alpha.49) (2026-09-07)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.48](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.47...v1.0.0-alpha.48) (2026-09-07)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.47](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.46...v1.0.0-alpha.47) (2026-09-07)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.46](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.45...v1.0.0-alpha.46) (2026-09-06)
+
+### Features
+
+- **runtime:** let a package read who is looking at the page ([2ddfbb8](https://github.com/appshellhq/appshell/commit/2ddfbb8c8cff66662a838e3437e66ba733d4088f))
+
+# [1.0.0-alpha.45](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.44...v1.0.0-alpha.45) (2026-09-05)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.44](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.43...v1.0.0-alpha.44) (2026-09-05)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.43](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.42...v1.0.0-alpha.43) (2026-09-04)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.42](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.41...v1.0.0-alpha.42) (2026-09-04)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.41](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.40...v1.0.0-alpha.41) (2026-09-04)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.40](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.39...v1.0.0-alpha.40) (2026-09-04)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.39](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.38...v1.0.0-alpha.39) (2026-09-04)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.38](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.37...v1.0.0-alpha.38) (2026-09-03)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.37](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.36...v1.0.0-alpha.37) (2026-09-03)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.36](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.35...v1.0.0-alpha.36) (2026-09-03)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.35](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.34...v1.0.0-alpha.35) (2026-09-03)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.34](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.33...v1.0.0-alpha.34) (2026-09-03)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.33](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.32...v1.0.0-alpha.33) (2026-09-03)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.32](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.31...v1.0.0-alpha.32) (2026-09-02)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.31](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.30...v1.0.0-alpha.31) (2026-09-02)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.30](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.29...v1.0.0-alpha.30) (2026-09-01)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.29](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.28...v1.0.0-alpha.29) (2026-08-31)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.28](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.27...v1.0.0-alpha.28) (2026-08-30)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.27](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.26...v1.0.0-alpha.27) (2026-08-29)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.26](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.25...v1.0.0-alpha.26) (2026-08-29)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.25](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.24...v1.0.0-alpha.25) (2026-08-29)
+
+- feat!: fold @appshell/vars into the @appshell/runtime/vars subpath ([8936237](https://github.com/appshellhq/appshell/commit/893623759236bbbd5436607ec6ae1162ce92de45))
+- feat!: delete @appshell/core and move the wire types into runtime ([9b3ed20](https://github.com/appshellhq/appshell/commit/9b3ed2094fba8909531049d354a2763c6c1f80db))
+
+### BREAKING CHANGES
+
+- @appshell/vars is removed. Replace
+  `import { getVars } from '@appshell/vars'` with
+  `import { getVars } from '@appshell/runtime/vars'`.
+- @appshell/core is removed. Import AppshellRemote, AppshellIndex
+  and Metadata from @appshell/runtime, or from @appshell/react which re-exports
+  them. AppshellManifest stays in @appshell/config.
+
+# [1.0.0-alpha.24](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.23...v1.0.0-alpha.24) (2026-08-28)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.23](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.22...v1.0.0-alpha.23) (2026-08-27)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.22](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.21...v1.0.0-alpha.22) (2026-08-27)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.21](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.20...v1.0.0-alpha.21) (2026-08-27)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.20](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.19...v1.0.0-alpha.20) (2026-08-27)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.19](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.18...v1.0.0-alpha.19) (2026-08-27)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.18](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.17...v1.0.0-alpha.18) (2026-08-27)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.17](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.16...v1.0.0-alpha.17) (2026-08-27)
+
+**Note:** Version bump only for package @appshell/runtime
+
+# [1.0.0-alpha.16](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.14...v1.0.0-alpha.16) (2026-08-27)
+
+### Features
+
+- deliver package vars through a shared runtime, not a global ([9473f62](https://github.com/appshellhq/appshell/commit/9473f6204b75885cd55b12a9ec71a44a74d6aa41))

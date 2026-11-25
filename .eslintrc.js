@@ -12,6 +12,12 @@ module.exports = {
     'airbnb/hooks',
     'eslint:recommended',
     'plugin:react/recommended',
+    // Turns off react-in-jsx-scope and jsx-uses-react. Both encode the classic runtime,
+    // where JSX compiled to React.createElement and every file needed React in scope.
+    // Under the automatic runtime the compiler imports what it needs, so requiring the
+    // import is not merely unnecessary — it reinstates the thing that broke the example
+    // build, an import an editor is right to delete and a bundle that needs it anyway.
+    'plugin:react/jsx-runtime',
     'plugin:@typescript-eslint/recommended',
     'plugin:@typescript-eslint/eslint-recommended',
     'plugin:import/recommended',
@@ -59,6 +65,8 @@ module.exports = {
     'import/no-extraneous-dependencies': 'off',
     'import/prefer-default-export': 'warn',
     'no-param-reassign': 'warn',
+    // The underscored globals are the browser wire contract, not private fields.
+    'no-underscore-dangle': ['error', { allow: ['__appshell_config__', '__appshell_index__'] }],
     'react/function-component-definition': [
       'error',
       {
@@ -67,5 +75,11 @@ module.exports = {
       },
     ],
     'react/jsx-filename-extension': 'off',
+    // React 19 ignores defaultProps on function components, so an optional prop's default is
+    // the destructuring default, or none. Airbnb's rule would demand defaultProps for each.
+    'react/require-default-props': [
+      'error',
+      { forbidDefaultForRequired: true, ignoreFunctionalComponents: true },
+    ],
   },
 };

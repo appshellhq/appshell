@@ -1,0 +1,991 @@
+# Change Log
+
+All notable changes to this project will be documented in this file.
+See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
+
+# [1.0.0-alpha.151](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.150...v1.0.0-alpha.151) (2026-11-25)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.150](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.149...v1.0.0-alpha.150) (2026-11-25)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.149](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.148...v1.0.0-alpha.149) (2026-11-17)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.148](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.147...v1.0.0-alpha.148) (2026-10-29)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.147](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.146...v1.0.0-alpha.147) (2026-10-28)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.146](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.145...v1.0.0-alpha.146) (2026-10-28)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.145](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.144...v1.0.0-alpha.145) (2026-10-27)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.144](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.143...v1.0.0-alpha.144) (2026-10-26)
+
+### Features
+
+- **react-shell:** the appshell logo in the console's blue, with SVG sources for every variant ([#80](https://github.com/appshellhq/appshell/issues/80)) ([ff972b7](https://github.com/appshellhq/appshell/commit/ff972b7eb581e94b850850e281467ad9204c6faf)), closes [#1c78c0](https://github.com/appshellhq/appshell/issues/1c78c0) [#348bd4](https://github.com/appshellhq/appshell/issues/348bd4) [appshellhq/appshell-mfe#51](https://github.com/appshellhq/appshell-mfe/issues/51) [#8ed5](https://github.com/appshellhq/appshell/issues/8ed5) [#8ed5](https://github.com/appshellhq/appshell/issues/8ed5) [#348bd4](https://github.com/appshellhq/appshell/issues/348bd4)
+
+# [1.0.0-alpha.143](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.142...v1.0.0-alpha.143) (2026-10-25)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.142](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.141...v1.0.0-alpha.142) (2026-10-25)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.141](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.140...v1.0.0-alpha.141) (2026-10-24)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.140](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.139...v1.0.0-alpha.140) (2026-10-22)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.139](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.138...v1.0.0-alpha.139) (2026-10-22)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.138](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.137...v1.0.0-alpha.138) (2026-10-22)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.137](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.136...v1.0.0-alpha.137) (2026-10-21)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.136](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.135...v1.0.0-alpha.136) (2026-10-21)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.135](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.134...v1.0.0-alpha.135) (2026-10-20)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.134](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.133...v1.0.0-alpha.134) (2026-10-20)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.133](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.132...v1.0.0-alpha.133) (2026-10-20)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.132](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.131...v1.0.0-alpha.132) (2026-10-20)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.131](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.130...v1.0.0-alpha.131) (2026-10-20)
+
+### Bug Fixes
+
+- **react-shell:** the shell's reset normalises what Tailwind packages assume Preflight did ([db064ca](https://github.com/appshellhq/appshell/commit/db064ca6582ee29ef4beaef3f4a712999aff917b)), closes [#50](https://github.com/appshellhq/appshell/issues/50)
+
+# [1.0.0-alpha.130](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.129...v1.0.0-alpha.130) (2026-10-19)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.129](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.128...v1.0.0-alpha.129) (2026-10-19)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.128](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.127...v1.0.0-alpha.128) (2026-10-19)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.127](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.126...v1.0.0-alpha.127) (2026-10-19)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.126](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.125...v1.0.0-alpha.126) (2026-10-19)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.125](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.124...v1.0.0-alpha.125) (2026-10-19)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.124](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.123...v1.0.0-alpha.124) (2026-10-19)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.123](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.122...v1.0.0-alpha.123) (2026-10-18)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.122](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.121...v1.0.0-alpha.122) (2026-10-18)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.121](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.120...v1.0.0-alpha.121) (2026-10-18)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.120](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.119...v1.0.0-alpha.120) (2026-10-18)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.119](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.118...v1.0.0-alpha.119) (2026-10-17)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.118](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.117...v1.0.0-alpha.118) (2026-10-17)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.117](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.116...v1.0.0-alpha.117) (2026-10-17)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.116](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.115...v1.0.0-alpha.116) (2026-10-16)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.115](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.114...v1.0.0-alpha.115) (2026-10-16)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.114](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.113...v1.0.0-alpha.114) (2026-10-15)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.113](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.112...v1.0.0-alpha.113) (2026-10-15)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.112](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.111...v1.0.0-alpha.112) (2026-10-14)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.111](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.110...v1.0.0-alpha.111) (2026-10-14)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.110](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.109...v1.0.0-alpha.110) (2026-10-14)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.109](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.108...v1.0.0-alpha.109) (2026-10-14)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.108](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.107...v1.0.0-alpha.108) (2026-10-13)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.107](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.106...v1.0.0-alpha.107) (2026-10-13)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.106](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.105...v1.0.0-alpha.106) (2026-10-13)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.105](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.104...v1.0.0-alpha.105) (2026-10-12)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.104](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.103...v1.0.0-alpha.104) (2026-10-12)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.103](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.102...v1.0.0-alpha.103) (2026-10-12)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.102](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.101...v1.0.0-alpha.102) (2026-10-12)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.101](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.100...v1.0.0-alpha.101) (2026-10-12)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.100](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.99...v1.0.0-alpha.100) (2026-10-11)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.99](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.98...v1.0.0-alpha.99) (2026-10-11)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.98](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.97...v1.0.0-alpha.98) (2026-10-09)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.97](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.96...v1.0.0-alpha.97) (2026-09-19)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.96](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.95...v1.0.0-alpha.96) (2026-09-19)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.95](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.94...v1.0.0-alpha.95) (2026-09-19)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.94](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.93...v1.0.0-alpha.94) (2026-09-19)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.93](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.92...v1.0.0-alpha.93) (2026-09-18)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.92](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.91...v1.0.0-alpha.92) (2026-09-18)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.91](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.90...v1.0.0-alpha.91) (2026-09-12)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.90](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.89...v1.0.0-alpha.90) (2026-09-12)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.89](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.88...v1.0.0-alpha.89) (2026-09-12)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.88](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.87...v1.0.0-alpha.88) (2026-09-12)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.87](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.86...v1.0.0-alpha.87) (2026-09-12)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.86](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.85...v1.0.0-alpha.86) (2026-09-12)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.85](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.84...v1.0.0-alpha.85) (2026-09-12)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.84](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.83...v1.0.0-alpha.84) (2026-09-12)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.83](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.82...v1.0.0-alpha.83) (2026-09-12)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.82](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.81...v1.0.0-alpha.82) (2026-09-12)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.81](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.80...v1.0.0-alpha.81) (2026-09-11)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.80](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.79...v1.0.0-alpha.80) (2026-09-11)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.79](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.78...v1.0.0-alpha.79) (2026-09-11)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.78](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.77...v1.0.0-alpha.78) (2026-09-11)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.77](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.76...v1.0.0-alpha.77) (2026-09-11)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.76](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.75...v1.0.0-alpha.76) (2026-09-11)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.75](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.74...v1.0.0-alpha.75) (2026-09-11)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.74](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.73...v1.0.0-alpha.74) (2026-09-11)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.73](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.72...v1.0.0-alpha.73) (2026-09-11)
+
+### Features
+
+- **shell:** say which overlay remotes the application does not publish ([c841bba](https://github.com/appshellhq/appshell/commit/c841bbaf9acbca06b4883fd9df5e04cf5f6e04e0)), closes [appshellhq/appshell-services#22](https://github.com/appshellhq/appshell-services/issues/22)
+
+# [1.0.0-alpha.72](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.71...v1.0.0-alpha.72) (2026-09-10)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.71](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.70...v1.0.0-alpha.71) (2026-09-10)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.70](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.69...v1.0.0-alpha.70) (2026-09-10)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.69](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.68...v1.0.0-alpha.69) (2026-09-10)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.68](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.67...v1.0.0-alpha.68) (2026-09-10)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.67](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.66...v1.0.0-alpha.67) (2026-09-09)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.66](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.65...v1.0.0-alpha.66) (2026-09-09)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.65](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.64...v1.0.0-alpha.65) (2026-09-09)
+
+### Features
+
+- **runtime:** name how a remote is loaded, as one kind among possible kinds ([f2600b6](https://github.com/appshellhq/appshell/commit/f2600b6be48a728d5ac019f28d9de175f9b3c557))
+
+# [1.0.0-alpha.64](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.63...v1.0.0-alpha.64) (2026-09-09)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.63](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.62...v1.0.0-alpha.63) (2026-09-09)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.62](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.61...v1.0.0-alpha.62) (2026-09-09)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.61](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.60...v1.0.0-alpha.61) (2026-09-09)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.60](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.59...v1.0.0-alpha.60) (2026-09-09)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.59](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.58...v1.0.0-alpha.59) (2026-09-09)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.58](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.57...v1.0.0-alpha.58) (2026-09-09)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.57](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.56...v1.0.0-alpha.57) (2026-09-09)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.56](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.55...v1.0.0-alpha.56) (2026-09-08)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.55](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.54...v1.0.0-alpha.55) (2026-09-07)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.54](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.53...v1.0.0-alpha.54) (2026-09-07)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.53](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.52...v1.0.0-alpha.53) (2026-09-07)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.52](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.51...v1.0.0-alpha.52) (2026-09-07)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.51](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.50...v1.0.0-alpha.51) (2026-09-07)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.50](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.49...v1.0.0-alpha.50) (2026-09-07)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.49](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.48...v1.0.0-alpha.49) (2026-09-07)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.48](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.47...v1.0.0-alpha.48) (2026-09-07)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.47](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.46...v1.0.0-alpha.47) (2026-09-07)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.46](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.45...v1.0.0-alpha.46) (2026-09-06)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.45](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.44...v1.0.0-alpha.45) (2026-09-05)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.44](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.43...v1.0.0-alpha.44) (2026-09-05)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.43](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.42...v1.0.0-alpha.43) (2026-09-04)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.42](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.41...v1.0.0-alpha.42) (2026-09-04)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.41](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.40...v1.0.0-alpha.41) (2026-09-04)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.40](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.39...v1.0.0-alpha.40) (2026-09-04)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.39](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.38...v1.0.0-alpha.39) (2026-09-04)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.38](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.37...v1.0.0-alpha.38) (2026-09-03)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.37](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.36...v1.0.0-alpha.37) (2026-09-03)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.36](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.35...v1.0.0-alpha.36) (2026-09-03)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.35](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.34...v1.0.0-alpha.35) (2026-09-03)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.34](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.33...v1.0.0-alpha.34) (2026-09-03)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.33](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.32...v1.0.0-alpha.33) (2026-09-03)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.32](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.31...v1.0.0-alpha.32) (2026-09-02)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.31](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.30...v1.0.0-alpha.31) (2026-09-02)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.30](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.29...v1.0.0-alpha.30) (2026-09-01)
+
+### Features
+
+- **cli:** appshell dev --theme ([a566418](https://github.com/appshellhq/appshell/commit/a56641847448c39cd9c27742223ffff15dfd6925))
+
+# [1.0.0-alpha.29](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.28...v1.0.0-alpha.29) (2026-08-31)
+
+### Bug Fixes
+
+- **react-shell:** declare the workspace plugin it builds with ([035c271](https://github.com/appshellhq/appshell/commit/035c271bc6eb435597b69701152c5bfa24771a30))
+
+# [1.0.0-alpha.28](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.27...v1.0.0-alpha.28) (2026-08-30)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.27](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.26...v1.0.0-alpha.27) (2026-08-29)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.26](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.25...v1.0.0-alpha.26) (2026-08-29)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.25](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.24...v1.0.0-alpha.25) (2026-08-29)
+
+### Features
+
+- **webpack-plugin:** provide the shared block instead of asking for it ([a31755d](https://github.com/appshellhq/appshell/commit/a31755da36cc8a80aacd4798fb59f5f2f7673bde))
+
+# [1.0.0-alpha.24](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.23...v1.0.0-alpha.24) (2026-08-28)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.23](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.22...v1.0.0-alpha.23) (2026-08-27)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.22](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.21...v1.0.0-alpha.22) (2026-08-27)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.21](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.20...v1.0.0-alpha.21) (2026-08-27)
+
+### Features
+
+- **react-shell:** remove the registry's splash once the root package mounts ([3957f5d](https://github.com/appshellhq/appshell/commit/3957f5d1fbf306f0ca8cea7baa2b122ff7c34cf5))
+
+# [1.0.0-alpha.20](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.19...v1.0.0-alpha.20) (2026-08-27)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.19](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.18...v1.0.0-alpha.19) (2026-08-27)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.18](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.17...v1.0.0-alpha.18) (2026-08-27)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.17](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.16...v1.0.0-alpha.17) (2026-08-27)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.16](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.14...v1.0.0-alpha.16) (2026-08-27)
+
+### Features
+
+- deliver package vars through a shared runtime, not a global ([9473f62](https://github.com/appshellhq/appshell/commit/9473f6204b75885cd55b12a9ec71a44a74d6aa41))
+- rename core vocabulary to Package / Application / Remote ([418b7e0](https://github.com/appshellhq/appshell/commit/418b7e010b6caa1af661f7fd9c05e751e69315a9))
+
+# [1.0.0-alpha.14](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.13...v1.0.0-alpha.14) (2026-08-23)
+
+### Features
+
+- **react-shell:** announce an overlay that only changed the shell ([55a5faf](https://github.com/appshell-org/appshell/commit/55a5faf25255c33494d1fbbec86f38a71b2875b2))
+
+# [1.0.0-alpha.13](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.12...v1.0.0-alpha.13) (2026-08-22)
+
+### Features
+
+- **react-shell:** add a development-flavored shell bundle ([ea13c06](https://github.com/appshell-org/appshell/commit/ea13c061fd945c5d89f8bb155aa3dd90ee7c65fc))
+- **react-shell:** surface an active development overlay ([22bea41](https://github.com/appshell-org/appshell/commit/22bea418afabcc1fb04f0567b0f49aa0e8ed8fd2))
+
+# [1.0.0-alpha.12](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.11...v1.0.0-alpha.12) (2026-08-21)
+
+### Bug Fixes
+
+- **examples:** stop dev-server overlay from catching unrelated runtime errors ([10b4b86](https://github.com/appshell-org/appshell/commit/10b4b8676d9e7776377138ac9299a7fc99a7e910))
+- improve local federation HMR and shell share behavior ([463d85c](https://github.com/appshell-org/appshell/commit/463d85ce0f18f6111a09b5d94d39d24fb813abc8))
+
+# [1.0.0-alpha.11](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.10...v1.0.0-alpha.11) (2026-08-20)
+
+### Features
+
+- **loader:** migrate remote loading to @module-federation/enhanced runtime ([fda2d5d](https://github.com/appshell-org/appshell/commit/fda2d5ddfa5487f9aae55669392a08e55a491461)), closes [#RUNTIME-010](https://github.com/appshell-org/appshell/issues/RUNTIME-010)
+
+# [1.0.0-alpha.10](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.9...v1.0.0-alpha.10) (2026-08-19)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.8](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.7...v1.0.0-alpha.8) (2026-08-19)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.7](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.6...v1.0.0-alpha.7) (2026-08-18)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.6](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.5...v1.0.0-alpha.6) (2026-08-18)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.5](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.4...v1.0.0-alpha.5) (2026-08-18)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.4](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.3...v1.0.0-alpha.4) (2026-08-18)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# [1.0.0-alpha.3](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.2...v1.0.0-alpha.3) (2026-08-18)
+
+**Note:** Version bump only for package @appshell/react-shell
+
+# 0.12.0-alpha.0 (2026-04-20)
+
+### Bug Fixes
+
+- add api-key support for appshell host ([817481a](https://github.com/appshell-org/appshell/commit/817481a0b25bec1d0eec38d4d5771d5941cf2f3d))
+- add generate metadata to react-host startup command ([b8ade33](https://github.com/appshell-org/appshell/commit/b8ade33bc8bdf0d5bc612ce08846f2b9f26a3fd4))
+- appshell host runtime configuration ([#32](https://github.com/appshell-org/appshell/issues/32)) ([cd63ad0](https://github.com/appshell-org/appshell/commit/cd63ad0f031ede2fd9153707d418261238b382b2))
+- appshell host startup script ([#34](https://github.com/appshell-org/appshell/issues/34)) ([e136d73](https://github.com/appshell-org/appshell/commit/e136d73fb92c8dfcb90648dcb0eb7b2ec8a365b1))
+- configurable api key header support, minor fixes ([2f0bf02](https://github.com/appshell-org/appshell/commit/2f0bf027b92398f91b8e8cbfbf543d61fe37b7a0))
+- enable history api fallback, include serve.json config, update publicPath value ([96af4fc](https://github.com/appshell-org/appshell/commit/96af4fc8cd14006aa477964daa4e37d29803191c))
+- enable relative appshell_configs dir, containerize appshell host example ([79926f5](https://github.com/appshell-org/appshell/commit/79926f5e2b1ae29c4d7349c0babcb93d3b147485))
+- hot module replacement support, example updates ([a67d230](https://github.com/appshell-org/appshell/commit/a67d2303b40f5911373225cc0b4ccf9b67c33d11))
+- ignore dist from dev server ([66eaa4f](https://github.com/appshell-org/appshell/commit/66eaa4f0f7909de289aa25bd8962d0d018be8c89))
+- ignore manifest changes that force refresh ([ccb2155](https://github.com/appshell-org/appshell/commit/ccb2155a26bd3f6861f43805bb674ae4906375c1))
+- make runtime env generation prefix configurable ([28441a8](https://github.com/appshell-org/appshell/commit/28441a854cd03dfd4b89fb932efba571af221cd2))
+- metadata urls ([efcce1c](https://github.com/appshell-org/appshell/commit/efcce1ce4cb1745afa83661cae1414a73f837483))
+- reenable unit tests ([c00f581](https://github.com/appshell-org/appshell/commit/c00f581b2d71778378729f3bc42a4f5a1c0afe04))
+- registry projection, enable env overwrite, refactor docker workflow, consolidate env names ([33a28fe](https://github.com/appshell-org/appshell/commit/33a28fe76b58e05c5b6b6b33d4b402e52bb29e70))
+- rename @appshell/react-federated-component package to @appshell/react ([0b74498](https://github.com/appshell-org/appshell/commit/0b74498bf17ba73db4d936c8a012af1d3b111a28))
+- serve registry docs, update cli error reporting ([7338810](https://github.com/appshell-org/appshell/commit/73388109620c8ec83110b3b60063290214221a59))
+- ship developer image with development build, urls for adjunct registries ([333f931](https://github.com/appshell-org/appshell/commit/333f9314854a93ab3f8e57dfde806baf26012e6c))
+- stylesheet url support for appshell host ([40e5368](https://github.com/appshell-org/appshell/commit/40e5368cf65e71eb2adbbcc432c846ba1539d14f))
+- support metadata flag on cli start ([567cf02](https://github.com/appshell-org/appshell/commit/567cf02a52150054b855197371681f426382b454))
+- support metadata generation ([4df202f](https://github.com/appshell-org/appshell/commit/4df202f0fd3b9ca6c660975b75eb0ac9b60225c2))
+- update appshell commands for react-host ([a9d881c](https://github.com/appshell-org/appshell/commit/a9d881cc93b720b2aaf28f1765f7e671f265df3d))
+- use --validate-registry-ssl-cert instead of --insecure ([88a0575](https://github.com/appshell-org/appshell/commit/88a0575c52617a08da4b8bc08288ebce8f103586))
+
+### Features
+
+- api key support ([9cdcbee](https://github.com/appshell-org/appshell/commit/9cdcbee36e44b8a179b49768d74a25767f1cc5f2))
+- appshell cli api key support, init sync and outdated commands ([#6](https://github.com/appshell-org/appshell/issues/6)) ([acc5fa2](https://github.com/appshell-org/appshell/commit/acc5fa234f91a167038161d5080481c43f8eb8b4))
+- appshell start, cleanup dev workflow ([74fd2e5](https://github.com/appshell-org/appshell/commit/74fd2e5a5acd2415482268175c7f3f16cd7c93ec))
+- AppshellComponent impl ([2b82621](https://github.com/appshell-org/appshell/commit/2b82621c13302f790a8e1c457f9a82f39903fc1f))
+- consolidate runtime artifacts ([#26](https://github.com/appshell-org/appshell/issues/26)) ([a29479a](https://github.com/appshell-org/appshell/commit/a29479a49f0c5ec1273c9f8e4c7384096f2d4ba0))
+- enable props to be passed to federated component rendered by react host ([e3a7273](https://github.com/appshell-org/appshell/commit/e3a72738455e179c9cc0b3f1ae29cf61b7c6d765))
+- foundation refactor wip ([339b930](https://github.com/appshell-org/appshell/commit/339b9306accaa9aba1712f3a0dee6c4cab7ed273))
+- support for proxying appshell calls ([ead8ff9](https://github.com/appshell-org/appshell/commit/ead8ff9024426a79a898de07adb587da74e0ba9c))
+- support manifest merging and config watch ([5431d10](https://github.com/appshell-org/appshell/commit/5431d100ec7f5106cab66d3009ce5f836e452715))
+
+## [0.7.1](https://github.com/appshell-org/appshell/compare/@appshell/react-host@0.7.0...@appshell/react-host@0.7.1) (2025-08-12)
+
+### Bug Fixes
+
+- configurable api key header support, minor fixes ([2f0bf02](https://github.com/appshell-org/appshell/commit/2f0bf027b92398f91b8e8cbfbf543d61fe37b7a0))
+
+## [0.7.1-alpha.4](https://github.com/appshell-org/appshell/compare/@appshell/react-host@0.7.1-alpha.3...@appshell/react-host@0.7.1-alpha.4) (2025-08-11)
+
+### Bug Fixes
+
+- handle proxyless service worker config ([7754f69](https://github.com/appshell-org/appshell/commit/7754f698e07e43b630040743c36f2e0dceaf1467))
+
+## [0.7.1-alpha.3](https://github.com/appshell-org/appshell/compare/@appshell/react-host@0.7.1-alpha.2...@appshell/react-host@0.7.1-alpha.3) (2025-08-10)
+
+### Bug Fixes
+
+- added crossorigin="use-credentials" for manifest.json ([7e320be](https://github.com/appshell-org/appshell/commit/7e320be63459bfb7bcc176f3d1a07128e80bf27f))
+
+## [0.7.1-alpha.2](https://github.com/appshell-org/appshell/compare/@appshell/react-host@0.7.1-alpha.1...@appshell/react-host@0.7.1-alpha.2) (2025-08-07)
+
+**Note:** Version bump only for package @appshell/react-host
+
+## [0.7.1-alpha.1](https://github.com/appshell-org/appshell/compare/@appshell/react-host@0.7.1-alpha.0...@appshell/react-host@0.7.1-alpha.1) (2025-08-07)
+
+### Bug Fixes
+
+- cli args for proxy url ([b40a7be](https://github.com/appshell-org/appshell/commit/b40a7be94fbfdb32453e743c2700a512b7a4537f))
+
+## [0.7.1-alpha.0](https://github.com/appshell-org/appshell/compare/@appshell/react-host@0.7.0...@appshell/react-host@0.7.1-alpha.0) (2025-08-06)
+
+### Bug Fixes
+
+- configurable api key header support ([e1b995a](https://github.com/appshell-org/appshell/commit/e1b995a98fbb58250f3e428cb116a215b0c1d835))
+
+# [0.7.0](https://github.com/appshell-org/appshell/compare/@appshell/react-host@0.6.2...@appshell/react-host@0.7.0) (2025-02-07)
+
+### Features
+
+- support for proxying appshell calls ([ead8ff9](https://github.com/appshell-org/appshell/commit/ead8ff9024426a79a898de07adb587da74e0ba9c))
+
+## [0.6.2](https://github.com/appshell-org/appshell/compare/@appshell/react-host@0.6.1...@appshell/react-host@0.6.2) (2025-01-30)
+
+### Bug Fixes
+
+- serve registry docs, update cli error reporting ([7338810](https://github.com/appshell-org/appshell/commit/73388109620c8ec83110b3b60063290214221a59))
+
+## [0.6.1](https://github.com/appshell-org/appshell/compare/@appshell/react-host@0.6.0...@appshell/react-host@0.6.1) (2025-01-30)
+
+### Bug Fixes
+
+- add api-key support for appshell host ([817481a](https://github.com/appshell-org/appshell/commit/817481a0b25bec1d0eec38d4d5771d5941cf2f3d))
+
+# [0.6.0](https://github.com/appshell-org/appshell/compare/@appshell/react-host@0.5.0...@appshell/react-host@0.6.0) (2024-10-23)
+
+### Features
+
+- appshell cli api key support, init sync and outdated commands ([#6](https://github.com/appshell-org/appshell/issues/6)) ([acc5fa2](https://github.com/appshell-org/appshell/commit/acc5fa234f91a167038161d5080481c43f8eb8b4))
+
+# [0.6.0-alpha.0](https://github.com/appshell-org/appshell/compare/@appshell/react-host@0.5.0...@appshell/react-host@0.6.0-alpha.0) (2024-10-16)
+
+### Features
+
+- config init command, global apikey, registry args ([eef5c50](https://github.com/appshell-org/appshell/commit/eef5c503e7399537ec8956acd462b45060923aa1))
+
+# [0.5.0](https://github.com/appshell-org/appshell/compare/@appshell/react-host@0.4.2...@appshell/react-host@0.5.0) (2024-09-24)
+
+### Features
+
+- api key support ([9cdcbee](https://github.com/appshell-org/appshell/commit/9cdcbee36e44b8a179b49768d74a25767f1cc5f2))
+
+# [0.5.0-alpha.1](https://github.com/appshell-org/appshell/compare/@appshell/react-host@0.5.0-alpha.0...@appshell/react-host@0.5.0-alpha.1) (2024-09-17)
+
+### Bug Fixes
+
+- exclude application of api key to external urls ([87d4abe](https://github.com/appshell-org/appshell/commit/87d4abe0e486e97b756bdf0def1e77150e230e33))
+
+# [0.5.0-alpha.0](https://github.com/appshell-org/appshell/compare/@appshell/react-host@0.4.3-alpha.0...@appshell/react-host@0.5.0-alpha.0) (2024-09-05)
+
+### Features
+
+- api key support ([8c91e62](https://github.com/appshell-org/appshell/commit/8c91e6240b3d879af9bdd5949924865da0e0f8a1))
+
+## [0.4.3-alpha.0](https://github.com/appshell-org/appshell/compare/@appshell/react-host@0.4.2...@appshell/react-host@0.4.3-alpha.0) (2024-08-31)
+
+### Bug Fixes
+
+- bump pipeline ([8bb63bc](https://github.com/appshell-org/appshell/commit/8bb63bcae1928c01bb6bc853d88010939e686af5))
+
+## [0.4.2](https://github.com/navaris/appshell/compare/@appshell/react-host@0.4.1...@appshell/react-host@0.4.2) (2024-01-31)
+
+### Bug Fixes
+
+- appshell host startup script ([#34](https://github.com/navaris/appshell/issues/34)) ([e136d73](https://github.com/navaris/appshell/commit/e136d73fb92c8dfcb90648dcb0eb7b2ec8a365b1))
+
+## [0.4.1](https://github.com/navaris/appshell/compare/@appshell/react-host@0.4.0...@appshell/react-host@0.4.1) (2024-01-27)
+
+### Bug Fixes
+
+- appshell host runtime configuration ([#32](https://github.com/navaris/appshell/issues/32)) ([cd63ad0](https://github.com/navaris/appshell/commit/cd63ad0f031ede2fd9153707d418261238b382b2))
+
+# [0.4.0](https://github.com/navaris/appshell/compare/@appshell/react-host@0.3.2...@appshell/react-host@0.4.0) (2024-01-25)
+
+### Features
+
+- AppshellComponent impl ([2b82621](https://github.com/navaris/appshell/commit/2b82621c13302f790a8e1c457f9a82f39903fc1f))
+
+## [0.3.2](https://github.com/navaris/appshell/compare/@appshell/react-host@0.3.1...@appshell/react-host@0.3.2) (2024-01-18)
+
+### Bug Fixes
+
+- stylesheet url support for appshell host ([40e5368](https://github.com/navaris/appshell/commit/40e5368cf65e71eb2adbbcc432c846ba1539d14f))
+
+## [0.3.1](https://github.com/navaris/appshell/compare/@appshell/react-host@0.3.0...@appshell/react-host@0.3.1) (2023-08-30)
+
+### Bug Fixes
+
+- update appshell commands for react-host ([a9d881c](https://github.com/navaris/appshell/commit/a9d881cc93b720b2aaf28f1765f7e671f265df3d))
+
+# [0.3.0](https://github.com/navaris/appshell/compare/@appshell/react-host@0.3.0-alpha.0...@appshell/react-host@0.3.0) (2023-08-28)
+
+**Note:** Version bump only for package @appshell/react-host
+
+# [0.3.0-alpha.0](https://github.com/navaris/appshell/compare/@appshell/react-host@0.2.3...@appshell/react-host@0.3.0-alpha.0) (2023-08-23)
+
+### Features
+
+- consolidate runtime artifacts ([#26](https://github.com/navaris/appshell/issues/26)) ([a29479a](https://github.com/navaris/appshell/commit/a29479a49f0c5ec1273c9f8e4c7384096f2d4ba0))
+
+## [0.2.3](https://github.com/navaris/appshell/compare/@appshell/react-host@0.2.3-alpha.0...@appshell/react-host@0.2.3) (2023-07-18)
+
+**Note:** Version bump only for package @appshell/react-host
+
+## [0.2.3-alpha.0](https://github.com/navaris/appshell/compare/@appshell/react-host@0.2.2...@appshell/react-host@0.2.3-alpha.0) (2023-07-18)
+
+### Bug Fixes
+
+- use --validate-registry-ssl-cert instead of --insecure ([88a0575](https://github.com/navaris/appshell/commit/88a0575c52617a08da4b8bc08288ebce8f103586))
+
+## [0.2.2](https://github.com/navaris/appshell/compare/@appshell/react-host@0.2.2-alpha.5...@appshell/react-host@0.2.2) (2023-07-17)
+
+**Note:** Version bump only for package @appshell/react-host
+
+## [0.2.2-alpha.5](https://github.com/navaris/appshell/compare/@appshell/react-host@0.2.1...@appshell/react-host@0.2.2-alpha.5) (2023-07-17)
+
+**Note:** Version bump only for package @appshell/react-host
+
+## [0.2.2-alpha.4](https://github.com/navaris/appshell/compare/@appshell/react-host@0.2.2-alpha.3...@appshell/react-host@0.2.2-alpha.4) (2023-07-15)
+
+### Bug Fixes
+
+- test build pipeline ([7042d33](https://github.com/navaris/appshell/commit/7042d33a61789923d612a74c3d446e07a5739a62))
+
+## [0.2.2-alpha.3](https://github.com/navaris/appshell/compare/@appshell/react-host@0.2.2-alpha.2...@appshell/react-host@0.2.2-alpha.3) (2023-07-15)
+
+### Bug Fixes
+
+- test build pipeline ([cf30b22](https://github.com/navaris/appshell/commit/cf30b22455c9d7f251e382be47b9021180711d7b))
+
+## [0.2.2-alpha.2](https://github.com/navaris/appshell/compare/@appshell/react-host@0.2.2-alpha.1...@appshell/react-host@0.2.2-alpha.2) (2023-07-15)
+
+### Bug Fixes
+
+- test build pipeline ([c2052d4](https://github.com/navaris/appshell/commit/c2052d47b86e0c13531fa779c7a558535d87eff9))
+
+## [0.2.2-alpha.1](https://github.com/navaris/appshell/compare/@appshell/react-host@0.2.2-alpha.0...@appshell/react-host@0.2.2-alpha.1) (2023-07-15)
+
+### Bug Fixes
+
+- test build pipeline ([0f7c0df](https://github.com/navaris/appshell/commit/0f7c0dfa33b46ff6f91becdbcdb145d2ecaf6668))
+
+## [0.2.2-alpha.0](https://github.com/navaris/appshell/compare/@appshell/react-host@0.2.1...@appshell/react-host@0.2.2-alpha.0) (2023-07-15)
+
+**Note:** Version bump only for package @appshell/react-host
+
+## [0.2.1](https://github.com/navaris/appshell/compare/@appshell/react-host@0.2.1-alpha.0...@appshell/react-host@0.2.1) (2023-07-15)
+
+**Note:** Version bump only for package @appshell/react-host
+
+## [0.2.1-alpha.0](https://github.com/navaris/appshell/compare/@appshell/react-host@0.2.0...@appshell/react-host@0.2.1-alpha.0) (2023-07-15)
+
+### Bug Fixes
+
+- add generate metadata to react-host startup command ([b8ade33](https://github.com/navaris/appshell/commit/b8ade33bc8bdf0d5bc612ce08846f2b9f26a3fd4))
+
+# [0.2.0](https://github.com/navaris/appshell/compare/@appshell/react-host@0.2.0-alpha.8...@appshell/react-host@0.2.0) (2023-07-11)
+
+### Bug Fixes
+
+- reenable unit tests ([c00f581](https://github.com/navaris/appshell/commit/c00f581b2d71778378729f3bc42a4f5a1c0afe04))
+
+# [0.2.0-alpha.8](https://github.com/navaris/appshell/compare/@appshell/react-host@0.2.0-alpha.7...@appshell/react-host@0.2.0-alpha.8) (2023-07-10)
+
+### Bug Fixes
+
+- rename @appshell/react-federated-component package to @appshell/react ([0b74498](https://github.com/navaris/appshell/commit/0b74498bf17ba73db4d936c8a012af1d3b111a28))
+
+# [0.2.0-alpha.7](https://github.com/navaris/appshell/compare/@appshell/react-host@0.2.0-alpha.6...@appshell/react-host@0.2.0-alpha.7) (2023-07-10)
+
+### Bug Fixes
+
+- ship developer image with development build, urls for adjunct registries ([333f931](https://github.com/navaris/appshell/commit/333f9314854a93ab3f8e57dfde806baf26012e6c))
+
+# [0.2.0-alpha.6](https://github.com/navaris/appshell/compare/@appshell/react-host@0.2.0-alpha.5...@appshell/react-host@0.2.0-alpha.6) (2023-07-10)
+
+### Bug Fixes
+
+- registry projection, enable env overwrite, refactor docker workflow, consolidate env names ([33a28fe](https://github.com/navaris/appshell/commit/33a28fe76b58e05c5b6b6b33d4b402e52bb29e70))
+
+# [0.2.0-alpha.5](https://github.com/navaris/appshell/compare/@appshell/react-host@0.2.0-alpha.4...@appshell/react-host@0.2.0-alpha.5) (2023-07-06)
+
+### Bug Fixes
+
+- metadata urls ([efcce1c](https://github.com/navaris/appshell/commit/efcce1ce4cb1745afa83661cae1414a73f837483))
+
+# [0.2.0-alpha.4](https://github.com/navaris/appshell/compare/@appshell/react-host@0.2.0-alpha.3...@appshell/react-host@0.2.0-alpha.4) (2023-07-06)
+
+### Bug Fixes
+
+- support metadata generation ([4df202f](https://github.com/navaris/appshell/commit/4df202f0fd3b9ca6c660975b75eb0ac9b60225c2))
+
+# [0.2.0-alpha.3](https://github.com/navaris/appshell/compare/@appshell/react-host@0.2.0-alpha.2...@appshell/react-host@0.2.0-alpha.3) (2023-07-06)
+
+### Bug Fixes
+
+- support metadata flag on cli start ([567cf02](https://github.com/navaris/appshell/commit/567cf02a52150054b855197371681f426382b454))
+
+# [0.2.0-alpha.2](https://github.com/navaris/appshell/compare/@appshell/react-host@0.2.0-alpha.1...@appshell/react-host@0.2.0-alpha.2) (2023-07-06)
+
+### Features
+
+- appshell start, cleanup dev workflow ([74fd2e5](https://github.com/navaris/appshell/commit/74fd2e5a5acd2415482268175c7f3f16cd7c93ec))
+
+# [0.2.0-alpha.1](https://github.com/navaris/appshell/compare/@appshell/react-host@0.1.1...@appshell/react-host@0.2.0-alpha.1) (2023-07-05)
+
+### Features
+
+- foundation refactor wip ([339b930](https://github.com/navaris/appshell/commit/339b9306accaa9aba1712f3a0dee6c4cab7ed273))
+
+# [0.2.0-alpha.0](https://github.com/navaris/appshell/compare/@appshell/react-host@0.1.1...@appshell/react-host@0.2.0-alpha.0) (2023-07-05)
+
+### Features
+
+- registry index ([8e6ee0a](https://github.com/navaris/appshell/commit/8e6ee0a6a377584efa2ee702168025f46108b8c5))
+
+## [0.1.1](https://github.com/navaris/appshell/compare/@appshell/react-host@0.1.1-alpha.1...@appshell/react-host@0.1.1) (2023-06-29)
+
+**Note:** Version bump only for package @appshell/react-host
+
+## [0.1.1-alpha.1](https://github.com/navaris/appshell/compare/@appshell/react-host@0.1.0...@appshell/react-host@0.1.1-alpha.1) (2023-06-29)
+
+**Note:** Version bump only for package @appshell/react-host
+
+## [0.1.1-alpha.0](https://github.com/navaris/appshell/compare/@appshell/react-host@0.1.0-alpha.3...@appshell/react-host@0.1.1-alpha.0) (2023-06-29)
+
+**Note:** Version bump only for package @appshell/react-host
+
+# [0.1.0](https://github.com/navaris/appshell/compare/@appshell/react-host@0.1.0-alpha.3...@appshell/react-host@0.1.0) (2023-06-29)
+
+**Note:** Version bump only for package @appshell/react-host
+
+# [0.1.0-alpha.3](https://github.com/navaris/appshell/compare/@appshell/react-host@0.1.0-alpha.2...@appshell/react-host@0.1.0-alpha.3) (2023-06-28)
+
+### Features
+
+- enable props to be passed to federated component rendered by react host ([e3a7273](https://github.com/navaris/appshell/commit/e3a72738455e179c9cc0b3f1ae29cf61b7c6d765))
+
+# [0.1.0-alpha.2](https://github.com/navaris/appshell/compare/@appshell/react-host@0.1.0-alpha.1...@appshell/react-host@0.1.0-alpha.2) (2023-06-26)
+
+### Bug Fixes
+
+- ignore dist from dev server ([66eaa4f](https://github.com/navaris/appshell/commit/66eaa4f0f7909de289aa25bd8962d0d018be8c89))
+
+# [0.1.0-alpha.1](https://github.com/navaris/appshell/compare/@appshell/react-host@0.1.0-alpha.0...@appshell/react-host@0.1.0-alpha.1) (2023-06-26)
+
+### Bug Fixes
+
+- ignore manifest changes that force refresh ([ccb2155](https://github.com/navaris/appshell/commit/ccb2155a26bd3f6861f43805bb674ae4906375c1))
+
+# [0.1.0-alpha.0](https://github.com/navaris/appshell/compare/@appshell/react-host@0.0.2-alpha.0...@appshell/react-host@0.1.0-alpha.0) (2023-06-22)
+
+### Features
+
+- support manifest merging and config watch ([5431d10](https://github.com/navaris/appshell/commit/5431d100ec7f5106cab66d3009ce5f836e452715))
+
+## [0.0.2-alpha.0](https://github.com/navaris/appshell/compare/@appshell/react-host@0.0.1...@appshell/react-host@0.0.2-alpha.0) (2023-06-15)
+
+### Bug Fixes
+
+- enable history api fallback, include serve.json config, update publicPath value ([96af4fc](https://github.com/navaris/appshell/commit/96af4fc8cd14006aa477964daa4e37d29803191c))
+- enable relative appshell_configs dir, containerize appshell host example ([79926f5](https://github.com/navaris/appshell/commit/79926f5e2b1ae29c4d7349c0babcb93d3b147485))
+- hot module replacement support, example updates ([a67d230](https://github.com/navaris/appshell/commit/a67d2303b40f5911373225cc0b4ccf9b67c33d11))
+- make runtime env generation prefix configurable ([28441a8](https://github.com/navaris/appshell/commit/28441a854cd03dfd4b89fb932efba571af221cd2))
+
+## 0.0.1 (2023-06-15)
+
+**Note:** Version bump only for package @appshell/react-host
+
+## [0.0.1-alpha.4](https://github.com/navaris/appshell/compare/@appshell/react-host@0.0.1-alpha.3...@appshell/react-host@0.0.1-alpha.4) (2023-06-15)
+
+### Bug Fixes
+
+- hot module replacement support, example updates ([a67d230](https://github.com/navaris/appshell/commit/a67d2303b40f5911373225cc0b4ccf9b67c33d11))
+
+## [0.0.1-alpha.3](https://github.com/navaris/appshell/compare/@appshell/react-host@0.0.1-alpha.2...@appshell/react-host@0.0.1-alpha.3) (2023-05-30)
+
+### Bug Fixes
+
+- enable relative appshell_configs dir, containerize appshell host example ([79926f5](https://github.com/navaris/appshell/commit/79926f5e2b1ae29c4d7349c0babcb93d3b147485))
+
+## [0.0.1-alpha.2](https://github.com/navaris/appshell/compare/@appshell/react-host@0.0.1-alpha.1...@appshell/react-host@0.0.1-alpha.2) (2023-05-23)
+
+### Bug Fixes
+
+- enable history api fallback, include serve.json config, update publicPath value ([96af4fc](https://github.com/navaris/appshell/commit/96af4fc8cd14006aa477964daa4e37d29803191c))
+
+## [0.0.1-alpha.1](https://github.com/navaris/appshell/compare/@appshell/react-host@0.0.1-alpha.0...@appshell/react-host@0.0.1-alpha.1) (2023-05-19)
+
+### Bug Fixes
+
+- make runtime env generation prefix configurable ([28441a8](https://github.com/navaris/appshell/commit/28441a854cd03dfd4b89fb932efba571af221cd2))
+
+## 0.0.1-alpha.0 (2023-03-19)
+
+**Note:** Version bump only for package @appshell/react-host

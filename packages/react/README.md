@@ -20,80 +20,86 @@ Working examples can be found [here](https://github.com/navaris/appshell/tree/ma
 To begin, you'll need to install `@appshell/react`:
 
 ```console
-npm install @appshell/react --save-dev
+npm install @appshell/react
 ```
 
 or
 
 ```console
-yarn add -D @appshell/react
+yarn add @appshell/react
 ```
 
 or
 
 ```console
-pnpm add -D @appshell/react
+pnpm add @appshell/react
 ```
 
-## AppshellComponent
+## RemoteSlot
 
-React component that dynamically loads Appshell components.
+Where a remote is mounted. The slot resolves the remote key against the composition,
+loads it over Module Federation, renders `fallback` while that is in flight, and
+surfaces a load failure in place rather than taking the page down with it.
 
 ```tsx
-import { AppshellComponent, ManifestProvider } from '@appshell/react';
+import { RemoteSlot } from '@appshell/react';
 
 <App>
-  <ManifestProvider manifest={manifest}>
-    <AppshellComponent remote="PingModule/Ping">
-    <AppshellComponent remote="PongModule/Pong">
-  </ManifestProvider>
+  <RemoteSlot remote="PingModule/Ping" fallback={<Spinner />} />
+  <RemoteSlot remote="PongModule/Pong" fallback={<Spinner />} />
 </App>
 ```
 
-## useGlobalConfig
+Any other props are passed through to the mounted remote.
 
-For access to the global appshell config.
+The registry inlines the composition into the document it serves, so the component
+needs no configuration of its own.
+
+## useRemote
+
+For access to the remote backing the surrounding `RemoteSlot`. Prefer this
+over looking your own entry up in the manifest — the component already knows its key.
 
 ```tsx
-import { GlobalConfigProvider, useGlobalConfig } from '@appshell/react';
+import { useRemote } from '@appshell/react';
 
 const MyComponent = () => {
-  const config = useGlobalConfig();
+  const remote = useRemote();
 
   ...
 }
-
-<RegistryProvider config={config}>
-  <MyComponent />
-</RegistryProvider>
 ```
 
-## useManifest
+## RemoteProvider
 
-For access to the manifest.
+Supplies the remote a subtree is running as. `RemoteSlot` wraps what it mounts in one
+already, so you rarely construct it yourself — reach for it in tests, where it is what
+makes `useRemote` return something.
 
 ```tsx
-import { ManifestProvider, useManifest } from '@appshell/react';
+import { RemoteProvider } from '@appshell/react';
 
-const MyComponent = () => {
-  const manifest = useManifest();
-
-  ...
-}
-
-<ManifestProvider manifest={manifest}>
-  <MyComponent />
-</ManifestProvider>
+render(
+  <RemoteProvider remote={manifest.remotes['PingModule/Ping']}>
+    <Ping />
+  </RemoteProvider>,
+);
 ```
 
-**Where does the registry come from?**
+## jsonResource
 
-Currently, the registry is a shared directory or mounted volume. It does support calling an http endpoint, but it has not yet been implemented.
+Wraps a fetch in a Suspense-compatible resource, so a component can read JSON during
+render instead of threading loading state through it.
 
-> See [@appshell/cli](https://www.npmjs.com/package/@appshell/cli)
+```tsx
+import { jsonResource } from '@appshell/react';
 
-Each micro-frontend registers its manifest with the registry
+const settings = jsonResource<Settings>('/api/settings');
 
-```bash
-appshell register --manifest dist/appshell.manifest.json
+const Panel = () => <pre>{settings.read().theme}</pre>;
 ```
+
+## License
+
+[MIT](./LICENSE)
+

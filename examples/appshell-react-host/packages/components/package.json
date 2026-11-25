@@ -1,5 +1,5 @@
 {
-  "name": "react-appshell-host-components",
+  "name": "@appshell/react-host-components",
   "version": "0.0.2",
   "description": "React components for sample app",
   "main": "dist/main.js",
@@ -13,8 +13,15 @@
   },
   "license": "MIT",
   "peerDependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "styled-components": "^6.0.0-rc.3"
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "dependencies": {
+    "@appshell/react": "^1.0.0-alpha.84",
+    "@appshell/runtime": "^1.0.0-alpha.84",
+    "@appshell/tokens": "^1.0.0-alpha.125"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.1.0"
   }
 }

@@ -1,20 +1,8 @@
-import chalk from 'chalk';
 import fs from 'fs';
 import path from 'path';
-import { AppshellManifest } from '../src/types';
-import { blur, merge } from '../src/utils';
+import { blur } from '../src/utils';
 import copy from '../src/utils/copy';
 import load from '../src/utils/load';
-import validator from '../src/validators/AppshellManifestValidator';
-import manifestA from './assets/appshell_manifests/test_a.manifest.json';
-import manifestB from './assets/appshell_manifests/test_b.manifest.json';
-import manifestC from './assets/appshell_manifests/test_c.manifest.json';
-import manifestD from './assets/appshell_manifests/test_d.manifest.json';
-import bizManifest from './assets/appshell_utils/bizmodule-biz.json';
-import environmentCollisions from './assets/appshell_utils/environment-collisions.json';
-import remoteCollisions from './assets/appshell_utils/remote-collisions.json';
-import barManifest from './assets/appshell_utils/testmodule-bar.json';
-import fooManifest from './assets/appshell_utils/testmodule-foo.json';
 
 describe('utils', () => {
   const packageName = 'config';
@@ -115,78 +103,6 @@ describe('utils', () => {
       copy(pattern);
 
       expect(copyFileSyncSpy).toHaveBeenCalledWith(pattern.from, pattern.to);
-    });
-  });
-
-  describe('merge', () => {
-    let consoleSpy: jest.SpyInstance;
-    beforeEach(() => {
-      consoleSpy = jest.spyOn(console, 'log');
-    });
-
-    afterEach(() => {
-      consoleSpy.mockRestore();
-    });
-
-    test('should merge multiple valid configurations', () => {
-      const config = merge<AppshellManifest>(validator, fooManifest, barManifest, bizManifest);
-      expect(config).toMatchSnapshot();
-    });
-
-    test('should merge manifests from right to left with merge validator', () => {
-      const config = merge<AppshellManifest>(validator, manifestA, manifestB, manifestC, manifestD);
-
-      expect(config).toMatchSnapshot();
-    });
-
-    test('should reject when no validator is found for schema', () => {
-      expect(() =>
-        merge<AppshellManifest>(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          undefined as any,
-          fooManifest,
-          barManifest,
-          bizManifest,
-        ),
-      ).toThrow(/No validator provided/);
-    });
-
-    test('should validate add documents individually', () => {
-      const validateSpy = jest.spyOn(validator, 'validate');
-      merge<AppshellManifest>(validator, fooManifest, barManifest, bizManifest);
-
-      expect(validateSpy).toHaveBeenCalledWith(fooManifest);
-      expect(validateSpy).toHaveBeenCalledWith(barManifest);
-      expect(validateSpy).toHaveBeenCalledWith(bizManifest);
-    });
-
-    test('should validate merged document', () => {
-      const validateSpy = jest.spyOn(validator, 'validate');
-      const config = merge<AppshellManifest>(validator, fooManifest, barManifest, bizManifest);
-
-      expect(validateSpy).toHaveBeenLastCalledWith(config);
-    });
-
-    describe('appshell configs', () => {
-      test('should merge multiple valid configurations', () => {
-        const config = merge<AppshellManifest>(validator, fooManifest, barManifest, bizManifest);
-
-        expect(config).toMatchSnapshot();
-      });
-
-      test('should reject configurations with remotes collisions', () => {
-        merge<AppshellManifest>(validator, fooManifest, barManifest, remoteCollisions);
-
-        expect(consoleSpy).toHaveBeenCalledWith(chalk.yellow('Multiple remotes with the same key'));
-      });
-
-      test('should reject configurations with environment collisions', () => {
-        merge<AppshellManifest>(validator, fooManifest, barManifest, environmentCollisions);
-
-        expect(consoleSpy).toHaveBeenCalledWith(
-          chalk.yellow('Multiple environments with the same key'),
-        );
-      });
     });
   });
 });

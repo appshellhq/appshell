@@ -1,17 +1,28 @@
 {
-  "name": "sample-mfe-container",
-  "version": "0.0.2",
+  "name": "@appshell/sample-mfe-container",
+  "version": "1.0.0-alpha.151",
+  "private": true,
   "main": "dist/main.js",
   "scripts": {
-    "generate:manifest": "appshell generate manifest --template dist/appshell.template.json",
-    "register": "appshell register --manifest dist/appshell.manifest.json --registry $SAMPLE_MFE_REGISTRY",
-    "start": "dotenv -- run-p start:appshell start:run",
-    "start:appshell": "appshell start --remote --registry $SAMPLE_MFE_REGISTRY",
+    "generate:manifest": "dotenv -- appshell generate manifest --template dist/appshell.template.json",
+    "publish": "dotenv -- appshell publish --template dist/appshell.template.json",
+    "start": "dotenv -- webpack-cli serve --mode development",
     "start:run": "webpack-cli serve --mode development",
     "build": "webpack --mode production && tsc --emitDeclarationOnly",
     "clean": "rm -rf dist",
-    "serve": "serve dist -p $SAMPLE_MFE_CONTAINER_PORT",
+    "serve": "dotenv -- serve dist -p $SAMPLE_MFE_CONTAINER_PORT",
     "stats": "webpack --json > stats.json"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "@module-federation/enhanced": "^2.8.2",
+    "@testing-library/react": "^16.1.0"
+  },
+  "dependencies": {
+    "@appshell/react": "^1.0.0-alpha.84",
+    "@appshell/react-host-components": "*",
+    "@appshell/runtime": "^1.0.0-alpha.84",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  }
 }

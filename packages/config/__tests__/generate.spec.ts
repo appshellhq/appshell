@@ -1,13 +1,7 @@
-import { HttpStatusCode } from 'axios';
-import https from 'https';
 import { keys, values } from 'lodash';
 import path from 'path';
-import generateEnv from '../src/generate.env';
-import generateGlobalConfig from '../src/generate.global-config';
 import generate from '../src/generate.manifest';
-import * as utils from '../src/utils';
 import manifest from './assets/appshell.manifest.json';
-import mockAxios from './utils/axios';
 
 type TestMetadata = {
   route: string;
@@ -23,6 +17,10 @@ describe('generate', () => {
   beforeAll(() => {
     process.env.REGISTRY = 'packages/cli/__tests__/assets/appshell_registry';
     process.env.ROOT = 'TestModule/Workspace';
+    // The fixture's deployment coordinates. Publishing now refuses to emit a manifest with
+    // one unresolved, where it used to spell `undefined` into the URL and carry on.
+    process.env.APPS_TEST_URL = 'http://remote-module.com';
+    process.env.APPS_TEST_REMOTE_ENTRY_PATH = 'remoteEntry.js';
     process.env.TEST_ENV_FOO = 'foo';
     process.env.TEST_ENV_BAR = 'bar';
     process.env.TEST_NUM = '100';
@@ -30,34 +28,12 @@ describe('generate', () => {
 
   afterAll(() => {
     delete process.env.REGISTRY;
+    delete process.env.APPS_TEST_URL;
+    delete process.env.APPS_TEST_REMOTE_ENTRY_PATH;
     delete process.env.ROOT;
     delete process.env.TEST_ENV_FOO;
     delete process.env.TEST_ENV_BAR;
     delete process.env.TEST_NUM;
-  });
-
-  describe('runtime env file', () => {
-    it('should generate the runtime environment js file', async () => {
-      const environment = await generateEnv('^(TEST_|REGISTRY|ROOT).*');
-
-      expect(Object.fromEntries(environment)).toStrictEqual({
-        REGISTRY: 'packages/cli/__tests__/assets/appshell_registry',
-        ROOT: 'TestModule/Workspace',
-        TEST_ENV_FOO: 'foo',
-        TEST_ENV_BAR: 'bar',
-        TEST_NUM: '100',
-      });
-    });
-
-    it('should capture only prefixed environment vars when prefix is supplied', async () => {
-      const environment = await generateEnv('TEST_');
-
-      expect(Object.fromEntries(environment)).toStrictEqual({
-        TEST_ENV_FOO: 'foo',
-        TEST_ENV_BAR: 'bar',
-        TEST_NUM: '100',
-      });
-    });
   });
 
   describe('manifest', () => {
@@ -84,99 +60,27 @@ describe('generate', () => {
 
     it('should contain all remotes', async () => {
       const config = await generate(configTemplate);
-      const expectedRemotes = keys(manifest.remotes);
-      const actualRemotes = keys(config?.remotes);
+      const expectedRemotes = keys(manifest.components);
+      const actualRemotes = keys(config?.components);
 
       expect(expectedRemotes).toEqual(actualRemotes);
     });
 
-    it('should apply environment variables to configuration', async () => {
+    // Where a bundle is served from is the deployment's to say, so nothing the build
+    // writes may name an origin — see the mapper.
+    it('should generate remotes that name no origin', async () => {
       const config = await generate(configTemplate);
+      const remotes = values(config?.components);
 
-      const actualUrls = values(config?.remotes).flatMap((remote) => remote.manifestUrl);
-
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      expect(actualUrls.some((url) => url.includes(process.env.APPS_TEST_URL!))).toBeTruthy();
+      expect(remotes.length).toBeGreaterThan(0);
+      expect(remotes.every((remote) => !('manifestUrl' in remote))).toBe(true);
+      expect(remotes.every((remote) => !('remoteEntryUrl' in remote))).toBe(true);
     });
 
     it('should capture metadata', async () => {
       const config = await generate<TestMetadata>(configTemplate);
 
-      expect(values(config?.remotes).flatMap((remote) => remote.metadata)).toHaveLength(3);
-    });
-  });
-
-  describe('register', () => {
-    let agentConstructorSpy: jest.SpyInstance;
-    let consoleSpy: jest.SpyInstance;
-    beforeEach(() => {
-      agentConstructorSpy = jest.spyOn(https, 'Agent').mockReturnThis();
-      consoleSpy = jest.spyOn(console, 'error');
-    });
-
-    afterEach(() => {
-      agentConstructorSpy.mockRestore();
-      consoleSpy.mockRestore();
-    });
-
-    const testGlobalConfig = [
-      `packages/${packageName}/__tests__/assets/registries/appshell.config.json`,
-    ];
-    const baseRegistries = [
-      `packages/${packageName}/__tests__/assets/registries/registry_a`,
-      `packages/${packageName}/__tests__/assets/registries/registry_b`,
-    ];
-    const remoteRegistries = ['https://test.com/registry'];
-
-    it('should merge multiple valid global configurations', async () => {
-      const config = await generateGlobalConfig([...baseRegistries, ...testGlobalConfig]);
-
-      expect(config).toMatchSnapshot();
-    });
-
-    it('should handle a single global configuration file', async () => {
-      const config = await generateGlobalConfig(testGlobalConfig);
-
-      expect(config).toMatchSnapshot();
-    });
-
-    it('should handle a directory', async () => {
-      const config = await generateGlobalConfig(baseRegistries);
-
-      expect(config).toMatchSnapshot();
-    });
-
-    it('should log error and return empty if something goes wrong', async () => {
-      jest.spyOn(utils, 'merge').mockImplementationOnce(() => {
-        throw new Error('Something went wrong');
-      });
-      const config = await generateGlobalConfig(testGlobalConfig);
-
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Error generating global appshell configuration',
-        'Something went wrong',
-      );
-      expect(config).toMatchObject({});
-    });
-
-    it('should configure http client when insecure is true', async () => {
-      mockAxios
-        .onGet(/\/registry/i)
-        .reply(HttpStatusCode.Ok, { status: HttpStatusCode.Ok, statusText: 'OK', data: {} });
-
-      await generateGlobalConfig(remoteRegistries, { insecure: true });
-
-      expect(agentConstructorSpy).toHaveBeenCalledWith({ rejectUnauthorized: false });
-    });
-
-    it('should not configure http client when insecure is false', async () => {
-      mockAxios
-        .onGet(/\/registry/i)
-        .reply(HttpStatusCode.Ok, { status: HttpStatusCode.Ok, statusText: 'OK', data: {} });
-
-      await generateGlobalConfig(remoteRegistries, { insecure: false });
-
-      expect(agentConstructorSpy).not.toHaveBeenCalled();
+      expect(values(config?.components).flatMap((remote) => remote.metadata)).toHaveLength(3);
     });
   });
 });

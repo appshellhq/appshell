@@ -1,12 +1,10 @@
 const webpack = require('webpack');
 const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
-const nodeExternals = require('webpack-node-externals');
 
 module.exports = {
   entry: './src/index.ts',
   mode: 'development',
   target: 'node',
-  externals: [nodeExternals()],
   output: {
     filename: '[name].js',
     pathinfo: false,
@@ -51,5 +49,7 @@ module.exports = {
       amd: 'webpack',
       root: 'Webpack',
     },
+    // Pulls in the optional native fsevents binary, which cannot be bundled.
+    chokidar: 'commonjs chokidar',
   },
 };

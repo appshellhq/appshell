@@ -1,0 +1,28 @@
+components:
+  TestModule/Foo:
+    metadata:
+      route: /foo
+      displayName: Foo App
+      displayGroup: main
+      order: 10
+      icon: ViewList
+
+  TestModule/Bar:
+    metadata:
+      route: /bar
+      displayName: Bar App
+      displayGroup: main
+      order: 20
+      icon: ViewList
+
+  BizModule/Biz:
+    metadata:
+      route: /biz
+      displayName: Biz App
+      displayGroup: auxiliary
+      order: 30
+      icon: ViewList
+
+vars:
+  RUNTIME_ENV: ${RUNTIME_ENV}
+  RUNTIME_ENV_VERSION: ${RUNTIME_ENV_VERSION}

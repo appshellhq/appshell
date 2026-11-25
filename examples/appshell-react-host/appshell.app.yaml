@@ -1,0 +1,61 @@
+# The application this workspace composes. Apply it with:
+#
+#   appshell app apply -f appshell.app.yaml
+#
+# `${VAR}` placeholders expand from the environment, the same way
+# appshell.config.yaml expands them, so one file can describe the application
+# in more than one registry.
+#
+# `spec.packages` is deliberately absent. An apply deactivates anything a list
+# doesn't name, so pinning versions here would undo whatever a developer has
+# activated by hand, such as a package published once and then activated, so
+# an overlay can redirect it (publishing alone activates nothing). `npm start` itself publishes nothing: it opens an overlay that
+# runs each package's local code in your browser. Production's copy pins its
+# versions, in a deployment repository.
+apiVersion: registry.appshell.org/v1
+kind: Application
+# Scope-qualified, so this file says where the application belongs rather than
+# landing wherever the applier's token happens to point. Checked in, visible in
+# review, and identical whoever runs it — the same reason a package name carries
+# its scope. Applying it requires owning `appshell`; a scope you do not own is
+# refused rather than quietly swapped for yours.
+name: appshell/appshell-example
+spec:
+  shell:
+    # Addressed by what the registry knows — scope/package/Component — rather than by the
+    # federation container name, which a package picks in its webpack config and two
+    # packages can pick identically.
+    root: appshell/sample-mfe-container/Container
+    title: Appshell Example
+    description: Three micro-frontends composed by the appshell registry
+    # Everything the composed page paints with. A base carries surfaces, text, border
+    # and status as a light/dark pair; an accent carries the two action colours.
+    #
+    # There is no themeColor any more: the browser-chrome hint is derived from the surface
+    # this theme actually paints, per scheme, so it cannot drift from the page.
+    theme:
+      base: neutral
+      accent: ice
+      # `system` follows the viewer. Set light or dark to ship one look on purpose —
+      # it pins the palette, the browser's own controls, and the chrome colour together.
+      colorScheme: dark
+  # Configuration the packages read, supplied by the application rather than baked
+  # into the package at publish.
+  #
+  # `sample-mfe-container` declares `SUPPORT_URL` in its own appshell.config.yaml and
+  # leaves it as a `${VAR}` placeholder — that is the declaration: it reads this name
+  # and cannot know the value, because only whoever runs the application does. The
+  # placeholder below is expanded from the environment when this file is applied, so
+  # the same file supplies staging's value in staging and production's in production.
+  #
+  # Keyed by federation scope, which is how the runtime store hands each package its
+  # own vars and nobody else's.
+  overrides:
+    vars:
+      ContainerModule:
+        SUPPORT_URL: ${SUPPORT_URL}
+
+  # This is a local development application, and `appshell dev` is the reason it
+  # exists. Always explicit: an overlay changes which code runs in a browser, so
+  # nothing infers the permission on your behalf.
+  allowOverlays: true

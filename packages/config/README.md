@@ -39,21 +39,38 @@ pnpm add -D @appshell/config
 
 ## Functions
 
+`@appshell/config` is the library the CLI is built on. Most of it is reachable through
+`appshell` commands; reach for the package directly when you are scripting a build.
+
+| Export                                                                    | Purpose                                                            | CLI equivalent                   |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------ | -------------------------------- |
+| `generateManifest`                                                        | Template → manifest, expanding `${VAR}`                            | `appshell generate manifest`     |
+| `publish`                                                                 | Publish a manifest as a package version                            | `appshell publish`               |
+| `activate`                                                                | Activate a version into an application                             | `appshell publish --application` |
+| `outdated`                                                                | Compare shared dependencies against baselines                      | `appshell outdated`              |
+| `sync`                                                                    | Install shared dependencies at the declared versions               | —                                |
+| `resolveContext` / `persistedContext`                                     | Registry, application and token, resolved as the CLI resolves them | `appshell config list`           |
+| `resolveToken` / `saveCredential` / `clearCredential` / `credentialsPath` | Stored credentials, per registry                                   | `appshell login` / `logout`      |
+| `configmap`                                                               | `${VAR}` placeholder expansion                                     | —                                |
+| `utils`                                                                   | File loading, comparison and formatting helpers                    | —                                |
+| `validators`                                                              | `AppshellTemplateValidator`                                        | —                                |
+
 ### `generateManifest`
 
-The `generateManifest` function is given a configs dir to process and produces a merged appshell manifest.
+Processes one manifest template into an appshell manifest, expanding `${VAR}`
+placeholders from the current environment.
 
 ```ts
 import { generateManifest } from '@appshell/config';
 
-const manifest = generateManifest<MyMetadata>(process.env.CONFIGS_DIR);
+const manifest = await generateManifest<MyMetadata>('dist/appshell.template.json');
 ```
 
-**Where does the content of CONFIGS_DIR come from?**
+**Where does the template come from?**
 
-> Each micro-frontend configured to use [@appshell/manifest-webpack-plugin](https://www.npmjs.com/package/@appshell/manifest-webpack-plugin) emits it's configuration to the configs directory at build time, which is subsequently processed with this utility to reflect the current runtime environment.
+> Each micro-frontend configured with [@appshell/webpack-plugin](https://www.npmjs.com/package/@appshell/webpack-plugin) emits `appshell.template.json` at build time. This function turns that into the manifest a package version is published with.
 
-Sample content from CONFIGS_DIR:
+Sample template:
 
 ```json
 {
@@ -87,7 +104,7 @@ Sample content from CONFIGS_DIR:
       }
     }
   },
-  "environment": {
+  "vars": {
     "RUNTIME_ARG_1": "${RUNTIME_ARG_1}",
     "RUNTIME_ARG_2": "${RUNTIME_ARG_2}"
   }
@@ -98,7 +115,7 @@ Sample content from CONFIGS_DIR:
 
 > Note the variable expansion syntax `${CRA_MFE_URL}`. When `generateManifest` is called the actual runtime environment values are injected and an appshell manifest is emitted.
 
-> **Note** the `environment` section defines runtime environment variables that are injected into the global namesapce `window.__appshell_env__[module_name]` when an Appshell component is loaded. See the examples for a use case.
+> **Note** the `vars` section defines runtime configuration values a package reads with `getVars()` from [`@appshell/runtime/vars`](../runtime/README.md) once it is loaded. The package must share `@appshell/runtime` as a singleton to receive them. See the examples for a use case.
 
 Sample appshell manifest produced by the `generateManifest` function:
 
@@ -113,7 +130,7 @@ Sample appshell manifest produced by the `generateManifest` function:
       "metadata": {
         "route": "/cra",
         "displayName": "Example App",
-        "displayGroup": "main",
+        "displayGroup": "primary",
         "order": 10,
         "icon": "ViewList"
       }
@@ -126,7 +143,7 @@ Sample appshell manifest produced by the `generateManifest` function:
       "metadata": {
         "route": "/vanilla",
         "displayName": "Example React App",
-        "displayGroup": "main",
+        "displayGroup": "primary",
         "order": 10,
         "icon": "ViewList"
       }
@@ -181,7 +198,7 @@ Sample appshell manifest produced by the `generateManifest` function:
       }
     }
   },
-  "environment": {
+  "vars": {
     "CraModule": {
       "RUNTIME_ARG_1": "Foo",
       "RUNTIME_ARG_2": "Biz"
@@ -193,7 +210,8 @@ Sample appshell manifest produced by the `generateManifest` function:
 }
 ```
 
-This `appshell manifest` is registered with `APPSHELL_REGISTRY` consumed by the appshell host.
+This manifest is what `publish` sends to the registry as a package version. The registry composes
+every activated package into the payload it serves to the shell.
 
 **What if I want to generate the manifest by a startup script instead?**
 

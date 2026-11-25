@@ -1,9 +1,7 @@
 {
-  "remotes": {
+  "components": {
     "BizModule/Biz": {
       "id": "BizModule/Biz2",
-      "url": "http://localhost:4040",
-      "filename": "remoteEntry.js",
       "metadata": {
         "route": "/biz",
         "displayName": "Biz App",
@@ -43,5 +41,5 @@
     },
     "shareScope": "@sharedscope"
   },
-  "environment": {}
+  "vars": {}
 }

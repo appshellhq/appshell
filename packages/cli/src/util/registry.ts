@@ -1,0 +1,898 @@
+/* eslint-disable no-console */
+import { AxiosRequestConfig } from 'axios';
+import axios from './axios';
+import { ensureToken } from './credentials';
+
+/** An unpublished version that can still be restored. appshellhq/appshell-services#29. */
+export type UnpublishedSummary = {
+  id: string;
+  scopeId: string;
+  name: string;
+  version: string;
+  digest: string;
+  publishedAt: string;
+  unpublishedAt: string;
+  unpublishedBy: Actor;
+  restorableUntil: string;
+};
+
+export type PackageSummary = {
+  id: string;
+  scopeId: string;
+  name: string;
+  version: string;
+  publishedBy: Actor;
+  visibility: 'public' | 'private';
+  digest: string;
+  deprecated?: { reason: string; at: string };
+  manifest?: {
+    components?: Record<string, { loader?: { scope?: string; module?: string } }>;
+    remotes?: string[];
+    shared?: { scopes?: Record<string, Record<string, unknown>> };
+  };
+  publishedAt: string;
+};
+
+export type ApplicationSummary = {
+  id: string;
+  scopeId: string;
+  name: string;
+  createdBy: Actor;
+  ephemeral: boolean;
+  revision: number;
+  packages: Record<string, { packageId: string; activatedAt: string }>;
+  createdAt: string;
+  lastModifiedAt: string;
+};
+
+export type ApplicationRevision = {
+  revision: number;
+  actor: string;
+  reason: string;
+  createdAt: string;
+};
+
+export type SharedDependencyRequest = {
+  packageId: string;
+  requiredVersion?: string;
+  singleton: boolean;
+};
+
+export type SharedDependencyUsage = {
+  shareScope: string;
+  packageName: string;
+  baseline?: string;
+  requests: SharedDependencyRequest[];
+  conflict: boolean;
+};
+
+export type SharedDependencyReport = {
+  enforcement: 'off' | 'warn' | 'block';
+  conflicts: number;
+  dependencies: SharedDependencyUsage[];
+};
+
+export type OverlayRemoteBody = {
+  remoteEntryUrl: string;
+  manifestUrl?: string;
+};
+
+/** Either a published ref, or the base/accent pair naming one. The registry pins it. */
+export type ThemeInputBody = {
+  ref?: string;
+  base?: string;
+  accent?: string;
+  colorScheme?: 'system' | 'light' | 'dark';
+};
+
+export type CreateOverlayBody = {
+  remotes: Record<string, OverlayRemoteBody>;
+  shellFlavor?: 'prod' | 'dev';
+  /** Renders with a different theme for this browser only. Never touches the application. */
+  theme?: ThemeInputBody;
+};
+
+export type CreatedOverlay = {
+  id: string;
+  /** Registry-relative; the browser, not the CLI, is what redeems it. */
+  confirmUrl: string;
+  url: string;
+  remotes: string[];
+  shellFlavor: 'prod' | 'dev';
+  /**
+   * False when an overlay was already open and this extended it.
+   *
+   * A browser carries one overlay id, so an extended overlay is one some browser has
+   * already confirmed — nobody needs sending back to the confirmation page. The id is
+   * stable either way, which is why this cannot be inferred from the response.
+   */
+  created?: boolean;
+  /**
+   * The theme this overlay substitutes, pinned by the registry, when it substitutes one.
+   *
+   * Declared on both overlay responses because both report what the overlay does, and
+   * having it on only one is how `dev start` came to omit the theme it had just applied.
+   */
+  theme?: string;
+  expiresAt: string;
+};
+
+export type OpenOverlay = {
+  id: string;
+  openedBy: Actor;
+  remotes: string[];
+  shellFlavor: 'prod' | 'dev';
+  /** The theme this overlay substitutes, when it substitutes one. */
+  theme?: string;
+  createdAt: string;
+  expiresAt: string;
+  confirmUrl: string;
+};
+
+/** Which overlay this is, as opposed to what it does. Nothing here changes the page. */
+type OverlayIdentity = 'id' | 'openedBy' | 'createdAt' | 'expiresAt' | 'confirmUrl';
+
+/** A field that changes what the developer sees, and so must be reported wherever an
+ * overlay is described. */
+export type OverlayEffect = Exclude<keyof OpenOverlay, OverlayIdentity>;
+
+/**
+ * The effects, enumerated so the surfaces that describe an overlay can be checked against
+ * them rather than trusted to keep up.
+ *
+ * A theme was added to the overlay and three separate surfaces went on not mentioning it —
+ * the badge, the registry's confirmation page, and `dev start`'s own output. Each omission
+ * shipped. The failure is silent and always the same: the thing you asked for is the one
+ * thing not reported, which reads as the feature not working.
+ *
+ * The registry keeps its own copy of this list against its own type, because the two
+ * repos share no code. Each is checked against the shape it actually renders, so neither
+ * can drift quietly.
+ */
+export const OVERLAY_EFFECTS = ['remotes', 'shellFlavor', 'theme'] as const;
+
+/*
+ * Adding a field to OpenOverlay now forces a decision: name it as an effect or as
+ * identity. Leaving it unclassified fails to compile, before any test runs — which
+ * matters because the tests are generated from this list, so a field missing from it is a
+ * field nothing checks.
+ */
+type Unclassified = Exclude<OverlayEffect, (typeof OVERLAY_EFFECTS)[number]>;
+type EveryEffectIsListed = Unclassified extends never ? true : 'unclassified overlay field';
+export const OVERLAY_EFFECTS_ARE_EXHAUSTIVE: EveryEffectIsListed = true;
+
+export type CreateApplicationBody = {
+  name: string;
+  ephemeral?: boolean;
+  shell?: Record<string, unknown>;
+  overrides?: Record<string, unknown>;
+};
+
+export type SyncApplicationBody = {
+  fromScopeId: string;
+  fromName: string;
+  mode?: 'replace' | 'merge';
+  include?: Array<
+    | 'packages'
+    | 'shell'
+    | 'overrides'
+    | 'allowOverrides'
+    | 'sharedBaselines'
+    | 'sharedDepsEnforcement'
+  >;
+};
+
+export type CloneApplicationBody = {
+  fromScopeId: string;
+  fromName: string;
+  ephemeral?: boolean;
+  /** Overlays on the clone. Never inherited from the source; off unless asked (#28). */
+  allowOverlays?: boolean;
+};
+
+/** Token values for one mode, keyed by role. The role list is versioned in @appshell/tokens. */
+export type ThemeTokens = Record<string, string>;
+
+/** A published theme: complete values for both modes, frozen at publish. */
+export type Theme = {
+  id: string;
+  scopeId: string;
+  name: string;
+  version: string;
+  publishedBy: Actor;
+  visibility: 'public' | 'private';
+  digest: string;
+  deprecated?: { reason: string; at: string };
+  tokens: { light: ThemeTokens; dark: ThemeTokens };
+  derivedFrom?: string;
+  metadata?: Record<string, unknown>;
+  publishedAt: string;
+};
+
+/** The file `appshell theme publish` sends. `init` writes one of these. */
+export type ThemeResource = {
+  apiVersion: string;
+  kind: 'Theme';
+  name: string;
+  spec: {
+    version: string;
+    tokens: { light: ThemeTokens; dark: ThemeTokens };
+    visibility?: 'public' | 'private';
+    derivedFrom?: string;
+    metadata?: Record<string, unknown>;
+  };
+};
+
+/** The declarative resource `appshell app apply` sends to `/v1/apply`. */
+export type ApplicationResource = {
+  apiVersion: string;
+  kind: 'Application';
+  name: string;
+  spec?: {
+    shell?: Record<string, unknown>;
+    /** The full desired set. Anything activated but absent here is deactivated. */
+    packages?: string[];
+    overrides?: Record<string, unknown>;
+    allowOverrides?: boolean;
+    allowOverlays?: boolean;
+    sharedBaselines?: Record<string, unknown>;
+    sharedDepsEnforcement?: 'off' | 'warn' | 'block';
+    ephemeral?: boolean;
+  };
+};
+
+export type ApplyResult = {
+  id: string;
+  created: boolean;
+  changes: string[];
+  message: string;
+};
+
+/** The status and the registry's reason, and nothing added. */
+export const detailOf = (error: unknown) => {
+  const { response } = error as { response?: { status: number; data?: { message?: unknown } } };
+  if (!response) {
+    return (error as Error).message;
+  }
+
+  const { message } = response.data ?? {};
+
+  return `${response.status} ${Array.isArray(message) ? message.join(', ') : message ?? ''}`.trim();
+};
+
+/** The status of a failed request, when it got one. */
+export const statusOf = (error: unknown) =>
+  (error as { response?: { status?: number } } | undefined)?.response?.status;
+
+export const describe = (error: unknown) => {
+  const detail = detailOf(error);
+
+  return statusOf(error) === 401
+    ? `${detail} Run \`appshell login\` or set APPSHELL_TOKEN.`
+    : detail;
+};
+
+export type ScopeOwner = { kind: 'user' | 'org'; id: string };
+
+/**
+ * Who did something. `id` is the account's stable subject; `username` is what it was
+ * called at the time — a snapshot, so it may already name something else.
+ */
+export type Actor = { id: string; username: string };
+
+export type ScopeSummary = {
+  id: string;
+  owner: ScopeOwner;
+  createdAt: string;
+};
+
+/** A workflow to trust, with the repository already resolved to GitHub's ids. */
+export type AddTrustedPublisherBody = {
+  provider: 'github';
+  /** `owner/repo`, for display. The registry matches on the ids. */
+  repository: string;
+  repositoryId: string;
+  repositoryOwnerId: string;
+  /** The full path, `.github/workflows/<file>.yml`. */
+  workflow: string;
+  environment?: string;
+  /** Omitted means GitHub Actions on github.com. */
+  issuer?: string;
+};
+
+/**
+ * A workload to trust with applying one application, as `trust add --application` sends it:
+ * a GitHub workflow with its repository resolved to ids, as for publishing, or a Kubernetes
+ * service account under its cluster's OIDC issuer. appshellhq/appshell-services#57.
+ */
+export type AddTrustedDeployerBody =
+  | AddTrustedPublisherBody
+  | { provider: 'kubernetes'; issuer: string; namespace: string; serviceAccount: string };
+
+/** A workload trusted to apply an application, as the registry reports it. */
+export type TrustedDeployer = {
+  id: string;
+  /** `scope/name`. */
+  application: string;
+  provider: 'github' | 'kubernetes';
+  issuer: string;
+  repository?: string;
+  repositoryId?: string;
+  repositoryOwnerId?: string;
+  workflow?: string;
+  environment?: string;
+  namespace?: string;
+  serviceAccount?: string;
+  createdAt: string;
+  /** The username of whoever added it. */
+  createdBy: string;
+};
+
+/** A workflow trusted to publish into a scope. appshellhq/appshell-services#51. */
+export type TrustedPublisher = AddTrustedPublisherBody & {
+  id: string;
+  scopeId: string;
+  issuer: string;
+  createdAt: string;
+  createdBy: Actor;
+};
+
+export class RegistryClient {
+  readonly baseUrl: string;
+
+  constructor(registry: string) {
+    this.baseUrl = registry.replace(/\/$/, '');
+  }
+
+  /**
+   * `as` presents that credential instead of the caller's own: a workload's token, which
+   * is minted for one request and never stored. `null` presents none at all.
+   */
+  private async request<T>(
+    method: 'get' | 'post' | 'patch' | 'delete',
+    route: string,
+    body?: unknown,
+    as?: string | null,
+  ) {
+    // Renews an expired access token rather than sending nothing and letting the request
+    // 401. Every command goes through here, so this is the one place that has to know.
+    const token = as === undefined ? await ensureToken(this.baseUrl) : as;
+    const config: AxiosRequestConfig = token
+      ? { headers: { Authorization: `Bearer ${token}` } }
+      : {};
+
+    console.debug(`${method.toUpperCase()} ${this.baseUrl}${route}`);
+
+    return axios.request<T>({ ...config, method, url: `${this.baseUrl}${route}`, data: body });
+  }
+
+  private async send<T>(
+    method: 'get' | 'post' | 'patch' | 'delete',
+    route: string,
+    action: string,
+    body?: unknown,
+  ): Promise<T> {
+    try {
+      const { data } = await this.request<T>(method, route, body);
+      return data;
+    } catch (error) {
+      // The failure kept as the cause, so a caller can tell a 404 from anything else.
+      throw new Error(`Failed to ${action}: ${describe(error)}`, { cause: error });
+    }
+  }
+
+  listThemes(scopeId?: string) {
+    const suffix = scopeId ? `?scopeId=${encodeURIComponent(scopeId)}` : '';
+
+    return this.send<Theme[]>('get', `/v1/themes${suffix}`, 'list themes');
+  }
+
+  /** Omit the version to resolve the highest published one. */
+  getTheme(scopeId: string, name: string, version?: string) {
+    const route = version
+      ? `/v1/themes/${scopeId}/${name}/${version}`
+      : `/v1/themes/${scopeId}/${name}`;
+
+    return this.send<Theme>('get', route, `get theme ${scopeId}/${name}`);
+  }
+
+  publishTheme(body: {
+    name: string;
+    version: string;
+    tokens: { light: ThemeTokens; dark: ThemeTokens };
+    visibility?: 'public' | 'private';
+    derivedFrom?: string;
+    metadata?: Record<string, unknown>;
+  }) {
+    return this.send<{ id: string; created: boolean }>(
+      'post',
+      '/v1/themes',
+      `publish theme ${body.name}@${body.version}`,
+      body,
+    );
+  }
+
+  listApplications(scopeId?: string, createdBy?: string) {
+    const query = new URLSearchParams();
+    if (scopeId) query.set('scopeId', scopeId);
+    if (createdBy) query.set('owner', createdBy);
+    const suffix = query.toString() ? `?${query}` : '';
+
+    return this.send<ApplicationSummary[]>('get', `/v1/applications${suffix}`, 'list applications');
+  }
+
+  /**
+   * The registry's catalogue for a scope, one entry per version: the scope's own packages and
+   * every public package from any other scope. Public, and the registry filters by what the
+   * caller may see: public packages plus the private ones in their own scope.
+   *
+   * Not just the scope's own: a caller listing what a scope has published keeps only that
+   * scope's entries.
+   */
+  listPackages(scopeId?: string) {
+    const suffix = scopeId ? `?scopeId=${encodeURIComponent(scopeId)}` : '';
+
+    return this.send<PackageSummary[]>('get', `/v1/packages${suffix}`, 'list packages');
+  }
+
+  packageVersions(scopeId: string, name: string) {
+    return this.send<PackageSummary[]>(
+      'get',
+      `/v1/packages/${scopeId}/${name}/versions`,
+      `list versions of ${scopeId}/${name}`,
+    );
+  }
+
+  /** Passing no reason lifts an existing deprecation. */
+  /**
+   * Reclassifies a package, across every version.
+   *
+   * No version in the path, because visibility belongs to the package rather than to a
+   * release of it — the same reason `npm access` takes a package name and not a version.
+   */
+  setPackageVisibility(scopeId: string, name: string, visibility: 'public' | 'private') {
+    return this.send<{ scopeId: string; name: string; visibility: string; versions: number }>(
+      'patch',
+      `/v1/packages/${scopeId}/${name}/visibility`,
+      `set ${scopeId}/${name} ${visibility}`,
+      { visibility },
+    );
+  }
+
+  deprecatePackage(scopeId: string, name: string, version: string, reason?: string) {
+    // One test of `reason` decides both the label and the body. They used to be decided
+    // separately — the label by truthiness, the body by spreading the value in
+    // regardless — so an empty string described itself as an undeprecation and sent a
+    // deprecation with a blank reason, which the registry refuses.
+    const lifting = !reason;
+
+    return this.send<{ id: string; deprecated?: { reason: string; at: string } }>(
+      'patch',
+      `/v1/packages/${scopeId}/${name}/${version}/deprecation`,
+      lifting
+        ? `undeprecate ${scopeId}/${name}@${version}`
+        : `deprecate ${scopeId}/${name}@${version}`,
+      lifting ? {} : { reason },
+    );
+  }
+
+  /** Defaults to the latest version when none is named. */
+  getPackage(scopeId: string, name: string, version?: string) {
+    const suffix = version ? `?version=${encodeURIComponent(version)}` : '';
+
+    return this.send<PackageSummary>(
+      'get',
+      `/v1/packages/${scopeId}/${name}${suffix}`,
+      `fetch ${scopeId}/${name}${version ? `@${version}` : ''}`,
+    );
+  }
+
+  getApplication(scopeId: string, name: string) {
+    return this.send<ApplicationSummary>(
+      'get',
+      `/v1/applications/${scopeId}/${name}`,
+      `fetch application ${scopeId}/${name}`,
+    );
+  }
+
+  /**
+   * Claims a namespace. The caller's own needs no call — publishing provisions it — so
+   * this is for every other name, and it is the remedy the registry names when it
+   * refuses a publish into an unclaimed scope.
+   */
+  createScope(name: string) {
+    return this.send<{ scope: ScopeSummary; created: boolean; message: string }>(
+      'post',
+      '/v1/scopes',
+      `create scope ${name}`,
+      { name },
+    );
+  }
+
+  listScopes() {
+    return this.send<ScopeSummary[]>('get', '/v1/scopes', 'list scopes');
+  }
+
+  /**
+   * Hands a namespace to an organization.
+   *
+   * One direction only, and no way back: an organization-owned scope has no route that
+   * returns it to a person. The registry refuses unless the caller owns the scope *and*
+   * belongs to the organization receiving it — the second half being the thing that stops
+   * a namespace being handed somewhere nobody who wanted it can administer.
+   */
+  transferScope(id: string, organizationId: string) {
+    return this.send<ScopeSummary>(
+      'post',
+      `/v1/scopes/${id}/ownership`,
+      `transfer scope ${id} to ${organizationId}`,
+      { organizationId },
+    );
+  }
+
+  /**
+   * Gives up a namespace.
+   *
+   * The registry decides whether the name returns to the pool or is spent for good, and
+   * says which in `outcome` — a scope that never published anything is *released* and can
+   * be claimed again; one that published is *retired* and its name never can.
+   */
+  releaseScope(id: string) {
+    return this.send<{ scopeId: string; outcome: 'released' | 'retired'; message: string }>(
+      'delete',
+      `/v1/scopes/${id}`,
+      `release scope ${id}`,
+    );
+  }
+
+  /** 404 when the name is unclaimed, which is the question this usually answers. */
+  getScope(id: string) {
+    return this.send<ScopeSummary>('get', `/v1/scopes/${id}`, `get scope ${id}`);
+  }
+
+  /**
+   * Trusts a CI workflow to publish into a scope, presenting its own OIDC token instead of
+   * a stored secret.
+   *
+   * Idempotent: a record matching one already there is reported with `created: false`
+   * rather than duplicated. The scope's owner, or an organization admin for an
+   * organization-owned scope, is who may — the question is who decides who else writes,
+   * not who may write.
+   */
+  addTrustedPublisher(scopeId: string, body: AddTrustedPublisherBody) {
+    return this.send<{ publisher: TrustedPublisher; created: boolean; message: string }>(
+      'post',
+      `/v1/scopes/${scopeId}/trusted-publishers`,
+      `trust ${body.repository} to publish into ${scopeId}`,
+      body,
+    );
+  }
+
+  listTrustedPublishers(scopeId: string) {
+    return this.send<TrustedPublisher[]>(
+      'get',
+      `/v1/scopes/${scopeId}/trusted-publishers`,
+      `list trusted publishers of ${scopeId}`,
+    );
+  }
+
+  /** Revocation is this and nothing else: there is no secret to rotate. */
+  removeTrustedPublisher(scopeId: string, id: string) {
+    return this.send<{ id: string; message: string }>(
+      'delete',
+      `/v1/scopes/${scopeId}/trusted-publishers/${encodeURIComponent(id)}`,
+      `remove trusted publisher ${id} from ${scopeId}`,
+    );
+  }
+
+  createApplication(body: CreateApplicationBody) {
+    return this.send<{ id: string }>(
+      'post',
+      '/v1/applications',
+      `create application ${body.name}`,
+      body,
+    );
+  }
+
+  deleteApplication(scopeId: string, name: string) {
+    return this.send<{ id: string }>(
+      'delete',
+      `/v1/applications/${scopeId}/${name}`,
+      `delete application ${scopeId}/${name}`,
+    );
+  }
+
+  /** Reconciles an application against a declared resource; creates it when absent. */
+  apply(resource: ApplicationResource) {
+    return this.send<ApplyResult>('post', '/v1/apply', `apply ${resource.name}`, resource);
+  }
+
+  /**
+   * Applies as a workload, under trusted deployment: with its own token, or — `null` — with
+   * none. Errors are left to the caller, whose advice is about trust records rather than
+   * logging in, which a workload can't do. appshellhq/appshell-services#57.
+   */
+  async applyAs(resource: ApplicationResource, token: string | null) {
+    const { data } = await this.request<ApplyResult>('post', '/v1/apply', resource, token);
+
+    return data;
+  }
+
+  /**
+   * Trusts a workload to apply one application. As for publishing, idempotent, and for the
+   * scope's owner or an organization admin to decide. The application must exist.
+   */
+  addTrustedDeployer(scopeId: string, name: string, body: AddTrustedDeployerBody) {
+    const who =
+      body.provider === 'kubernetes' ? `${body.namespace}/${body.serviceAccount}` : body.repository;
+
+    return this.send<{ deployer: TrustedDeployer; created: boolean; message: string }>(
+      'post',
+      `/v1/applications/${scopeId}/${name}/trusted-deployers`,
+      `trust ${who} to apply ${scopeId}/${name}`,
+      body,
+    );
+  }
+
+  listTrustedDeployers(scopeId: string, name: string) {
+    return this.send<TrustedDeployer[]>(
+      'get',
+      `/v1/applications/${scopeId}/${name}/trusted-deployers`,
+      `list trusted deployers of ${scopeId}/${name}`,
+    );
+  }
+
+  removeTrustedDeployer(scopeId: string, name: string, id: string) {
+    return this.send<{ id: string; message: string }>(
+      'delete',
+      `/v1/applications/${scopeId}/${name}/trusted-deployers/${encodeURIComponent(id)}`,
+      `remove trusted deployer ${id} from ${scopeId}/${name}`,
+    );
+  }
+
+  composition(scopeId: string, name: string) {
+    return this.send<Record<string, unknown>>(
+      'get',
+      `/v1/applications/${scopeId}/${name}/composition`,
+      `fetch composition for ${scopeId}/${name}`,
+    );
+  }
+
+  revisions(scopeId: string, name: string, limit?: number) {
+    const suffix = limit ? `?limit=${limit}` : '';
+
+    return this.send<ApplicationRevision[]>(
+      'get',
+      `/v1/applications/${scopeId}/${name}/revisions${suffix}`,
+      `list revisions for ${scopeId}/${name}`,
+    );
+  }
+
+  rollback(scopeId: string, name: string, revision: number) {
+    return this.send<{ id: string }>(
+      'post',
+      `/v1/applications/${scopeId}/${name}/rollback`,
+      `roll ${scopeId}/${name} back to revision ${revision}`,
+      { revision },
+    );
+  }
+
+  syncApplication(scopeId: string, name: string, body: SyncApplicationBody) {
+    return this.send<{ id: string }>(
+      'post',
+      `/v1/applications/${scopeId}/${name}/sync`,
+      `sync application ${scopeId}/${name}`,
+      body,
+    );
+  }
+
+  cloneApplication(scopeId: string, name: string, body: CloneApplicationBody) {
+    return this.send<{ id: string }>(
+      'post',
+      `/v1/applications/${scopeId}/${name}/clone`,
+      `clone application ${scopeId}/${name}`,
+      body,
+    );
+  }
+
+  sharedDeps(scopeId: string, name: string) {
+    return this.send<SharedDependencyReport>(
+      'get',
+      `/v1/applications/${scopeId}/${name}/shared-deps`,
+      `fetch shared dependencies for ${scopeId}/${name}`,
+    );
+  }
+
+  /** What the registry actually has published for a package, not what a local build says. */
+  packageManifest(scopeId: string, name: string) {
+    return this.send<{
+      /**
+       * What the package exposes, keyed by federation key — `PongModule/Pong`, not the
+       * `scope/package/component` address a composition uses.
+       *
+       * This was typed as `remotes` carrying urls, which is the shape the registry
+       * stopped sending two renames ago: `remotes` now lists what a package *consumes*,
+       * and urls left the manifest when origins became a property of a deployment.
+       * `send` casts rather than validates, so nothing failed — the one reader silently
+       * resolved nothing and printed `unknown package` for every remote.
+       */
+      components?: Record<string, unknown>;
+      /** What this package consumes, by name. */
+      remotes?: string[];
+      /** Declared, not valued: a `${VAR}` here is a name the application must supply. */
+      vars?: Record<string, Record<string, string | number>>;
+    }>(
+      'get',
+      `/v1/packages/${scopeId}/${name}/manifest`,
+      `fetch the published manifest for ${scopeId}/${name}`,
+    );
+  }
+
+  listOverlays(scopeId: string, name: string) {
+    return this.send<OpenOverlay[]>(
+      'get',
+      `/v1/applications/${scopeId}/${name}/overlays`,
+      `list overlays on ${scopeId}/${name}`,
+    );
+  }
+
+  createOverlay(scopeId: string, name: string, body: CreateOverlayBody) {
+    return this.send<CreatedOverlay>(
+      'post',
+      `/v1/applications/${scopeId}/${name}/overlays`,
+      `open an overlay on ${scopeId}/${name}`,
+      body,
+    );
+  }
+
+  stopRedirecting(scopeId: string, name: string, id: string, removeRemotes: string[]) {
+    return this.send<{ id: string; remotes: string[] }>(
+      'patch',
+      `/v1/applications/${scopeId}/${name}/overlays/${id}`,
+      `stop redirecting ${removeRemotes.join(', ')}`,
+      { removeRemotes },
+    );
+  }
+
+  closeOverlay(scopeId: string, name: string, id: string) {
+    return this.send<{ id: string; revoked: boolean }>(
+      'delete',
+      `/v1/applications/${scopeId}/${name}/overlays/${id}`,
+      `close overlay ${id}`,
+    );
+  }
+
+  /**
+   * Activation, with the configuration the package needs supplied in the same request.
+   *
+   * One call rather than a write followed by a hope: the registry merges the values into
+   * the application's `overrides.vars` and then checks the packages against them, so
+   * supplying and validating see the same state.
+   */
+  activate(
+    scopeId: string,
+    name: string,
+    packageId: string,
+    vars?: Record<string, Record<string, string | number>>,
+  ) {
+    return this.send<{ id: string; message: string }>(
+      'post',
+      `/v1/applications/${scopeId}/${name}/packages`,
+      `activate ${packageId} in ${scopeId}/${name}`,
+      { packageId, ...(vars ? { vars } : {}) },
+    );
+  }
+
+  varsReport(scopeId: string, name: string) {
+    return this.send<{
+      enforcement: 'off' | 'warn' | 'block';
+      unsupplied: number;
+      requirements: { name: string; scope: string; supplied: boolean }[];
+    }>('get', `/v1/applications/${scopeId}/${name}/vars`, `read vars for ${scopeId}/${name}`);
+  }
+
+  deactivate(scopeId: string, name: string, appScopeId: string, appName: string) {
+    return this.send<{ id: string }>(
+      'delete',
+      `/v1/applications/${scopeId}/${name}/packages/${appScopeId}/${appName}`,
+      `deactivate ${appScopeId}/${appName} in ${scopeId}/${name}`,
+    );
+  }
+
+  /**
+   * Withdraws a version. The registry keeps its content restorable for a window and says
+   * until when; a registry from before that (appshellhq/appshell-services#29) says nothing.
+   */
+  unpublish(scopeId: string, name: string, version: string) {
+    return this.send<{ id: string; restorableUntil?: string }>(
+      'delete',
+      `/v1/packages/${scopeId}/${name}/${version}`,
+      `unpublish ${scopeId}/${name}@${version}`,
+    );
+  }
+
+  /** Undoes an unpublish inside its window. */
+  restorePackage(scopeId: string, name: string, version: string) {
+    return this.send<{ id: string }>(
+      'post',
+      `/v1/packages/${scopeId}/${name}/${version}/restore`,
+      `restore ${scopeId}/${name}@${version}`,
+    );
+  }
+
+  /** Drops an unpublished version's retained content, so it can no longer be restored. */
+  purgePackage(scopeId: string, name: string, version: string) {
+    return this.send<{ id: string }>(
+      'post',
+      `/v1/packages/${scopeId}/${name}/${version}/purge`,
+      `purge ${scopeId}/${name}@${version}`,
+    );
+  }
+
+  /** A package's unpublished versions that can still be restored. */
+  unpublishedVersions(scopeId: string, name: string) {
+    return this.send<UnpublishedSummary[]>(
+      'get',
+      `/v1/packages/${scopeId}/${name}/unpublished`,
+      `list unpublished versions of ${scopeId}/${name}`,
+    );
+  }
+}
+
+/**
+ * `scope/name`, or a bare `name` in the default scope, so `--application dev` works. The default
+ * is resolved only for a bare name (`defaultScopeFor`), so it may be absent for a qualified one.
+ */
+export const parseApplication = (application: string, defaultScopeId?: string) => {
+  const parts = application.split('/');
+  if (parts.length === 1) {
+    if (!defaultScopeId) {
+      throw new Error(`No scope for '${application}'. Name it as 'scope/${application}'.`);
+    }
+
+    return { scopeId: defaultScopeId, name: parts[0] };
+  }
+
+  const [scopeId, name] = parts;
+  if (parts.length !== 2 || !scopeId || !name) {
+    throw new Error(`Invalid application '${application}'. Expected 'name' or 'scope/name'.`);
+  }
+
+  return { scopeId, name };
+};
+
+/**
+ * `scope/name@version`, `name@version`, or a bare `name` for the latest.
+ *
+ * Separate from `parseApplication` because a package reference carries a version and an
+ * application never does — reusing one parser for both is how a version ends up silently
+ * treated as part of a name.
+ */
+/**
+ * The registry returns browser-facing URLs relative when one host serves both the API
+ * and the shell, and absolute when the serving plane answers on its own hostname.
+ * Resolving through `URL` handles both: an absolute value wins outright, a relative
+ * one resolves against the registry.
+ *
+ * Concatenating instead — which is what this replaced — silently produced
+ * `https://registry.example.com https://apps.example.com/overlays/...` once the two
+ * planes were split.
+ */
+export const absoluteUrl = (url: string, baseUrl: string): string =>
+  new URL(url, baseUrl).toString();
+
+export const parsePackage = (reference: string, defaultScopeId?: string) => {
+  const at = reference.lastIndexOf('@');
+  const coordinates = at > 0 ? reference.slice(0, at) : reference;
+  const version = at > 0 ? reference.slice(at + 1) : undefined;
+  const { scopeId, name } = parseApplication(coordinates, defaultScopeId);
+
+  if (!version) {
+    throw new Error(
+      `Invalid package '${reference}'. Expected 'scope/name@version' — a version says which ` +
+        `build to activate, and the application decides that rather than inheriting it.`,
+    );
+  }
+
+  return { scopeId, name, version };
+};

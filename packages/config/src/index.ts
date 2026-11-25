@@ -2,29 +2,52 @@
  * @appshell/config package API
  */
 export { default as configmap } from './configmap';
-export { default as deregister } from './deregister';
-export { default as generateEnv } from './generate.env';
-export { default as generateGlobalConfig } from './generate.global-config';
-export { default as generateManifest } from './generate.manifest';
+export { persistedContext, resolveContext } from './context';
+export type { AppshellContext } from './context';
+export {
+  clearCredential,
+  credentialsPath,
+  ensureToken,
+  resolveToken,
+  saveCredential,
+} from './credentials';
+export type { Credential } from './credentials';
+export { default as generateManifest, manifestFrom } from './generate.manifest';
+export { loaderOf } from './loader';
 export { default as outdated } from './outdated';
-export { default as register } from './register';
-export { default as sync } from './sync';
+export { packageScope, parsePackageName } from './package-name';
+export type { PackageName } from './package-name';
+export { activate, openOverlay, publish } from './publish';
 export type {
+  Advise,
+  OpenedOverlay,
+  OverlayRemotePatch,
+  PublishError,
+  PublishOptions,
+  PublishResult,
+} from './publish';
+export { default as sync } from './sync';
+export { caFile, httpsAgent } from './tls';
+export type {
+  AppshellComposition,
   AppshellConfig,
   AppshellConfigRemote,
-  AppshellGlobalConfig,
   AppshellIndex,
   AppshellManifest,
   AppshellRemote,
   AppshellTemplate,
+  AppshellTokenUsage,
   ComparisonResult,
   ComparisonResults,
   ComparisonTarget,
   Metadata,
   ModuleFederationPluginOptions,
   PackageSpec,
+  ResolvedRemote,
   Schema,
+  SharedConfig,
   SharedModuleSpec,
+  SharedObject,
 } from './types';
 export * as utils from './utils';
 export * as validators from './validators';

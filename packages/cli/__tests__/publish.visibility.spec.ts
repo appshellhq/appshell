@@ -1,0 +1,144 @@
+import * as config from '@appshell/config';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
+import handler from '../src/handlers/publish';
+
+jest.mock('@appshell/config', () => ({
+  ...jest.requireActual('@appshell/config'),
+  publish: jest.fn(),
+  activate: jest.fn(),
+  generateManifest: jest.fn(),
+}));
+
+/*
+ * Visibility is declared in appshell.config.yaml, carried through the build into
+ * appshell.template.json, and never mapped into the manifest — which is hashed into the
+ * package digest. That is what lets a package be made public later without changing what
+ * it is. Publish reads it off the template; the flag overrides it.
+ */
+describe('declared visibility', () => {
+  let dir: string;
+  const original = process.env.APPSHELL_CREDENTIALS;
+  /*
+   * Cleared so a CI job granted `id-token: write` — this repository's own pipeline grants
+   * it workflow-wide — does not have publish ask the real runner for a token mid-test.
+   */
+  const ambient = ['ACTIONS_ID_TOKEN_REQUEST_URL', 'ACTIONS_ID_TOKEN_REQUEST_TOKEN'].map(
+    (name) => [name, process.env[name]] as const,
+  );
+
+  const template = (visibility?: string) =>
+    fs.writeFileSync(
+      path.join(dir, 'template.json'),
+      JSON.stringify({ ...(visibility ? { visibility } : {}), remotes: {}, module: {} }),
+    );
+
+  beforeEach(() => {
+    dir = fs.mkdtempSync(path.join(os.tmpdir(), 'appshell-vis-'));
+    process.env.APPSHELL_CREDENTIALS = path.join(dir, 'credentials');
+    ambient.forEach(([name]) => delete process.env[name]);
+    fs.writeFileSync(
+      path.join(dir, 'package.json'),
+      JSON.stringify({ name: '@scope/thing', version: '1.2.3' }),
+    );
+    template();
+    jest.spyOn(process, 'cwd').mockReturnValue(dir);
+    jest.spyOn(console, 'log').mockImplementation(() => {});
+    (config.generateManifest as jest.Mock).mockResolvedValue({ remotes: {} });
+    (config.publish as jest.Mock).mockResolvedValue({ id: 'scope/thing@1.2.3', created: true });
+  });
+
+  afterEach(() => {
+    process.env.APPSHELL_CREDENTIALS = original;
+    ambient.forEach(([name, value]) => {
+      if (value !== undefined) process.env[name] = value;
+    });
+    fs.rmSync(dir, { recursive: true, force: true });
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
+  });
+
+  const publishArgs = (visibility?: 'public' | 'private') =>
+    ({
+      registry: 'http://localhost:7150',
+      scopeId: 'appshell',
+      template: path.join(dir, 'template.json'),
+      watch: false,
+      ...(visibility ? { visibility } : {}),
+    } as Parameters<typeof handler>[0]);
+
+  it('publishes with what the yaml declared', async () => {
+    template('public');
+
+    await handler(publishArgs());
+
+    expect(config.publish).toHaveBeenCalledWith(expect.objectContaining({ visibility: 'public' }));
+  });
+
+  it('lets the flag override the declaration', async () => {
+    template('public');
+
+    await handler(publishArgs('private'));
+
+    expect(config.publish).toHaveBeenCalledWith(expect.objectContaining({ visibility: 'private' }));
+  });
+
+  // Absent from both, the registry applies its own default rather than the CLI guessing.
+  it('sends nothing when neither declares one', async () => {
+    template();
+
+    await handler(publishArgs());
+
+    expect(config.publish).toHaveBeenCalledWith(expect.objectContaining({ visibility: undefined }));
+  });
+
+  /*
+   * Where it goes: the scope the name declares, else the default scope that lookups and
+   * overlays use, else the registry's own for the publisher (appshellhq/appshell-services#125).
+   */
+  describe('the scope', () => {
+    const named = (name: string) =>
+      fs.writeFileSync(path.join(dir, 'package.json'), JSON.stringify({ name, version: '1.2.3' }));
+
+    it('is the one the package declares, over the default', async () => {
+      await handler({ ...publishArgs(), defaultScope: 'mine' });
+
+      expect(config.publish).toHaveBeenCalledWith(expect.objectContaining({ scopeId: 'scope' }));
+    });
+
+    it('is the default scope for an unscoped package', async () => {
+      named('thing');
+
+      await handler({ ...publishArgs(), defaultScope: 'acme' });
+
+      expect(config.publish).toHaveBeenCalledWith(expect.objectContaining({ scopeId: 'acme' }));
+    });
+
+    it('is left to the registry without either', async () => {
+      named('thing');
+
+      await handler(publishArgs());
+
+      expect(config.publish).toHaveBeenCalledWith(expect.objectContaining({ scopeId: undefined }));
+    });
+  });
+
+  /*
+   * Publishing a package says nothing about which application should serve it, and there
+   * is no requirement that an application exist at all.
+   *
+   * It used to activate whenever `application` was configured — a setting that exists to
+   * address the `app` commands. The failure was the worst shape available: the package
+   * published, activation 404'd against an application nobody had created, and the
+   * command exited non-zero over work that had succeeded.
+   */
+  it('does not activate, even with an application configured', async () => {
+    template('public');
+
+    await handler({ ...publishArgs(), application: 'appshell/appshell-example' } as never);
+
+    expect(config.publish).toHaveBeenCalled();
+    expect(config.activate).not.toHaveBeenCalled();
+  });
+});

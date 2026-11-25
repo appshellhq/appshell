@@ -1,9 +1,7 @@
 {
-  "remotes": {
+  "components": {
     "BizModule/Biz": {
       "id": "BizModule/Biz",
-      "url": "http://localhost:4040/remoteEntry.js",
-      "filename": "remoteEntry.js",
       "metadata": {
         "route": "/biz",
         "displayName": "Biz App",
@@ -13,7 +11,7 @@
       }
     }
   },
-  "environment": {
+  "vars": {
     "biz_module": {
       "RUNTIME_ENV": "${RUNTIME_ENV}",
       "RUNTIME_ENV_VERSION": "${RUNTIME_ENV_VERSION}"

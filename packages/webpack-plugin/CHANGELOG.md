@@ -1,0 +1,858 @@
+# Change Log
+
+All notable changes to this project will be documented in this file.
+See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
+
+# [1.0.0-alpha.151](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.150...v1.0.0-alpha.151) (2026-11-25)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.150](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.149...v1.0.0-alpha.150) (2026-11-25)
+
+### Features
+
+- **cli:** log in to any OpenID Connect provider, and publish unscoped packages into the default scope ([#104](https://github.com/appshellhq/appshell/issues/104)) ([0202b72](https://github.com/appshellhq/appshell/commit/0202b7246dbff1d70bb3892020b843960df96b0f)), closes [appshellhq/appshell-services#125](https://github.com/appshellhq/appshell-services/issues/125) [appshellhq/appshell-services#125](https://github.com/appshellhq/appshell-services/issues/125) [appshellhq/appshell-services#125](https://github.com/appshellhq/appshell-services/issues/125)
+
+# [1.0.0-alpha.149](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.148...v1.0.0-alpha.149) (2026-11-17)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.148](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.147...v1.0.0-alpha.148) (2026-10-29)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.147](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.146...v1.0.0-alpha.147) (2026-10-28)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.146](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.145...v1.0.0-alpha.146) (2026-10-28)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.145](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.144...v1.0.0-alpha.145) (2026-10-27)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.144](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.143...v1.0.0-alpha.144) (2026-10-26)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.143](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.142...v1.0.0-alpha.143) (2026-10-25)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.142](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.141...v1.0.0-alpha.142) (2026-10-25)
+
+### Features
+
+- **webpack-plugin:** appshellRemote(), the webpack configuration every appshell remote needs ([#75](https://github.com/appshellhq/appshell/issues/75)) ([40208c2](https://github.com/appshellhq/appshell/commit/40208c2724c01d6390910b2d27f809ab8b235394)), closes [#74](https://github.com/appshellhq/appshell/issues/74) [#72](https://github.com/appshellhq/appshell/issues/72)
+
+# [1.0.0-alpha.141](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.140...v1.0.0-alpha.141) (2026-10-24)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.140](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.139...v1.0.0-alpha.140) (2026-10-22)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.139](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.138...v1.0.0-alpha.139) (2026-10-22)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.138](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.137...v1.0.0-alpha.138) (2026-10-22)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.137](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.136...v1.0.0-alpha.137) (2026-10-21)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.136](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.135...v1.0.0-alpha.136) (2026-10-21)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.135](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.134...v1.0.0-alpha.135) (2026-10-20)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.134](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.133...v1.0.0-alpha.134) (2026-10-20)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.133](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.132...v1.0.0-alpha.133) (2026-10-20)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.132](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.131...v1.0.0-alpha.132) (2026-10-20)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.131](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.130...v1.0.0-alpha.131) (2026-10-20)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.130](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.129...v1.0.0-alpha.130) (2026-10-19)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.129](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.128...v1.0.0-alpha.129) (2026-10-19)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.128](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.127...v1.0.0-alpha.128) (2026-10-19)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.127](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.126...v1.0.0-alpha.127) (2026-10-19)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.126](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.125...v1.0.0-alpha.126) (2026-10-19)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.125](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.124...v1.0.0-alpha.125) (2026-10-19)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.124](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.123...v1.0.0-alpha.124) (2026-10-19)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.123](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.122...v1.0.0-alpha.123) (2026-10-18)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.122](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.121...v1.0.0-alpha.122) (2026-10-18)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.121](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.120...v1.0.0-alpha.121) (2026-10-18)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.120](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.119...v1.0.0-alpha.120) (2026-10-18)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.119](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.118...v1.0.0-alpha.119) (2026-10-17)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.118](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.117...v1.0.0-alpha.118) (2026-10-17)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.117](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.116...v1.0.0-alpha.117) (2026-10-17)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.116](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.115...v1.0.0-alpha.116) (2026-10-16)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.115](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.114...v1.0.0-alpha.115) (2026-10-16)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.114](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.113...v1.0.0-alpha.114) (2026-10-15)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.113](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.112...v1.0.0-alpha.113) (2026-10-15)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.112](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.111...v1.0.0-alpha.112) (2026-10-14)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.111](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.110...v1.0.0-alpha.111) (2026-10-14)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.110](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.109...v1.0.0-alpha.110) (2026-10-14)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.109](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.108...v1.0.0-alpha.109) (2026-10-14)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.108](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.107...v1.0.0-alpha.108) (2026-10-13)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.107](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.106...v1.0.0-alpha.107) (2026-10-13)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.106](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.105...v1.0.0-alpha.106) (2026-10-13)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.105](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.104...v1.0.0-alpha.105) (2026-10-12)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.104](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.103...v1.0.0-alpha.104) (2026-10-12)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.103](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.102...v1.0.0-alpha.103) (2026-10-12)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.102](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.101...v1.0.0-alpha.102) (2026-10-12)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.101](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.100...v1.0.0-alpha.101) (2026-10-12)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.100](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.99...v1.0.0-alpha.100) (2026-10-11)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.99](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.98...v1.0.0-alpha.99) (2026-10-11)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.98](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.97...v1.0.0-alpha.98) (2026-10-09)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.97](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.96...v1.0.0-alpha.97) (2026-09-19)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.96](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.95...v1.0.0-alpha.96) (2026-09-19)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.95](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.94...v1.0.0-alpha.95) (2026-09-19)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.94](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.93...v1.0.0-alpha.94) (2026-09-19)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.93](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.92...v1.0.0-alpha.93) (2026-09-18)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.92](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.91...v1.0.0-alpha.92) (2026-09-18)
+
+### Bug Fixes
+
+- **config:** stop inventing a scope when none is configured ([2867adc](https://github.com/appshellhq/appshell/commit/2867adc9123f95170dca0fe4c3e70caf22879442)), closes [appshellhq/appshell#3](https://github.com/appshellhq/appshell/issues/3)
+
+# [1.0.0-alpha.91](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.90...v1.0.0-alpha.91) (2026-09-12)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.90](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.89...v1.0.0-alpha.90) (2026-09-12)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.89](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.88...v1.0.0-alpha.89) (2026-09-12)
+
+### Features
+
+- **cli:** a package declares the scope it belongs to ([68ce4db](https://github.com/appshellhq/appshell/commit/68ce4db30971e7e515dbc47431efba24373be613)), closes [appshellhq/appshell-services#14](https://github.com/appshellhq/appshell-services/issues/14)
+
+# [1.0.0-alpha.88](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.87...v1.0.0-alpha.88) (2026-09-12)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.87](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.86...v1.0.0-alpha.87) (2026-09-12)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.86](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.85...v1.0.0-alpha.86) (2026-09-12)
+
+### Features
+
+- **cli:** stay logged in, using the refresh token it already stored ([275ec2e](https://github.com/appshellhq/appshell/commit/275ec2ebd45164f05b7aab27f4db90458bf57494)), closes [#6](https://github.com/appshellhq/appshell/issues/6)
+
+# [1.0.0-alpha.85](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.84...v1.0.0-alpha.85) (2026-09-12)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.84](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.83...v1.0.0-alpha.84) (2026-09-12)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.83](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.82...v1.0.0-alpha.83) (2026-09-12)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.82](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.81...v1.0.0-alpha.82) (2026-09-12)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.81](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.80...v1.0.0-alpha.81) (2026-09-11)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.80](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.79...v1.0.0-alpha.80) (2026-09-11)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.79](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.78...v1.0.0-alpha.79) (2026-09-11)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.78](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.77...v1.0.0-alpha.78) (2026-09-11)
+
+### Bug Fixes
+
+- **plugin:** ask whether the hot reload address is dialable, not whether it is set ([64609ce](https://github.com/appshellhq/appshell/commit/64609ce3afe1a737a759d34d4ed420eb2c673c9d))
+
+# [1.0.0-alpha.77](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.76...v1.0.0-alpha.77) (2026-09-11)
+
+### Bug Fixes
+
+- **dev:** give hot reload an address it can dial, and a shell it works in ([d8c25f9](https://github.com/appshellhq/appshell/commit/d8c25f90f9550e90fd76d91fce52f0887715cfd3))
+
+# [1.0.0-alpha.76](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.75...v1.0.0-alpha.76) (2026-09-11)
+
+### Bug Fixes
+
+- **plugin:** always print the overlay confirm url ([d6bfbdb](https://github.com/appshellhq/appshell/commit/d6bfbdb18cf0d5b1bd791712d28badaf7a571cfc))
+
+# [1.0.0-alpha.75](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.74...v1.0.0-alpha.75) (2026-09-11)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.74](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.73...v1.0.0-alpha.74) (2026-09-11)
+
+### Bug Fixes
+
+- **overlay:** send a manifest url, which an introduced remote cannot inherit ([b79a3e5](https://github.com/appshellhq/appshell/commit/b79a3e5133ea2824bd949a964125d694e35eb421)), closes [appshellhq/appshell-services#22](https://github.com/appshellhq/appshell-services/issues/22)
+
+# [1.0.0-alpha.73](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.72...v1.0.0-alpha.73) (2026-09-11)
+
+### Features
+
+- **manifest:** stop hashing the bundle into the manifest ([48d2710](https://github.com/appshellhq/appshell/commit/48d2710cb8beb929b198bca3c7734ac38e3db669)), closes [appshellhq/appshell-services#21](https://github.com/appshellhq/appshell-services/issues/21)
+- **overlay:** send this build's loader with the overlay patch ([dae09b2](https://github.com/appshellhq/appshell/commit/dae09b26c651d2abfcf8ee3ff13246b32eaac893)), closes [appshellhq/appshell-services#22](https://github.com/appshellhq/appshell-services/issues/22)
+
+# [1.0.0-alpha.72](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.71...v1.0.0-alpha.72) (2026-09-10)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.71](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.70...v1.0.0-alpha.71) (2026-09-10)
+
+### Features
+
+- **webpack-plugin:** pin the code a manifest describes ([664425b](https://github.com/appshellhq/appshell/commit/664425b6dc22c414f27e9cfaaf6ab309be448278))
+
+# [1.0.0-alpha.70](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.69...v1.0.0-alpha.70) (2026-09-10)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.69](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.68...v1.0.0-alpha.69) (2026-09-10)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.68](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.67...v1.0.0-alpha.68) (2026-09-10)
+
+### Features
+
+- **config:** say components and remotes, and mean what MF means ([e3430f4](https://github.com/appshellhq/appshell/commit/e3430f49b4e03e82464e99642ddcadc307aa9ebe)), closes [#5](https://github.com/appshellhq/appshell/issues/5)
+
+# [1.0.0-alpha.67](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.66...v1.0.0-alpha.67) (2026-09-09)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.66](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.65...v1.0.0-alpha.66) (2026-09-09)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.65](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.64...v1.0.0-alpha.65) (2026-09-09)
+
+### Features
+
+- **runtime:** name how a remote is loaded, as one kind among possible kinds ([f2600b6](https://github.com/appshellhq/appshell/commit/f2600b6be48a728d5ac019f28d9de175f9b3c557))
+
+# [1.0.0-alpha.64](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.63...v1.0.0-alpha.64) (2026-09-09)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.63](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.62...v1.0.0-alpha.63) (2026-09-09)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.62](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.61...v1.0.0-alpha.62) (2026-09-09)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.61](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.60...v1.0.0-alpha.61) (2026-09-09)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.60](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.59...v1.0.0-alpha.60) (2026-09-09)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.59](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.58...v1.0.0-alpha.59) (2026-09-09)
+
+### Features
+
+- **config:** declare visibility in appshell.config.yaml ([5633310](https://github.com/appshellhq/appshell/commit/56333103fc2b552803f3c97a0a0918fbb7abd596))
+
+# [1.0.0-alpha.58](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.57...v1.0.0-alpha.58) (2026-09-09)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.57](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.56...v1.0.0-alpha.57) (2026-09-09)
+
+### Bug Fixes
+
+- **webpack-plugin:** derive the overlay filename from the Module Federation config ([26878c9](https://github.com/appshellhq/appshell/commit/26878c9eaf50c0d8254af41a3f69055614855758))
+
+### Features
+
+- **config:** publish a manifest that names no origin ([dde5e82](https://github.com/appshellhq/appshell/commit/dde5e82e511cf107504aea4d0b9e3051a3ec532e))
+
+# [1.0.0-alpha.56](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.55...v1.0.0-alpha.56) (2026-09-08)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.55](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.54...v1.0.0-alpha.55) (2026-09-07)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.54](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.53...v1.0.0-alpha.54) (2026-09-07)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.53](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.52...v1.0.0-alpha.53) (2026-09-07)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.52](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.51...v1.0.0-alpha.52) (2026-09-07)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.51](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.50...v1.0.0-alpha.51) (2026-09-07)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.50](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.49...v1.0.0-alpha.50) (2026-09-07)
+
+### Features
+
+- **webpack-plugin:** warn when a local build shares differently ([ba7a35b](https://github.com/appshellhq/appshell/commit/ba7a35b75c1c649b9ac0669e5b9907127834b46b))
+
+# [1.0.0-alpha.49](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.48...v1.0.0-alpha.49) (2026-09-07)
+
+### Features
+
+- **webpack-plugin:** send this build's metadata with the overlay ([a4d28ea](https://github.com/appshellhq/appshell/commit/a4d28eaa5187d71f6046f6ecd3c65ff7c2b7514e))
+
+# [1.0.0-alpha.48](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.47...v1.0.0-alpha.48) (2026-09-07)
+
+### Features
+
+- **webpack-plugin:** a dev server opens an overlay instead of publishing ([c9bae9a](https://github.com/appshellhq/appshell/commit/c9bae9a0037aadaa543bed53163e29aff0dbe9ee)), closes [appshellhq/appshell#3](https://github.com/appshellhq/appshell/issues/3)
+
+# [1.0.0-alpha.47](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.46...v1.0.0-alpha.47) (2026-09-07)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.46](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.45...v1.0.0-alpha.46) (2026-09-06)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.45](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.44...v1.0.0-alpha.45) (2026-09-05)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.44](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.43...v1.0.0-alpha.44) (2026-09-05)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.43](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.42...v1.0.0-alpha.43) (2026-09-04)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.42](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.41...v1.0.0-alpha.42) (2026-09-04)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.41](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.40...v1.0.0-alpha.41) (2026-09-04)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.40](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.39...v1.0.0-alpha.40) (2026-09-04)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.39](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.38...v1.0.0-alpha.39) (2026-09-04)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.38](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.37...v1.0.0-alpha.38) (2026-09-03)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.37](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.36...v1.0.0-alpha.37) (2026-09-03)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.36](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.35...v1.0.0-alpha.36) (2026-09-03)
+
+### Bug Fixes
+
+- **config:** stop manifestFrom substituting into the template it was given ([3b99509](https://github.com/appshellhq/appshell/commit/3b99509a6028c0f19334a0751875e16efbb28374))
+
+# [1.0.0-alpha.35](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.34...v1.0.0-alpha.35) (2026-09-03)
+
+### Bug Fixes
+
+- **webpack-plugin:** share the jsx runtime, which the react key does not cover ([4ba21b6](https://github.com/appshellhq/appshell/commit/4ba21b672c765eb30672d0d17cc964cc495c0641))
+
+# [1.0.0-alpha.34](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.33...v1.0.0-alpha.34) (2026-09-03)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.33](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.32...v1.0.0-alpha.33) (2026-09-03)
+
+### Bug Fixes
+
+- **webpack-plugin:** serve the manifest a package's manifestUrl promises ([8284334](https://github.com/appshellhq/appshell/commit/8284334099a04dacf1517a1cfd7c807b663c6e1e))
+
+# [1.0.0-alpha.32](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.31...v1.0.0-alpha.32) (2026-09-02)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.31](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.30...v1.0.0-alpha.31) (2026-09-02)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.30](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.29...v1.0.0-alpha.30) (2026-09-01)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.29](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.28...v1.0.0-alpha.29) (2026-08-31)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.28](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.27...v1.0.0-alpha.28) (2026-08-30)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.27](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.26...v1.0.0-alpha.27) (2026-08-29)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.26](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.25...v1.0.0-alpha.26) (2026-08-29)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.25](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.24...v1.0.0-alpha.25) (2026-08-29)
+
+- feat!: fold @appshell/vars into the @appshell/runtime/vars subpath ([8936237](https://github.com/appshellhq/appshell/commit/893623759236bbbd5436607ec6ae1162ce92de45))
+
+### Features
+
+- **webpack-plugin:** provide the shared block instead of asking for it ([a31755d](https://github.com/appshellhq/appshell/commit/a31755da36cc8a80aacd4798fb59f5f2f7673bde))
+
+### BREAKING CHANGES
+
+- @appshell/vars is removed. Replace
+  `import { getVars } from '@appshell/vars'` with
+  `import { getVars } from '@appshell/runtime/vars'`.
+
+# [1.0.0-alpha.24](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.23...v1.0.0-alpha.24) (2026-08-28)
+
+### Bug Fixes
+
+- **webpack-plugin:** read token usage while the sources still exist ([df4597d](https://github.com/appshellhq/appshell/commit/df4597dd812df533b83b145d7570f6ba217bf864))
+
+### Features
+
+- **webpack-plugin:** observe which design tokens a package reaches for ([014c9fa](https://github.com/appshellhq/appshell/commit/014c9fa5c33bff8c2fa9de2461179b85a24ec3b0)), closes [#0284c7](https://github.com/appshellhq/appshell/issues/0284c7)
+
+# [1.0.0-alpha.23](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.22...v1.0.0-alpha.23) (2026-08-27)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.22](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.21...v1.0.0-alpha.22) (2026-08-27)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.21](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.20...v1.0.0-alpha.21) (2026-08-27)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.20](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.19...v1.0.0-alpha.20) (2026-08-27)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.19](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.18...v1.0.0-alpha.19) (2026-08-27)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.18](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.17...v1.0.0-alpha.18) (2026-08-27)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.17](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.16...v1.0.0-alpha.17) (2026-08-27)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.16](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.14...v1.0.0-alpha.16) (2026-08-27)
+
+### Features
+
+- deliver package vars through a shared runtime, not a global ([9473f62](https://github.com/appshellhq/appshell/commit/9473f6204b75885cd55b12a9ec71a44a74d6aa41))
+- rename core vocabulary to Package / Application / Remote ([418b7e0](https://github.com/appshellhq/appshell/commit/418b7e010b6caa1af661f7fd9c05e751e69315a9))
+- **webpack-plugin:** record where the dev server is serving from ([fd10939](https://github.com/appshellhq/appshell/commit/fd10939e3c7b7414c4d799396be07b8329074d44))
+
+# [1.0.0-alpha.14](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.13...v1.0.0-alpha.14) (2026-08-23)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.13](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.12...v1.0.0-alpha.13) (2026-08-22)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.12](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.11...v1.0.0-alpha.12) (2026-08-21)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.11](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.10...v1.0.0-alpha.11) (2026-08-20)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.10](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.9...v1.0.0-alpha.10) (2026-08-19)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.9](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.8...v1.0.0-alpha.9) (2026-08-19)
+
+### Bug Fixes
+
+- **example:** resolve CSP/module-federation issues blocking local dev ([f8de4e1](https://github.com/appshell-org/appshell/commit/f8de4e1cfe495a7d4ae8e6374189384847c21309))
+
+# [1.0.0-alpha.8](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.7...v1.0.0-alpha.8) (2026-08-19)
+
+### Bug Fixes
+
+- **webpack-plugin:** trim publish toggle env var ([07a7a9e](https://github.com/appshell-org/appshell/commit/07a7a9e4e9977c98f108bc99b7c50726c19c99d9))
+
+# [1.0.0-alpha.7](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.6...v1.0.0-alpha.7) (2026-08-18)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.6](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.5...v1.0.0-alpha.6) (2026-08-18)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.5](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.4...v1.0.0-alpha.5) (2026-08-18)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.4](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.3...v1.0.0-alpha.4) (2026-08-18)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# [1.0.0-alpha.3](https://github.com/appshell-org/appshell/compare/v1.0.0-alpha.2...v1.0.0-alpha.3) (2026-08-18)
+
+**Note:** Version bump only for package @appshell/webpack-plugin
+
+# 0.12.0-alpha.0 (2026-04-20)
+
+### Bug Fixes
+
+- appshell host runtime configuration ([#32](https://github.com/appshell-org/appshell/issues/32)) ([cd63ad0](https://github.com/appshell-org/appshell/commit/cd63ad0f031ede2fd9153707d418261238b382b2))
+- appshell loader override check ([aedda4a](https://github.com/appshell-org/appshell/commit/aedda4abf81560297dce03df09fba68e8785242f))
+- entrypoint validation in manifest plugin for windows ([54768ee](https://github.com/appshell-org/appshell/commit/54768ee8c14e5678dc4b235d7eca4762e081cbbc))
+- override support for template mapper ([e79ad36](https://github.com/appshell-org/appshell/commit/e79ad36158c22ae0e6977bfff810cec543e0f828))
+- registry projection, enable env overwrite, refactor docker workflow, consolidate env names ([33a28fe](https://github.com/appshell-org/appshell/commit/33a28fe76b58e05c5b6b6b33d4b402e52bb29e70))
+- replace config intermediate file with template ([9b79e65](https://github.com/appshell-org/appshell/commit/9b79e65b355686a0cca273c89c7164bb031e8437))
+- resolve npm audit vulnerabilities (74 → 4) ([ea3226c](https://github.com/appshell-org/appshell/commit/ea3226cea8e8c53f79ea5a112c1f72ff5039c4c2))
+- setup github actions build pipeline, setup project for release ([a54722f](https://github.com/appshell-org/appshell/commit/a54722f3df28098593ec1bce3cc2def377ff531a))
+- update manifest webpack plugin ([5ba2eca](https://github.com/appshell-org/appshell/commit/5ba2eca015d0482ab95ee5ef677b75a699327987))
+- update readme and package files ([2fc888e](https://github.com/appshell-org/appshell/commit/2fc888eee8bd3881e5ce2ad0c3bee186f5c7d024))
+- update repository URLs from navaris/appshell to appshell-org/appshell ([506a90d](https://github.com/appshell-org/appshell/commit/506a90d94a6f6e10f463987d408550f48624bfd0))
+
+### Features
+
+- api key support ([9cdcbee](https://github.com/appshell-org/appshell/commit/9cdcbee36e44b8a179b49768d74a25767f1cc5f2))
+- appshell cli api key support, init sync and outdated commands ([#6](https://github.com/appshell-org/appshell/issues/6)) ([acc5fa2](https://github.com/appshell-org/appshell/commit/acc5fa234f91a167038161d5080481c43f8eb8b4))
+- appshell start, cleanup dev workflow ([74fd2e5](https://github.com/appshell-org/appshell/commit/74fd2e5a5acd2415482268175c7f3f16cd7c93ec))
+- AppshellComponent impl ([2b82621](https://github.com/appshell-org/appshell/commit/2b82621c13302f790a8e1c457f9a82f39903fc1f))
+- consolidate runtime artifacts ([#26](https://github.com/appshell-org/appshell/issues/26)) ([a29479a](https://github.com/appshell-org/appshell/commit/a29479a49f0c5ec1273c9f8e4c7384096f2d4ba0))
+- foundation refactor wip ([339b930](https://github.com/appshell-org/appshell/commit/339b9306accaa9aba1712f3a0dee6c4cab7ed273))
+
+## [0.5.1-alpha.0](https://github.com/appshell-org/appshell/compare/@appshell/manifest-webpack-plugin@0.5.0...@appshell/manifest-webpack-plugin@0.5.1-alpha.0) (2026-04-20)
+
+### Bug Fixes
+
+- resolve npm audit vulnerabilities (74 → 4) ([ea3226c](https://github.com/appshell-org/appshell/commit/ea3226cea8e8c53f79ea5a112c1f72ff5039c4c2))
+- update repository URLs from navaris/appshell to appshell-org/appshell ([506a90d](https://github.com/appshell-org/appshell/commit/506a90d94a6f6e10f463987d408550f48624bfd0))
+
+# [0.5.0](https://github.com/navaris/appshell/compare/@appshell/manifest-webpack-plugin@0.4.0...@appshell/manifest-webpack-plugin@0.5.0) (2024-10-23)
+
+### Features
+
+- appshell cli api key support, init sync and outdated commands ([#6](https://github.com/navaris/appshell/issues/6)) ([acc5fa2](https://github.com/navaris/appshell/commit/acc5fa234f91a167038161d5080481c43f8eb8b4))
+
+## [0.4.1-alpha.0](https://github.com/navaris/appshell/compare/@appshell/manifest-webpack-plugin@0.4.0...@appshell/manifest-webpack-plugin@0.4.1-alpha.0) (2024-10-16)
+
+### Bug Fixes
+
+- build issues ([499431d](https://github.com/navaris/appshell/commit/499431d423b0616888f61916299d0186eaeebd6f))
+
+# [0.4.0](https://github.com/navaris/appshell/compare/@appshell/manifest-webpack-plugin@0.3.4...@appshell/manifest-webpack-plugin@0.4.0) (2024-09-24)
+
+### Bug Fixes
+
+- appshell host runtime configuration ([#32](https://github.com/navaris/appshell/issues/32)) ([cd63ad0](https://github.com/navaris/appshell/commit/cd63ad0f031ede2fd9153707d418261238b382b2))
+
+### Features
+
+- api key support ([9cdcbee](https://github.com/navaris/appshell/commit/9cdcbee36e44b8a179b49768d74a25767f1cc5f2))
+- AppshellComponent impl ([2b82621](https://github.com/navaris/appshell/commit/2b82621c13302f790a8e1c457f9a82f39903fc1f))
+
+# [0.4.0-alpha.1](https://github.com/navaris/appshell/compare/@appshell/manifest-webpack-plugin@0.4.0-alpha.0...@appshell/manifest-webpack-plugin@0.4.0-alpha.1) (2024-09-05)
+
+### Features
+
+- api key support ([8c91e62](https://github.com/navaris/appshell/commit/8c91e6240b3d879af9bdd5949924865da0e0f8a1))
+
+# [0.4.0-alpha.0](https://github.com/navaris/appshell/compare/@appshell/manifest-webpack-plugin@0.3.4...@appshell/manifest-webpack-plugin@0.4.0-alpha.0) (2024-08-31)
+
+### Bug Fixes
+
+- appshell host runtime configuration ([#32](https://github.com/navaris/appshell/issues/32)) ([cd63ad0](https://github.com/navaris/appshell/commit/cd63ad0f031ede2fd9153707d418261238b382b2))
+- bump pipeline ([8bb63bc](https://github.com/navaris/appshell/commit/8bb63bcae1928c01bb6bc853d88010939e686af5))
+
+### Features
+
+- AppshellComponent impl ([2b82621](https://github.com/navaris/appshell/commit/2b82621c13302f790a8e1c457f9a82f39903fc1f))
+
+## [0.3.4](https://github.com/navaris/appshell/compare/@appshell/manifest-webpack-plugin@0.3.3...@appshell/manifest-webpack-plugin@0.3.4) (2023-09-21)
+
+### Bug Fixes
+
+- entrypoint validation in manifest plugin for windows ([54768ee](https://github.com/navaris/appshell/commit/54768ee8c14e5678dc4b235d7eca4762e081cbbc))
+
+## [0.3.3](https://github.com/navaris/appshell/compare/@appshell/manifest-webpack-plugin@0.3.2...@appshell/manifest-webpack-plugin@0.3.3) (2023-08-29)
+
+### Bug Fixes
+
+- override support for template mapper ([e79ad36](https://github.com/navaris/appshell/commit/e79ad36158c22ae0e6977bfff810cec543e0f828))
+
+## [0.3.2](https://github.com/navaris/appshell/compare/@appshell/manifest-webpack-plugin@0.3.1...@appshell/manifest-webpack-plugin@0.3.2) (2023-08-29)
+
+### Bug Fixes
+
+- appshell loader override check ([aedda4a](https://github.com/navaris/appshell/commit/aedda4abf81560297dce03df09fba68e8785242f))
+
+## [0.3.1](https://github.com/navaris/appshell/compare/@appshell/manifest-webpack-plugin@0.3.0...@appshell/manifest-webpack-plugin@0.3.1) (2023-08-29)
+
+### Bug Fixes
+
+- update manifest webpack plugin ([5ba2eca](https://github.com/navaris/appshell/commit/5ba2eca015d0482ab95ee5ef677b75a699327987))
+
+# [0.3.0](https://github.com/navaris/appshell/compare/@appshell/manifest-webpack-plugin@0.3.0-alpha.0...@appshell/manifest-webpack-plugin@0.3.0) (2023-08-28)
+
+**Note:** Version bump only for package @appshell/manifest-webpack-plugin
+
+# [0.3.0-alpha.0](https://github.com/navaris/appshell/compare/@appshell/manifest-webpack-plugin@0.2.0...@appshell/manifest-webpack-plugin@0.3.0-alpha.0) (2023-08-23)
+
+### Features
+
+- consolidate runtime artifacts ([#26](https://github.com/navaris/appshell/issues/26)) ([a29479a](https://github.com/navaris/appshell/commit/a29479a49f0c5ec1273c9f8e4c7384096f2d4ba0))
+
+# [0.2.0](https://github.com/navaris/appshell/compare/@appshell/manifest-webpack-plugin@0.2.0-alpha.2...@appshell/manifest-webpack-plugin@0.2.0) (2023-07-11)
+
+### Bug Fixes
+
+- registry projection, enable env overwrite, refactor docker workflow, consolidate env names ([33a28fe](https://github.com/navaris/appshell/commit/33a28fe76b58e05c5b6b6b33d4b402e52bb29e70))
+- replace config intermediate file with template ([9b79e65](https://github.com/navaris/appshell/commit/9b79e65b355686a0cca273c89c7164bb031e8437))
+
+# [0.2.0-alpha.2](https://github.com/navaris/appshell/compare/@appshell/manifest-webpack-plugin@0.2.0-alpha.1...@appshell/manifest-webpack-plugin@0.2.0-alpha.2) (2023-07-06)
+
+### Features
+
+- appshell start, cleanup dev workflow ([74fd2e5](https://github.com/navaris/appshell/commit/74fd2e5a5acd2415482268175c7f3f16cd7c93ec))
+
+# [0.2.0-alpha.1](https://github.com/navaris/appshell/compare/@appshell/manifest-webpack-plugin@0.1.8...@appshell/manifest-webpack-plugin@0.2.0-alpha.1) (2023-07-05)
+
+### Features
+
+- foundation refactor wip ([339b930](https://github.com/navaris/appshell/commit/339b9306accaa9aba1712f3a0dee6c4cab7ed273))
+
+# [0.2.0-alpha.0](https://github.com/navaris/appshell/compare/@appshell/manifest-webpack-plugin@0.1.8...@appshell/manifest-webpack-plugin@0.2.0-alpha.0) (2023-07-05)
+
+### Features
+
+- registry index ([8e6ee0a](https://github.com/navaris/appshell/commit/8e6ee0a6a377584efa2ee702168025f46108b8c5))
+
+## [0.1.8](https://github.com/navaris/appshell/compare/@appshell/manifest-webpack-plugin@0.1.8-alpha.2...@appshell/manifest-webpack-plugin@0.1.8) (2023-06-29)
+
+**Note:** Version bump only for package @appshell/manifest-webpack-plugin
+
+## [0.1.8-alpha.2](https://github.com/navaris/appshell/compare/@appshell/manifest-webpack-plugin@0.1.7...@appshell/manifest-webpack-plugin@0.1.8-alpha.2) (2023-06-29)
+
+**Note:** Version bump only for package @appshell/manifest-webpack-plugin
+
+## [0.1.8-alpha.1](https://github.com/navaris/appshell/compare/@appshell/manifest-webpack-plugin@0.1.8-alpha.0...@appshell/manifest-webpack-plugin@0.1.8-alpha.1) (2023-06-29)
+
+### Bug Fixes
+
+- update npm package visibility ([1ef4119](https://github.com/navaris/appshell/commit/1ef411903dd038dfc781e8ce0700811e5460c903))
+
+## [0.1.8-alpha.0](https://github.com/navaris/appshell/compare/@appshell/manifest-webpack-plugin@0.1.7-alpha.0...@appshell/manifest-webpack-plugin@0.1.8-alpha.0) (2023-06-29)
+
+**Note:** Version bump only for package @appshell/manifest-webpack-plugin
+
+## [0.1.7](https://github.com/navaris/appshell/compare/@appshell/manifest-webpack-plugin@0.1.7-alpha.0...@appshell/manifest-webpack-plugin@0.1.7) (2023-06-29)
+
+**Note:** Version bump only for package @appshell/manifest-webpack-plugin
+
+## [0.1.7-alpha.0](https://github.com/navaris/appshell/compare/@appshell/manifest-webpack-plugin@0.1.6...@appshell/manifest-webpack-plugin@0.1.7-alpha.0) (2023-06-15)
+
+**Note:** Version bump only for package @appshell/manifest-webpack-plugin
+
+## [0.1.6](https://github.com/navaris/appshell/compare/@appshell/manifest-webpack-plugin@0.1.5...@appshell/manifest-webpack-plugin@0.1.6) (2023-06-15)
+
+**Note:** Version bump only for package @appshell/manifest-webpack-plugin
+
+## [0.1.6-alpha.0](https://github.com/navaris/appshell/compare/@appshell/manifest-webpack-plugin@0.1.5...@appshell/manifest-webpack-plugin@0.1.6-alpha.0) (2023-03-19)
+
+**Note:** Version bump only for package @appshell/manifest-webpack-plugin
+
+## [0.1.5](https://github.com/navaris/appshell/compare/@appshell/manifest-webpack-plugin@0.1.5-alpha.0...@appshell/manifest-webpack-plugin@0.1.5) (2023-03-04)
+
+**Note:** Version bump only for package @appshell/manifest-webpack-plugin
+
+## [0.1.5-alpha.0](https://github.com/navaris/appshell/compare/@appshell/manifest-webpack-plugin@0.1.4...@appshell/manifest-webpack-plugin@0.1.5-alpha.0) (2023-03-04)
+
+### Bug Fixes
+
+- update readme and package files ([2fc888e](https://github.com/navaris/appshell/commit/2fc888eee8bd3881e5ce2ad0c3bee186f5c7d024))
+
+## [0.1.4](https://github.com/navaris/appshell/compare/@appshell/manifest-webpack-plugin@0.1.4-alpha.0...@appshell/manifest-webpack-plugin@0.1.4) (2023-03-04)
+
+**Note:** Version bump only for package @appshell/manifest-webpack-plugin
+
+## 0.1.4-alpha.0 (2023-03-04)
+
+### Bug Fixes
+
+- setup github actions build pipeline, setup project for release ([a54722f](https://github.com/navaris/appshell/commit/a54722f3df28098593ec1bce3cc2def377ff531a))

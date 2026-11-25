@@ -1,0 +1,11 @@
+{
+  // Typecheck resolves workspace imports to source, so this runs on a clean checkout
+  // without building dependencies first. tsconfig.json cannot do that: it clears `paths`
+  // so declaration *emit* uses the published types, because resolving to source widens
+  // rootDir and strands the `types` entry point under dist/types/config/src/.
+  //
+  // Nothing is emitted here, so that constraint does not apply, and the fast check stops
+  // depending on build order.
+  "extends": "../../tsconfig",
+  "include": ["./src"]
+}

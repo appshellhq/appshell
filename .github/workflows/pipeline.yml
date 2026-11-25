@@ -18,9 +18,15 @@ on:
         required: false
         default: 'Manual trigger'
 
+# Pull requests cancel their superseded runs; pushes queue. A push run claims a version and
+# publishes it to npm before the examples follow, so cancelling one mid-way left that release
+# without its examples: the next run releases a new version and nothing goes back for the
+# cancelled one. Queued, a run in progress finishes, and of several waiting, GitHub keeps only
+# the newest, which releases everything the others would have (none of them had claimed a
+# version yet).
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: write
@@ -51,11 +57,725 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      # Every package, not just the two that emit no declarations. The rest are
+      # typechecked again by build:types during Build, so this does not decide whether a
+      # type error ships — it decides whether `npm run typecheck` can be believed. It
+      # covered cli and react-shell alone, so it passed over errors Build then failed on,
+      # and reported "ran typecheck for 2 projects" while sounding like it ran everything.
+      - name: Typecheck
+        run: npm run typecheck
+
       - name: Test
         run: npm run test:ci
 
       - name: Build
         run: npm run build
+
+  # The example is a separate npm project with its own lock file and its own workspaces,
+  # so the root `npm test` never sees it — `jest --listTests` returns nothing from
+  # examples/. Its tests had therefore never run in CI, and a654fcc was pushed with a
+  # component and its snapshot disagreeing. That went green, and was found days later by
+  # someone building locally.
+  #
+  # Its own job rather than a step in `build`: a failure here means the example is broken,
+  # which is a different thing from the packages being broken, and the job name should say
+  # which. It also installs @appshell/* from npm rather than from this tree, so a red run
+  # can mean a published package regressed — worth knowing, and worth not confusing with
+  # a regression in the change under test.
+  # Runs after the packages are published, not alongside them.
+  #
+  # It used to run in parallel, and `npm ci` installs exactly what the lockfile pins — so
+  # a run that published alpha.N built its images against alpha.N-1 and the images in the
+  # registry were permanently one release behind. Not a race: deterministic, and wrong
+  # every time. Making this job `needs:` the publish is half the fix; the other half is
+  # installing the version that run produced rather than the one the lockfile remembers.
+  #
+  # The cost is that the example no longer builds in parallel with the publish. Worth it:
+  # the previous arrangement was faster at building the wrong thing.
+  example:
+    name: Example app
+    needs: publish_npm_packages
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      # The commit the images build from: what this job recorded, or the release commit when
+      # there was nothing to record. Empty when the branch moved on, and then nothing is imaged.
+      built: ${{ steps.record.outputs.commit }}
+    defaults:
+      run:
+        working-directory: examples/appshell-react-host
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The release tag, the commit the packages were published from. Not github.sha,
+          # which is from before the versions were bumped; and not the branch head, which a
+          # later push can move while this run is still going, so the examples would be
+          # built from an untested tree and published under this release's version.
+          ref: v${{ needs.publish_npm_packages.outputs.version }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          cache: 'npm'
+          cache-dependency-path: examples/appshell-react-host/package-lock.json
+
+      # The lockfile only: `npm update --package-lock-only` moves it within the declared
+      # ranges and leaves those ranges in package.json alone, and that distinction is the
+      # whole point.
+      #
+      # It was `npm install --package-lock-only --no-save <pkg>@<version>`, which on npm 11
+      # saves nothing, the lockfile included: every install exited 0 and nothing moved, so
+      # every release from alpha.85 to alpha.105 built, tested, imaged and published the
+      # examples against alpha.84 (#30). Hence the check below that the lockfile actually
+      # reached the release, rather than trusting an exit status.
+      #
+      # An example's `shared` contract is built from its package.json *ranges* — see the
+      # webpack configs — so rewriting them on every release rewrote the package's surface
+      # on every release, and every published manifest went stale the moment the next
+      # push landed. The first version of this step used --save and did exactly that.
+      #
+      # A required version is a compatibility constraint, not a record of what happened to
+      # be installed. It should move when compatibility moves, which a developer decides.
+      # The lockfile is what tracks the version in use, and it is what the images need.
+      - name: Build against the packages this run published
+        env:
+          VERSION: ${{ needs.publish_npm_packages.outputs.version }}
+        run: |
+          set -euo pipefail
+          test -n "$VERSION"
+
+          # Every manifest that names an @appshell package, not just the root one: the
+          # workspaces declare their own, and a root --save leaves those behind to drift.
+          #
+          # Local workspaces are excluded even though they match the scope. The examples
+          # are named @appshell/* too, so the prefix alone no longer means `published on
+          # npmjs` — asking npm for @appshell/sample-mfe-ping@<version> would look for a
+          # package that exists only in this checkout and fail the install.
+          #
+          # Plain fs, no dependencies: this runs before `npm ci`, so node_modules may not
+          # exist yet and anything required here would be a dependency on cache state.
+          targets=$(node -e "
+            const { readFileSync, readdirSync, existsSync } = require('fs');
+
+            const dirs = ['apps', 'packages'].flatMap((group) =>
+              existsSync(group) ? readdirSync(group).map((d) => group + '/' + d) : [],
+            );
+
+            const manifests = new Map();
+
+            ['.', ...dirs].forEach((dir) => {
+              const file = dir + '/package.json';
+
+              if (existsSync(file)) manifests.set(dir, JSON.parse(readFileSync(file, 'utf8')));
+            });
+
+            const local = new Set([...manifests.values()].map((p) => p.name).filter(Boolean));
+
+            manifests.forEach((p, dir) => {
+              const names = Object.keys({ ...p.dependencies, ...p.devDependencies })
+                .filter((n) => n.startsWith('@appshell/') && !local.has(n));
+
+              if (names.length) console.log(dir + ' ' + names.map((n) => n + '@' + process.env.VERSION).join(' '));
+            });
+          ")
+
+          echo "$targets"
+
+          # npm's replicas lag behind a publish, and the metadata lands before the
+          # tarball — ten seconds for one package and nearly two minutes for another in
+          # the same release, measured. So the install is retried rather than run once.
+          #
+          # Retrying the install, rather than waiting on a list of packages first: the
+          # first version of this waited on two packages chosen because they had lagged
+          # before, and the run failed on @appshell/tokens, which is pulled in
+          # transitively and was not on the list. The install is the only thing that knows
+          # the whole dependency set, so it is what gets retried.
+          # `|| return 1` rather than relying on errexit: a function called as an `if`
+          # condition runs with errexit suppressed, so without this a failure on the root
+          # manifest would carry on to the workspaces and then report the status of
+          # whichever ran last — success, over a half-updated tree.
+          #
+          # A failure is retryable only if it looks like the version is not there yet.
+          # ERESOLVE is a dependency conflict: the packages exist and cannot be arranged,
+          # so every retry produces the same answer. Retrying one burned the full fifteen
+          # minutes and then reported a timeout, which describes replication lag rather
+          # than the peer conflict actually printed — the log said what was wrong on the
+          # first attempt and the loop buried it under eighty-nine identical repeats.
+          log=$(mktemp)
+
+          # The published names the manifests declare, once each: the specs above without
+          # their versions. One update at the root covers the workspaces, whose
+          # dependencies are hoisted into its lockfile.
+          names=$(printf '%s\n' "$targets" | tr ' ' '\n' | grep '^@appshell/' | sed 's/@[^@]*$//' | sort -u)
+          test -n "$names"
+
+          # Every published @appshell package in the lockfile, transitive ones included, at
+          # this release. Local workspaces are links, not published, so they don't count.
+          # Exits 0 when all are, 1 when some are behind (npm hasn't shown $VERSION yet), and
+          # 2 when some are ahead: a newer release exists, so this is an old run re-run, and
+          # npm update can only reach the newest. npm lists versions in semver order, and
+          # every @appshell package is published at the same version, so one list orders all.
+          lockfile_at_version() {
+            node -e "
+              const { execSync } = require('child_process');
+              const { packages } = require('./package-lock.json');
+              const want = process.env.VERSION;
+              const off = Object.entries(packages)
+                .filter(([key, p]) => /(^|\/)node_modules\/@appshell\/[^/]+$/.test(key) && !p.link)
+                .filter(([, p]) => p.version !== want)
+                .map(([key, p]) => [key.replace(/^.*node_modules\//, ''), p.version]);
+              if (!off.length) process.exit(0);
+              const order = JSON.parse(execSync('npm view @appshell/cli versions --json --prefer-online').toString());
+              const at = order.indexOf(want);
+              const ahead = off.filter(([, v]) => at !== -1 && order.indexOf(v) > at);
+              const list = (xs) => xs.map(([n, v]) => n + '@' + v).join(' ');
+              if (ahead.length) { console.log(list(ahead)); process.exit(2); }
+              console.log(list(off));
+              process.exit(1);
+            "
+          }
+
+          update() {
+            local status
+
+            npm update --package-lock-only --prefer-online $names 2>&1 | tee "$log"
+            # PIPESTATUS, because the exit code of a pipeline is tee's.
+            status=${PIPESTATUS[0]}
+
+            if [ "$status" -ne 0 ]; then
+              if grep -q 'code ERESOLVE' "$log"; then
+                echo "::error::Cannot arrange dependencies at $VERSION. This will not resolve by waiting."
+                # 2 rather than 1: the caller has to tell `give up now` from `try again`.
+                return 2
+              fi
+
+              return 1
+            fi
+
+            # npm update settles for the newest version npm shows within the range, and a
+            # replica that hasn't caught up shows an older one without failing.
+            local off at=0
+            off=$(lockfile_at_version) || at=$?
+            case "$at" in
+              0) ;;
+              2)
+                echo "::error::A newer release than $VERSION exists ($off); npm update can only reach the newest, so re-run that release's run instead."
+                return 2
+                ;;
+              *)
+                echo "Lockfile still behind $VERSION: $off"
+                return 1
+                ;;
+            esac
+          }
+
+          # Fifteen minutes, because five was not enough: a run succeeded on attempt 29 of
+          # 30, which is luck rather than margin. The lag has been measured at ten seconds
+          # and at five minutes in the same week, so the budget is set by the worst case
+          # seen rather than the typical one — waiting costs nothing when it is not needed.
+          #
+          # --prefer-online on the install itself: the runner restores an npm cache, and a
+          # packument fetched before the publish does not list the new version. Waiting
+          # cannot fix a stale read.
+          for attempt in $(seq 1 90); do
+            # Captured through `||` rather than tested with `&&`, so that three outcomes
+            # stay distinguishable and neither branch depends on how errexit treats the
+            # failing half of an and-or list.
+            status=0
+            update || status=$?
+
+            if [ "$status" -eq 0 ]; then
+              exit 0
+            fi
+
+            if [ "$status" -eq 2 ]; then
+              exit 1
+            fi
+
+            echo "Not at $VERSION yet; npm is still replicating it (attempt $attempt/90)"
+            sleep 10
+          done
+
+          echo "::error::The lockfile did not reach $VERSION within fifteen minutes."
+          exit 1
+
+      # Lockstep with the release (appshellhq/appshell#16): each example is published at the
+      # version this run released, so a published example says which appshell release it was
+      # built against, and every release's bytes are a new version. They have to be: a
+      # version's bytes are written once to the bucket and served as immutable, so a code
+      # change under an unchanged version would never reach anyone. Before the build, because
+      # the badge renders the version. The apps only: the shared components package is private
+      # and the apps take it at any version.
+      - name: Version the examples with this release
+        env:
+          VERSION: ${{ needs.publish_npm_packages.outputs.version }}
+        run: |
+          set -euo pipefail
+          for dir in apps/*/; do
+            npm version "$VERSION" --no-git-tag-version --allow-same-version -w "${dir%/}" >/dev/null
+          done
+
+      # `.env` is git-ignored; sample.env carries the same keys and is what a developer is
+      # told to copy.
+      - name: Provide the environment the build expects
+        run: cp sample.env .env
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Builds the shared components package before the three apps. The apps resolve it
+      # through its `main`, so its dist has to exist before anything renders — which is
+      # also why the tests cannot run without this.
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm test
+
+      # What was built and tested is what gets published: the release job takes these bytes
+      # rather than building its own.
+      - name: Keep the built examples for the release job
+        uses: actions/upload-artifact@v4
+        with:
+          name: examples
+          path: |
+            examples/appshell-react-host/apps/*/dist
+            examples/appshell-react-host/apps/*/package.json
+          if-no-files-found: error
+          retention-days: 7
+
+      # Committed so the repository says what was built, and so a developer cloning it
+      # gets the same versions without waiting for the next release to bump them.
+      #
+      # Pushed with GITHUB_TOKEN, whose pushes deliberately do not trigger workflows. That
+      # matters more than it looks: this pipeline publishes on every push with
+      # --force-publish, so a commit that retriggered it would publish another version,
+      # which would bump the example again, without end. The non-retriggering push is what
+      # makes this bookkeeping rather than a loop.
+      #
+      # On top of the release tag, and only if the branch is still there: a push that isn't a
+      # fast-forward means someone pushed during this run, and their commit's own run, queued
+      # behind this one, will release, record and image its version. Not rebased onto theirs:
+      # a bot commit on top of it would make that queued run, which checks out their commit,
+      # lose its release push. Never fails the job, because the examples' publication depends
+      # on this job and must not wait on bookkeeping.
+      - name: Record what was built
+        id: record
+        env:
+          VERSION: ${{ needs.publish_npm_packages.outputs.version }}
+        run: |
+          set -euo pipefail
+          branch=${GITHUB_REF#refs/heads/}
+
+          if git diff --quiet -- package-lock.json apps/*/package.json; then
+            echo "Already building against $VERSION; nothing to record."
+            echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add package-lock.json apps/*/package.json
+          git commit -m "chore(example): build against, and version as, $VERSION"
+
+          if git push origin "HEAD:refs/heads/$branch"; then
+            echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::$branch moved on during this run, so $VERSION's build isn't recorded or imaged; the newer commit's run releases its own."
+            echo "commit=" >> "$GITHUB_OUTPUT"
+          fi
+
+  # Publishes the examples the way a third party publishes its own packages: from CI, with
+  # the workflow's own identity, never a stored token (appshellhq/appshell#16).
+  #
+  # Under the production environment, which only main and feat/registry-composition may
+  # deploy from (platform-terragrunt github/appshellhq/appshell). The appshell scope's trusted
+  # publisher names that environment, so a run on any other branch couldn't mint a token the
+  # registry accepts; the `if` keeps those runs from trying. The environment also carries the
+  # bucket's key and whereabouts, which Terraform writes there (spaces-keys/navaris/appshell-prod).
+  publish_examples:
+    name: Publish the examples
+    needs: [publish_npm_packages, example]
+    # The branch alone, as the npm release decides it, so a manual run that releases also
+    # publishes the examples. A pull request's ref (refs/pull/N/merge) never matches.
+    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feat/registry-composition' }}
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      VERSION: ${{ needs.publish_npm_packages.outputs.version }}
+      APPSHELL_REGISTRY: https://registry.appshell.org
+
+    steps:
+      # The upload script only; the bytes come from the example job's artifact.
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts
+          sparse-checkout-cone-mode: false
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: examples
+          path: apps
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+
+      # The bucket's whereabouts: Terraform writes them to the environment. Spaces serves a
+      # bucket at <bucket>.<endpoint host>, which is how the registry reads it.
+      - name: Upload each version's bytes, once
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.SPACES_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.SPACES_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ vars.SPACES_REGION }}
+          BUCKET: ${{ vars.SPACES_BUCKET }}
+          S3_ENDPOINT: ${{ vars.SPACES_ENDPOINT }}
+        run: |
+          set -euo pipefail
+          test -n "$BUCKET" && test -n "$S3_ENDPOINT"
+          READ_BASE="https://$BUCKET.${S3_ENDPOINT#https://}" scripts/upload-examples.sh apps
+
+      # The cli at this release, which presents the runner's OIDC token: trusted publishing,
+      # verified by the registry against the scope's record. Publishing is inert — nothing is
+      # activated — and republishing a version the registry already holds unchanged is a
+      # no-op, so a re-run is safe.
+      - name: Publish each version
+        run: |
+          set -euo pipefail
+          for dir in apps/*/; do
+            (cd "$dir" && npx --yes "@appshell/cli@$VERSION" publish --template dist/appshell.template.json)
+          done
+
+  # An end-to-end publish on every pull request, with nothing from production (#16): the
+  # registry image production runs, MongoDB, and S3Mock standing in for the bucket, all inside
+  # the job. The examples are built against this pull request's own packages, packed as npm
+  # would publish them, uploaded with the release job's own script and published with this
+  # pull request's cli. A change that breaks a template, a manifest or the bytes fails here.
+  #
+  # S3Mock rather than MinIO, which no longer publishes community images. It ignores
+  # credentials, so it reads anonymously as the public-read bucket does, and answers 404 for a
+  # missing key as Spaces does.
+  #
+  # Pull requests from this repository only. The registry image is private (it carries
+  # private libraries, appshellhq/appshell-services#56), and a fork's run could pull it with
+  # the read token. A fork can edit this condition away, so what actually keeps it out is
+  # requiring approval before an outside contributor's workflow runs; this keeps honest forks
+  # from failing on a pull they can't make.
+  examples_e2e:
+    name: Examples, end to end
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    # No id-token: without one the cli publishes with no credential, which AUTH_MODE=none
+    # accepts. packages: read pulls the registry image, which is private; this repository has
+    # read access to it.
+    permissions:
+      contents: read
+      packages: read
+    env:
+      # Production's tag (navaris/argocd-deployment-repo applications/appshell-registry/prod),
+      # rolled forward with it, so this tests the registry users are served by.
+      REGISTRY_IMAGE: ghcr.io/appshellhq/registry:sha-a8625c6
+      APPSHELL_REGISTRY: http://localhost:7150
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            examples/appshell-react-host/package-lock.json
+
+      - name: Build this pull request's packages
+        run: |
+          npm ci
+          npm run build
+
+      # The tarballs npm would publish, so the examples consume exactly what a release ships:
+      # its `files`, its entry points, its dependencies.
+      - name: Pack them as npm would publish them
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/packs"
+          npx lerna exec --no-private --concurrency 1 -- npm pack --pack-destination "$RUNNER_TEMP/packs"
+          ls "$RUNNER_TEMP/packs"
+
+      # The lockfile's versions first, then this pull request's packages over them, unsaved:
+      # the examples build against the change, and nothing is written back.
+      - name: Build and test the examples against them
+        working-directory: examples/appshell-react-host
+        run: |
+          set -euo pipefail
+          npm ci
+          npm install --no-save "$RUNNER_TEMP"/packs/*.tgz
+          cp sample.env .env
+          npm run build
+          npm test
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Start the registry, MongoDB and a stand-in bucket
+        run: |
+          set -euo pipefail
+          docker network create e2e
+          docker run -d --name mongo --network e2e mongo:7
+          docker run -d --name bucket --network e2e -p 9090:9090 adobe/s3mock:5.2.3
+          docker run -d --name registry --network e2e -p 7150:7150 \
+            -e AUTH_MODE=none \
+            -e MONGO_URI=mongodb://mongo:27017/appshell-registry \
+            -e "ARTIFACT_BASE_URL=http://bucket:9090/examples/{scope}/{name}/{version}/" \
+            -e "GRANT_SECRET=$(openssl rand -hex 32)" \
+            -e APPS_BASE_URL=http://localhost:7150 \
+            -e EVENT_BUS=none \
+            -e OTEL_SDK_DISABLED=true \
+            "$REGISTRY_IMAGE"
+
+          # Ready means a success status, not just an answer: the registry can answer 503 while
+          # MongoDB starts. Each probe is capped, so one stalled request can't outlast the wait.
+          for service in "http://localhost:9090/" "$APPSHELL_REGISTRY/health"; do
+            for _ in $(seq 1 60); do
+              curl -fs --max-time 5 -o /dev/null "$service" && continue 2
+              sleep 2
+            done
+            echo "::error::$service never answered"
+            docker logs registry || true
+            exit 1
+          done
+
+      # AUTH_MODE=none runs every request as one principal, and publishing provisions only
+      # that principal's own scope, so the examples' scope is claimed first, as a person would.
+      - name: Claim the appshell scope
+        run: |
+          curl -fsS -X POST "$APPSHELL_REGISTRY/v1/scopes" -H 'content-type: application/json' -d '{"name":"appshell"}'
+
+      - name: Upload the examples' bytes, with the release job's script
+        env:
+          AWS_ACCESS_KEY_ID: e2e
+          AWS_SECRET_ACCESS_KEY: e2e
+          AWS_DEFAULT_REGION: us-east-1
+          BUCKET: examples
+          S3_ENDPOINT: http://localhost:9090
+          READ_BASE: http://localhost:9090/examples
+        run: |
+          set -euo pipefail
+          aws configure set default.s3.addressing_style path
+          aws --endpoint-url "$S3_ENDPOINT" s3 mb "s3://$BUCKET"
+          scripts/upload-examples.sh examples/appshell-react-host/apps
+
+      - name: Publish them with this pull request's cli
+        working-directory: examples/appshell-react-host
+        run: |
+          set -euo pipefail
+          for dir in apps/*/; do
+            (cd "$dir" && npx appshell publish --template dist/appshell.template.json --registry "$APPSHELL_REGISTRY")
+          done
+
+      # Through the registry, as a browser asks for it: the bytes that were uploaded, cached as
+      # immutable because the address names the version.
+      - name: The registry serves exactly the uploaded bytes
+        working-directory: examples/appshell-react-host
+        run: |
+          set -euo pipefail
+          for dir in apps/*/; do
+            dir=${dir%/}
+            name=$(node -p "require('./$dir/package.json').name")
+            version=$(node -p "require('./$dir/package.json').version")
+            scope=${name#@}; scope=${scope%%/*}
+            url="$APPSHELL_REGISTRY/p/$scope/${name#*/}/$version/remoteEntry.js"
+
+            curl -fsS -D "$RUNNER_TEMP/headers" -o "$RUNNER_TEMP/served" "$url"
+            cmp "$RUNNER_TEMP/served" "$dir/dist/remoteEntry.js"
+            grep -qi '^cache-control: .*immutable' "$RUNNER_TEMP/headers"
+            echo "$name@$version: served, identical, immutable"
+          done
+
+      # Activated, then opened in a browser, as a user gets it. The development manifest, with
+      # the versions this run published pinned, so the registry composes exactly what was built.
+      - name: Activate the published versions
+        working-directory: examples/appshell-react-host
+        env:
+          SUPPORT_URL: https://support.example.com
+        run: |
+          set -euo pipefail
+          {
+            cat appshell.app.yaml
+            echo "  packages:"
+            for dir in apps/*/; do
+              node -p "const p = require('./${dir}package.json'); '    - ' + p.name.slice(1) + '@' + p.version"
+            done
+          } > "$RUNNER_TEMP/e2e.app.yaml"
+          cat "$RUNNER_TEMP/e2e.app.yaml" | tail -5
+          npx appshell app apply -f "$RUNNER_TEMP/e2e.app.yaml" --registry "$APPSHELL_REGISTRY"
+
+      # Serving the right bytes isn't composing them: an unresolvable manifest, a remote that
+      # fails to load or a shared dependency that no longer lines up all serve fine and render
+      # nothing. Playwright is installed for this step only, not carried by the repository.
+      # 1.61 is the first to support Ubuntu 26.04, which ubuntu-latest became in October 2026:
+      # 1.55 couldn't install chromium's dependencies there.
+      - name: The composed application renders
+        run: |
+          set -euo pipefail
+          export BROWSER_DIR="$RUNNER_TEMP/browser"
+          npm install --no-save --prefix "$BROWSER_DIR" playwright@1.64.1
+          "$BROWSER_DIR/node_modules/.bin/playwright" install --with-deps chromium
+          node scripts/check-composition.cjs "$APPSHELL_REGISTRY/a/appshell/appshell-example"
+
+      - name: The registry's log, on failure
+        if: failure()
+        run: docker logs registry 2>&1 | tail -100
+
+  # Discovers the micro-frontends rather than listing them, after the pattern in
+  # navaris/platform-services: adding one needs no workflow change. Scans `apps/` only —
+  # `packages/components` is a library and must not become an image.
+  example_images_matrix:
+    name: Discover example apps
+    needs: example
+    # Only what the example job recorded is imaged: the commit it built and pushed.
+    if: ${{ needs.example.outputs.built != '' && (github.ref == 'refs/heads/main' || contains(github.ref, 'refs/heads/feat') || contains(github.ref, 'refs/heads/fix')) }}
+    runs-on: ubuntu-latest
+    outputs:
+      builds: ${{ steps.scan.outputs.builds }}
+      apps: ${{ steps.scan.outputs.apps }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The commit the example job recorded, not the one that triggered this run. The
+          # example job pushes the version bump it built against, and that commit lands
+          # after the trigger — so checking out github.sha builds the tree from before the
+          # bump, and the image ships a lockfile a release behind. Measured: a run that
+          # published alpha.80 produced images built against alpha.78. Not the branch head
+          # either, which a later push can move while this run is still going.
+          ref: ${{ needs.example.outputs.built }}
+      - id: scan
+        working-directory: examples/appshell-react-host
+        run: |
+          apps=$(find apps -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort | jq -R . | jq -sc .)
+          echo "apps=$apps" >> "$GITHUB_OUTPUT"
+
+          # app x platform, so each architecture builds natively rather than under QEMU.
+          builds=$(echo "$apps" | jq -c '[.[] as $a | ["linux/amd64","linux/arm64"][] as $p | {app:$a, platform:$p}]')
+          echo "builds={\"include\":$builds}" >> "$GITHUB_OUTPUT"
+
+          echo "Apps: $apps"
+
+  # One image per micro-frontend. They version and deploy independently, which is the
+  # thing the example exists to demonstrate — a single image carrying all three would
+  # undercut that at the infrastructure layer while the registry claims it above.
+  example_images:
+    name: Image ${{ matrix.app }} (${{ matrix.platform }})
+    needs: [example, example_images_matrix]
+    runs-on: ${{ matrix.platform == 'linux/arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.example_images_matrix.outputs.builds) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The commit the example job recorded, not the one that triggered this run. The
+          # example job pushes the version bump it built against, and that commit lands
+          # after the trigger — so checking out github.sha builds the tree from before the
+          # bump, and the image ships a lockfile a release behind. Measured: a run that
+          # published alpha.80 produced images built against alpha.78. Not the branch head
+          # either, which a later push can move while this run is still going.
+          ref: ${{ needs.example.outputs.built }}
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/${{ matrix.app }}
+          tags: |
+            type=sha,format=short
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      # Per-architecture digests now; the manifest that ties them together is the next
+      # job. Pushing by digest keeps two concurrent matrix legs from overwriting one
+      # another's tag.
+      - id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: examples/appshell-react-host
+          file: examples/appshell-react-host/Dockerfile
+          build-args: APP_DIR=${{ matrix.app }}
+          platforms: ${{ matrix.platform }}
+          labels: ${{ steps.meta.outputs.labels }}
+          outputs: type=image,name=ghcr.io/${{ github.repository_owner }}/${{ matrix.app }},push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=gha,scope=${{ matrix.app }}-${{ matrix.platform }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.app }}-${{ matrix.platform }}
+
+      - name: Record the digest
+        run: |
+          mkdir -p /tmp/digests
+          # The bare digest, nothing else: the manifest step below reads these filenames
+          # as digests. Only this app's land here — download-artifact filters by pattern.
+          touch "/tmp/digests/${digest#sha256:}"
+        env:
+          digest: ${{ steps.build.outputs.digest }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ matrix.app }}-${{ strategy.job-index }}
+          path: /tmp/digests/*
+          retention-days: 1
+
+  # Stitches each app's per-architecture digests into one multi-arch tag.
+  example_images_manifest:
+    name: Manifest ${{ matrix.app }}
+    needs: [example_images_matrix, example_images]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        app: ${{ fromJson(needs.example_images_matrix.outputs.apps) }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: /tmp/digests
+          pattern: digests-${{ matrix.app }}-*
+          merge-multiple: true
+
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/${{ matrix.app }}
+          tags: |
+            type=sha,format=short
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Create and push the manifest
+        working-directory: /tmp/digests
+        run: |
+          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf 'ghcr.io/${{ github.repository_owner }}/${{ matrix.app }}@sha256:%s ' *)
 
   publish_npm_packages:
     needs: build
@@ -64,6 +784,10 @@ jobs:
     permissions:
       contents: write
       id-token: write
+    outputs:
+      # What the example is built against, so images cannot be one release behind the
+      # packages the same run published.
+      version: ${{ steps.published.outputs.version }}
 
     steps:
       - uses: actions/checkout@v4
@@ -91,117 +815,122 @@ jobs:
 
       - name: Version and tag pre-release
         if: ${{ contains(github.ref, 'refs/heads/feat') || contains(github.ref, 'refs/heads/fix') }}
-        run: npx lerna version --no-push --conventional-prerelease --yes
+        run: npx lerna version --no-push --conventional-prerelease --force-publish --yes
 
       - name: Version and tag release
         if: ${{ github.ref == 'refs/heads/main' }}
-        run: npx lerna version --no-push --conventional-graduate --yes
+        run: npx lerna version --no-push --conventional-graduate --force-publish --yes
+
+      # Read after `lerna version` and before `lerna publish`, so it is the version this
+      # run is about to put on npm rather than the one that was there when it started.
+      - name: Record the version being published
+        id: published
+        run: echo "version=$(node -p "require('./packages/config/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      # Pushed before anything is published, so a version number is claimed in git before it
+      # can exist on npm. The other order let a publish that failed after uploading leave git
+      # behind npm, and the next run versioned the same number again over different code:
+      # v1.0.0-alpha.100 was published from #18 and then tagged on #19, which never reached
+      # npm (appshellhq/appshell#20). A run cancelled mid-publish (cancel-in-progress) did
+      # the same. Now a failed or cancelled publish only spends its number, and the next run
+      # takes the one after; and a push that loses a race to another fails here, before
+      # anything is published. Atomic, naming both refs, so the branch and the tag land
+      # together or not at all: a plain push could take one and refuse the other, leaving a
+      # half-claimed version for the next run to number from.
+      - name: Push the version before publishing it
+        run: git push --atomic origin HEAD "refs/tags/v${{ steps.published.outputs.version }}"
 
       - name: Build
         run: npm run build
 
+      # Each package is published by npm itself; lerna only versions them. Trusted publishing
+      # (OIDC) signs a package's provenance before uploading it, and writes the signature to
+      # Rekor, the public transparency log, first. npm gives sigstore its five-minute
+      # fetch-timeout and its retry policy. lerna passed neither, so sigstore fell back to five
+      # seconds: a slower write still landed, sigstore sent the same entry again, Rekor
+      # answered 409 that it already existed, and the package was never uploaded
+      # (appshellhq/appshell#49). Nor can lerna be handed the timeout: it reads a key npm
+      # doesn't define only as a string, and npm's HTTP layer refuses a string timeout, which
+      # is how alpha.132 published nothing.
+      #
+      # In dependency order, so a package is on npm before anything that depends on it.
+      # --tag latest because npm requires a tag for a prerelease, and latest is where every
+      # release has gone so far.
       - name: Publish
-        run: npx lerna publish --yes from-git
-        env:
-          NPM_CONFIG_PROVENANCE: true
+        shell: bash
+        run: |
+          set -euo pipefail
 
-      - name: Push CI commit
-        run: git push --follow-tags
+          # Listed first, and refused if empty, so a listing that failed can't publish nothing
+          # and pass.
+          mapfile -t packages < <(npx lerna list --toposort --json | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>JSON.parse(s).filter(p=>!p.private).forEach(p=>console.log(p.location)))')
+          if [ "${#packages[@]}" -eq 0 ]; then
+            echo "::error::Could not list the packages to publish."
+            exit 1
+          fi
 
-  push_docker_images:
-    name: Push Docker images to Docker Hub
-    needs: publish_npm_packages
-    if: ${{ github.ref == 'refs/heads/main' || contains(github.ref, 'refs/heads/feat') || contains(github.ref, 'refs/heads/fix') }}
-    runs-on: ubuntu-latest
+          # What fails gets one more try, and this step never decides the release: the
+          # registry check after it does. A package that failed on Rekor's 409 was never
+          # uploaded, and the second try signs it afresh, a new entry, so it can't meet the
+          # same conflict. One that failed after uploading fails its second try as already
+          # published, and the check finds it there.
+          pending=("${packages[@]}")
+          for attempt in 1 2; do
+            failed=()
+            for dir in "${pending[@]}"; do
+              npm publish "$dir" --tag latest || failed+=("$dir")
+            done
+            [ "${#failed[@]}" -eq 0 ] && break
+            echo "::warning::Not published on attempt $attempt: ${failed[*]##*/}"
+            pending=("${failed[@]}")
+          done
 
-    strategy:
-      matrix:
-        package-dir: [react-host]
+      # Judged by what npm holds, not by the publish step's exit codes: a package that failed
+      # after uploading has landed, and a retry that finds it there fails as already
+      # published. The release succeeded if and only if every public package is on npm at
+      # the version this run claimed.
+      - name: Check every package reached npm
+        shell: bash
+        run: |
+          set -euo pipefail
 
-    steps:
-      - name: Check out the repo
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+          # Listed first, and refused if empty: a list that failed or came back with nothing
+          # would make the loop below check nothing and report success.
+          specs=$(npx lerna list --json | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>JSON.parse(s).filter(p=>!p.private).forEach(p=>console.log(`${p.name}@${p.version}`)))')
+          if [ -z "$specs" ]; then
+            echo "::error::Could not list the packages to check, so nothing is known to be on npm."
+            exit 1
+          fi
 
-      - name: Pull latest
-        run: git pull
+          # Ninety minutes in all. npm scans every new version for malware before it can be
+          # installed, typically for about five minutes, but it held
+          # @appshell/react@1.0.0-alpha.133 for 58 while the other seven took under five.
+          # Fifteen, sized for replication lag alone (ten seconds to five minutes; alpha.101
+          # needed more than a minute per package), gave up on that release with react still
+          # in the scan. So, as for the example's install above, the budget is the worst case
+          # seen with a margin: waiting costs nothing when it isn't needed. Each round asks
+          # only for what is still missing.
+          #
+          # --prefer-online: npm publish's registry queries above cached these packuments,
+          # and a cached one from before the publish would fail every attempt. The answer is
+          # compared rather than trusted by exit code, so an empty one is never a yes.
+          pending="$specs"
+          for attempt in $(seq 1 180); do
+            still=""
+            for spec in $pending; do
+              seen=$(npm view "$spec" version --prefer-online 2>/dev/null || true)
+              [ "$seen" = "${spec##*@}" ] || still="$still $spec"
+            done
+            pending=$still
 
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+            if [ -z "$pending" ]; then
+              echo "Every package is on npm at ${{ steps.published.outputs.version }}."
+              exit 0
+            fi
 
-      - name: Get the version
-        id: vars
-        run: echo "version=$(cat packages/${{ matrix.package-dir }}/package.json | grep \"version\" | sed 's/.*\://' | tr -d '", ')" >> $GITHUB_OUTPUT
+            echo "Not on npm yet:$pending (attempt $attempt/180)"
+            sleep 30
+          done
 
-      - name: set up docker buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build and push Docker production image
-        if: ${{ github.ref == 'refs/heads/main' }}
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./Dockerfile
-          push: ${{ github.event_name != 'pull_request' }}
-          target: production
-          platforms: linux/amd64, linux/arm64
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          build-args: |
-            SOURCE_DIR=packages/${{ matrix.package-dir }}
-          tags: |
-            ${{ secrets.DOCKER_ORG }}/${{ matrix.package-dir }}:latest
-            ${{ secrets.DOCKER_ORG }}/${{ matrix.package-dir }}:${{ steps.vars.outputs.version }}
-
-      - name: Build and push Docker developer image
-        if: ${{ github.ref == 'refs/heads/main' }}
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./Dockerfile
-          push: ${{ github.event_name != 'pull_request' }}
-          target: developer
-          platforms: linux/amd64, linux/arm64
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          build-args: |
-            SOURCE_DIR=packages/${{ matrix.package-dir }}
-          tags: |
-            ${{ secrets.DOCKER_ORG }}/${{ matrix.package-dir }}:developer
-            ${{ secrets.DOCKER_ORG }}/${{ matrix.package-dir }}:developer-${{ steps.vars.outputs.version }}
-
-      - name: Build and push Docker production release candidate image
-        if: ${{ contains(github.ref, 'refs/heads/feat') || contains(github.ref, 'refs/heads/fix') }}
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./Dockerfile
-          push: ${{ github.event_name != 'pull_request' }}
-          target: production
-          platforms: linux/amd64
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          build-args: |
-            SOURCE_DIR=packages/${{ matrix.package-dir }}
-          tags: |
-            ${{ secrets.DOCKER_ORG }}/${{ matrix.package-dir }}:${{ steps.vars.outputs.version }}
-
-      - name: Build and push Docker developer release candidate image
-        if: ${{ contains(github.ref, 'refs/heads/feat') || contains(github.ref, 'refs/heads/fix') }}
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./Dockerfile
-          push: ${{ github.event_name != 'pull_request' }}
-          target: developer
-          platforms: linux/amd64
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          build-args: |
-            SOURCE_DIR=packages/${{ matrix.package-dir }}
-          tags: |
-            ${{ secrets.DOCKER_ORG }}/${{ matrix.package-dir }}:developer-${{ steps.vars.outputs.version }}
+          echo "::error::Not on npm ninety minutes after publishing:$pending"
+          exit 1

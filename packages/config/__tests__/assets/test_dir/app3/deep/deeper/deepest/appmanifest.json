@@ -1,5 +1,5 @@
 {
-  "remotes": {
+  "components": {
     "FooModule/Bing": {
       "url": "${APPS_TEST_URL}",
       "metadata": {

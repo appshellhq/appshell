@@ -1,0 +1,229 @@
+/* eslint-disable no-template-curly-in-string -- ${VAR} is the placeholder syntax under test */
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
+import webpack, { container } from 'webpack';
+import AppshellPlugin from '../src/AppshellPlugin';
+
+/*
+ * A real compilation, because this is a claim about webpack's behaviour rather than the
+ * plugin's: that `emitAsset` puts the manifest where a dev server will serve it from
+ * memory and a production build will write it to disk. A mock compiler asserts only that
+ * the plugin called a method, which is what it did before while serving nothing.
+ */
+// Left unsubstituted on purpose: the manifest is only correct if the plugin resolves it.
+const CONFIG = [
+  'visibility: public',
+  'components:',
+  '  TestModule/Foo:',
+  '    metadata:',
+  '      route: /foo',
+  'vars:',
+  '  SUPPORT_URL: ${SUPPORT_URL}',
+  '',
+].join('\n');
+
+const project = () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'appshell-emit-'));
+  fs.mkdirSync(path.join(root, 'src'));
+  // A token reference with no fallback, so the usage scan has something to find and the
+  // emitted manifest can be checked against it.
+  fs.writeFileSync(
+    path.join(root, 'src', 'Entry1.js'),
+    "export default () => 'color: var(--appshell-primary)';\n",
+  );
+  fs.writeFileSync(path.join(root, 'appshell.config.yaml'), CONFIG);
+  fs.writeFileSync(
+    path.join(root, 'package.json'),
+    JSON.stringify({ name: '@acme/test-package', version: '1.0.0' }),
+  );
+
+  return root;
+};
+
+const compile = (root: string, mode: 'production' | 'development') =>
+  new Promise<webpack.Stats>((resolve, reject) => {
+    webpack(
+      {
+        mode,
+        context: root,
+        entry: path.join(root, 'src', 'Entry1.js'),
+        output: { path: path.join(root, 'dist'), publicPath: 'auto' },
+        plugins: [
+          new container.ModuleFederationPlugin({
+            name: 'TestModule',
+            filename: 'remoteEntry.js',
+            exposes: { './Foo': path.join(root, 'src', 'Entry1.js') },
+            // Required of any package declaring vars, and the plugin enforces it: without
+            // the store as a singleton there is nothing to deliver them into.
+            shared: { '@appshell/runtime': { singleton: true } },
+          }),
+          new AppshellPlugin({
+            config: path.join(root, 'appshell.config.yaml'),
+            publish: false,
+          }),
+        ],
+      },
+      (error, stats) => (error || !stats ? reject(error) : resolve(stats)),
+    );
+  });
+
+describe('the emitted manifest', () => {
+  let root: string;
+  let stats: webpack.Stats;
+
+  beforeAll(async () => {
+    root = project();
+    process.env.APPS_TEST_URL = 'http://localhost:4001';
+    stats = await compile(root, 'production');
+  }, 60_000);
+
+  afterAll(() => fs.rmSync(root, { recursive: true, force: true }));
+
+  const emitted = () => stats.toJson({ assets: true }).assets?.map((asset) => asset.name) ?? [];
+
+  const manifest = () =>
+    JSON.parse(fs.readFileSync(path.join(root, 'dist', 'appshell.manifest.json'), 'utf-8'));
+
+  it('should compile without errors', () => {
+    expect(stats.compilation.errors).toEqual([]);
+  });
+
+  /*
+   * The whole point. `manifestUrl` in every published manifest has always been
+   * `<url>/appshell.manifest.json`, and until this asset existed that URL resolved
+   * nowhere — which is why the CLI's dev-server probe got a 404 every single time.
+   */
+  it('should be a compilation asset, so a dev server serves it from memory', () => {
+    expect(emitted()).toContain('appshell.manifest.json');
+  });
+
+  it('should be written to the output directory by a production build', () => {
+    expect(fs.existsSync(path.join(root, 'dist', 'appshell.manifest.json'))).toBe(true);
+  });
+
+  // What the probe actually asks: are these the remote keys this origin serves?
+  it('should name the remotes the package publishes', () => {
+    expect(Object.keys(manifest().components)).toEqual(['TestModule/Foo']);
+  });
+
+  /*
+   * The manifest describes the artifact and says nothing about where it is served.
+   *
+   * It used to carry `manifestUrl` and `remoteEntryUrl`, built from a `url` in the yaml,
+   * which froze whichever environment ran the build into an immutable version — and made
+   * the artifact's digest depend on where it was built. The registry composes both from
+   * the package's address and its own serving plane.
+   */
+  it('should state no origin', () => {
+    const remote = manifest().components['TestModule/Foo'];
+
+    expect(remote.manifestUrl).toBeUndefined();
+    expect(remote.remoteEntryUrl).toBeUndefined();
+    expect(JSON.stringify(manifest())).not.toContain('http://');
+  });
+
+  /*
+   * Declared in the yaml, carried into the template for publish to read, and kept out of
+   * the manifest — which is hashed into the package digest. A package made public later
+   * must not thereby change what it is.
+   */
+  it('should carry visibility to the template and not the manifest', () => {
+    const template = JSON.parse(
+      fs.readFileSync(path.join(root, 'dist', 'appshell.template.json'), 'utf-8'),
+    );
+
+    expect(template.visibility).toBe('public');
+    expect(manifest()).not.toHaveProperty('visibility');
+  });
+
+  /*
+   * A package's identity is its surface — what it exposes and how it is addressed — and
+   * never its bytes. The manifest used to carry a sha384 over every emitted asset, which
+   * made the same commit built in two directories two different packages: two Module
+   * Federation modules carry an absolute path in their identity, so the output moves with
+   * the project's location.
+   */
+  it('should not describe the bytes it emitted', () => {
+    expect(manifest()).not.toHaveProperty('bundle');
+  });
+
+  /*
+   * The property the whole publishing model rests on, stated as a test rather than left
+   * as a comment: a code change behind an unchanged surface is a deploy, not a publish.
+   *
+   * This test previously asserted the opposite — that the manifest changed whenever the
+   * code did — which is what put path-dependent bytes inside package identity.
+   */
+  it('should be unchanged when only the code changes', async () => {
+    // Its own project: recompiling the shared one would leave every test after this
+    // reading a dist built from different source.
+    const own = project();
+    const read = () =>
+      JSON.parse(fs.readFileSync(path.join(own, 'dist', 'appshell.manifest.json'), 'utf-8'));
+
+    await compile(own, 'production');
+    const before = read();
+
+    fs.writeFileSync(
+      path.join(own, 'src', 'Entry1.js'),
+      "export default () => 'color: var(--appshell-primary)' + 'changed';\n",
+    );
+    await compile(own, 'production');
+
+    expect(read()).toEqual(before);
+
+    fs.rmSync(own, { recursive: true, force: true });
+  });
+
+  it('should be identical across rebuilds of the same source', async () => {
+    const own = project();
+    const read = () =>
+      JSON.parse(fs.readFileSync(path.join(own, 'dist', 'appshell.manifest.json'), 'utf-8'));
+
+    await compile(own, 'production');
+    const first = read();
+
+    await compile(own, 'production');
+
+    expect(read()).toEqual(first);
+
+    fs.rmSync(own, { recursive: true, force: true });
+  });
+
+  // Taken from the Module Federation config, which is what decides the emitted file.
+  it('should name the entry file the build emits', () => {
+    expect(manifest().components['TestModule/Foo'].loader.filename).toBe('remoteEntry.js');
+  });
+
+  /*
+   * Token usage is scanned during processAssets, which is also where the manifest is now
+   * built. Emitting before the scan would ship a manifest that understated what the
+   * package needs, and nothing downstream would have contradicted it.
+   */
+  it('should carry the token usage scanned from the same compilation', () => {
+    expect(manifest().tokens.TestModule.required).toContain('primary');
+  });
+
+  it('should still write the template beside it', () => {
+    const template = JSON.parse(
+      fs.readFileSync(path.join(root, 'dist', 'appshell.template.json'), 'utf-8'),
+    );
+
+    expect(template.tokens.TestModule.required).toContain('primary');
+  });
+
+  /*
+   * A template carries placeholders; that is the whole distinction between it and a
+   * manifest. Building the manifest from the same object substituted them in place, so
+   * the template on disk carried one environment's values — exactly what publishing from
+   * a template is meant to avoid.
+   */
+  it('should leave the template holding placeholders, not this build environment', () => {
+    const template = JSON.parse(
+      fs.readFileSync(path.join(root, 'dist', 'appshell.template.json'), 'utf-8'),
+    );
+
+    expect(template.vars.TestModule.SUPPORT_URL).toBe('${SUPPORT_URL}');
+  });
+});

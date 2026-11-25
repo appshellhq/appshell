@@ -1,71 +1,59 @@
 /* eslint-disable no-underscore-dangle */
-import { type AppshellManifest } from '@appshell/config';
-import { AppshellGlobalConfig } from 'packages/config/src/types';
-import fetchDynamicScript from './fetchDynamicScript';
+import type { AppshellComposition } from '@appshell/config';
+import { setVars } from '@appshell/runtime';
 import loadAppshellComponent from './loadAppshellComponent';
+import { chainResolvers, inlineResolver, registryResolver, type RemoteResolver } from './resolvers';
 
-const fetchedScriptCache = new Set<string>();
-const fetchedManifestCache = new Map<string, AppshellManifest | undefined>();
-
-const fetchManifest = async (url: string): Promise<AppshellManifest | undefined> => {
-  if (fetchedManifestCache.has(url)) {
-    return fetchedManifestCache.get(url);
+declare global {
+  interface Window {
+    __appshell_config__?: AppshellComposition;
   }
+}
 
-  fetchedManifestCache.set(url, undefined);
-
-  const response = await fetch(url, { credentials: 'include' });
-
-  if (response.ok) {
-    return response.json();
-  }
-
-  const message = await response.text();
-  throw new Error(`Failed to get manifest from ${url}. ${message}`);
+export type RemoteLoaderOptions = {
+  composition?: AppshellComposition;
+  /** Replaces the resolver chain outright; a seam for tests and embedders. */
+  resolver?: RemoteResolver;
 };
 
-export default (config: AppshellGlobalConfig) =>
-  async <TComponent>(key: string) => {
-    let Component: TComponent;
-    const manifestUrl = config.index[key];
-    if (!manifestUrl) {
+export default (options: RemoteLoaderOptions = {}) => {
+  const composition =
+    options.composition ?? (typeof window === 'undefined' ? undefined : window.__appshell_config__);
+
+  const resolve =
+    options.resolver ?? chainResolvers(inlineResolver(composition), registryResolver(composition));
+
+  return async <TComponent>(key: string) => {
+    const failed = (err: unknown) =>
+      new Error(`Failed to load component '${key}'. ${err?.toString()}`);
+
+    let resolution;
+    try {
+      resolution = await resolve(key);
+    } catch (err) {
+      throw failed(err);
+    }
+
+    if (!resolution) {
       throw new Error(`Remote resource not found in registry. Expected: ${key}`);
     }
 
+    const { remote, vars } = resolution;
+
     try {
-      const manifest = await fetchManifest(manifestUrl);
+      // Before the remote loads, so a package that validates its vars while its modules
+      // evaluate still finds them. `@appshell/runtime` is a shared singleton, so this is
+      // the same store the package reads through `getVars()`.
+      // Vars are keyed by federation scope, which is itself one framework's vocabulary —
+      // noted rather than fixed here, since application specs address overrides.vars the
+      // same way.
+      setVars(remote.loader.scope, vars);
 
-      if (manifest) {
-        fetchedManifestCache.set(manifestUrl, manifest);
+      const Component = await loadAppshellComponent<TComponent>(remote);
 
-        const remote = manifest.remotes[key];
-
-        const environment = manifest.environment[remote.scope] || {};
-        const overrides =
-          (config.overrides?.environment && config.overrides?.environment[remote.scope]) || {};
-        window[`__appshell_env__${remote.scope}`] = {
-          ...environment,
-          ...overrides,
-        };
-
-        const loaded =
-          fetchedScriptCache.has(remote.remoteEntryUrl) ||
-          (await fetchDynamicScript(remote.remoteEntryUrl));
-        if (loaded) {
-          fetchedScriptCache.add(remote.remoteEntryUrl);
-          Component = await loadAppshellComponent<TComponent>(
-            remote.scope,
-            remote.module,
-            remote.shareScope,
-          );
-
-          return [Component, manifest] as const;
-        }
-      }
-
-      return [null, null] as const;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
-      throw new Error(`Failed to load component '${key}'. ${err?.toString()}`);
+      return [Component, remote] as const;
+    } catch (err) {
+      throw failed(err);
     }
   };
+};

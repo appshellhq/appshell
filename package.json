@@ -4,17 +4,25 @@
   "workspaces": [
     "packages/*"
   ],
-  "repository": "https://github.com/appshell-org/appshell.git",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/appshellhq/appshell.git"
+  },
   "scripts": {
     "bootstrap": "npm install",
-    "build": "lerna run --scope=@appshell/manifest-webpack-plugin --scope=@appshell/react-refresh-singleton-plugin build && lerna run --ignore=@appshell/manifest-webpack-plugin --ignore=@appshell/react-refresh-singleton-plugin build",
+    "build": "lerna run --scope=@appshell/webpack-plugin build && lerna run --ignore=@appshell/webpack-plugin build",
     "clean": "lerna run --parallel clean && rm -rf coverage",
     "lint": "eslint 'packages/**/*.{ts,tsx}'",
+    "typecheck": "lerna run typecheck",
+    "start:example:react-host": "npm --prefix examples/appshell-react-host run start",
     "serve": "dotenv -- lerna run --parallel serve",
     "start": "dotenv -- lerna run --parallel start",
     "stats": "lerna run --parallel stats",
     "test": "jest",
-    "test:ci": "npm test a -- --silent --watchAll=false --coverage --reporters=jest-junit"
+    "test:examples": "npm test --prefix examples/appshell-react-host",
+    "test:all": "npm test && npm run test:examples",
+    "test:ci": "npm test a -- --silent --watchAll=false --coverage --reporters=jest-junit",
+    "prepare": "husky"
   },
   "dependencies": {
     "@automapper/core": "8.7.7",
@@ -28,13 +36,11 @@
     "hash-sum": "2.0.0",
     "lodash": "^4.18.0",
     "npm-run-all": "4.1.5",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "react-refresh": "0.14.0",
-    "react-spinners": "0.13.8",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "react-refresh": "0.19.0",
     "schema-utils": "4.0.0",
     "typescript": "^5.7.3",
-    "web-vitals": "3.1.1",
     "yaml": "^2.8.0",
     "yargs": "17.7.1"
   },
@@ -43,16 +49,19 @@
     "@babel/preset-env": "^7.25.4",
     "@babel/preset-react": "^7.24.7",
     "@babel/preset-typescript": "^7.24.7",
+    "@commitlint/cli": "19.8.1",
+    "@commitlint/config-conventional": "19.8.1",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.6.2",
     "@testing-library/jest-dom": "5.16.5",
-    "@testing-library/react": "13.4.0",
+    "@testing-library/dom": "10.4.2",
+    "@testing-library/react": "16.3.3",
     "@testing-library/user-event": "13.5.0",
     "@types/hash-sum": "1.0.0",
     "@types/jest": "27.5.2",
     "@types/lodash": "4.14.191",
     "@types/node": "18.14.6",
-    "@types/react": "18.0.28",
-    "@types/react-dom": "18.0.11",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
     "@types/react-refresh": "0.14.0",
     "@typescript-eslint/eslint-plugin": "5.53.0",
     "@typescript-eslint/parser": "5.53.0",
@@ -70,6 +79,7 @@
     "eslint-plugin-import": "2.27.5",
     "eslint-plugin-prettier": "4.2.1",
     "html-webpack-plugin": "5.5.0",
+    "husky": "9.1.7",
     "jest": "29.4.3",
     "jest-environment-jsdom": "29.5.0",
     "jest-fetch-mock": "3.0.3",
@@ -77,6 +87,7 @@
     "jest-mock-extended": "^3.0.7",
     "json-schema-to-typescript": "12.0.0",
     "lerna": "^9.0.0",
+    "lint-staged": "17.4.1",
     "node-mocks-http": "^1.16.0",
     "nodemon": "^3.1.0",
     "postcss": "^8.5.0",
@@ -101,5 +112,14 @@
     "micro-frontends",
     "appshell"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
+  }
 }

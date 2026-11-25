@@ -1,0 +1,958 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { activate, openOverlay, persistedContext, publish, resolveContext } from '@appshell/config';
+import fs from 'fs';
+import { values } from 'lodash';
+import os from 'os';
+import path from 'path';
+import { rimrafSync } from 'rimraf';
+import { Compilation, container, DefinePlugin, WebpackOptionsNormalized } from 'webpack';
+import AppshellPlugin from '../src/AppshellPlugin';
+import sampleConfig from './assets/complete-config.json';
+import missingConfiguredEntrypoint from './assets/missing-configured-entrypoint.json';
+import missingRemoteEntrypoint from './assets/missing-remote-entrypoint.json';
+import { MODULE_FEDERATION_PLUGIN_OPTIONS } from './assets/module-federation-plugin-options';
+import webpackConfig from './assets/webpack.config';
+
+jest.mock('@appshell/config', () => ({
+  ...jest.requireActual('@appshell/config'),
+  activate: jest.fn(),
+  openOverlay: jest.fn(),
+  publish: jest.fn(),
+  resolveContext: jest.fn(),
+  persistedContext: jest.fn(),
+}));
+
+const mocked = {
+  activate: activate as jest.MockedFunction<typeof activate>,
+  openOverlay: openOverlay as jest.MockedFunction<typeof openOverlay>,
+  publish: publish as jest.MockedFunction<typeof publish>,
+  resolveContext: resolveContext as jest.MockedFunction<typeof resolveContext>,
+  persistedContext: persistedContext as jest.MockedFunction<typeof persistedContext>,
+};
+
+/**
+ * A compiler that fires the hooks webpack fires, in the order webpack fires them.
+ *
+ * The previous version recorded `hooks.compilation` as a `jest.fn()` and never invoked
+ * it, so nothing the plugin does in `processAssets` had ever run under test: the token
+ * scan, the token usage written onto the template, and the manifest asset. All three were
+ * covered only by a real compilation in emitManifest.spec.ts. A double that accepts a tap
+ * and never calls it does not merely leave a gap — it reports success for code that never
+ * executed.
+ */
+class MockCompiler {
+  options: Partial<WebpackOptionsNormalized>;
+
+  compilation: Partial<Compilation>;
+
+  context = 'packages/webpack-plugin';
+
+  private afterEmit: Record<string, (compilation: Partial<Compilation>) => Promise<void>> = {};
+
+  /*
+   * Kept by the name each tap registered under, so only this plugin's are fired.
+   *
+   * AppshellPlugin applies DefinePlugin, which taps the same hook and expects webpack's
+   * second argument, a live NormalModuleFactory, plus dependency templates and compilation
+   * hooks off a WeakMap. Stubbing all of that would be reimplementing webpack inside a
+   * unit test to exercise a plugin that is not the subject. Whether DefinePlugin works is
+   * webpack's business; a real compilation in emitManifest.spec.ts covers the two of them
+   * together.
+   */
+  private onCompilation: { name: string; tap: (compilation: Partial<Compilation>) => void }[] = [];
+
+  private onProcessAssets: ((assets: Record<string, unknown>) => void)[] = [];
+
+  hooks = {
+    afterEmit: {
+      tapPromise: (
+        name: string,
+        callback: (compilation: Partial<Compilation>) => Promise<void>,
+      ) => {
+        this.afterEmit[name] = callback;
+      },
+    },
+    compilation: {
+      tap: (name: string, callback: (compilation: Partial<Compilation>) => void) => {
+        this.onCompilation.push({ name, tap: callback });
+      },
+    },
+  };
+
+  constructor(options: Partial<WebpackOptionsNormalized>, compilation: Partial<Compilation>) {
+    this.options = options;
+    this.compilation = {
+      ...compilation,
+      hooks: {
+        processAssets: {
+          tap: (_options: unknown, callback: (assets: Record<string, unknown>) => void) => {
+            this.onProcessAssets.push(callback);
+          },
+        },
+      },
+      emitAsset: (name: string, source: { source: () => string | Buffer }) => {
+        (this.compilation.assets as Record<string, unknown>)[name] = source;
+      },
+    } as unknown as Partial<Compilation>;
+  }
+
+  /** The emitted asset by name, as the string a dev server would serve. */
+  asset(name: string): string | undefined {
+    const source = (this.compilation.assets as Record<string, { source?: () => unknown }>)?.[name];
+
+    return source?.source ? String(source.source()) : undefined;
+  }
+
+  /**
+   * One build, in webpack's order: the compilation hook, then processAssets over whatever
+   * the compilation holds, then afterEmit.
+   */
+  async compile() {
+    this.onCompilation
+      .filter(({ name }) => name === 'AppshellPlugin')
+      .forEach(({ tap }) => tap(this.compilation));
+    this.onProcessAssets.forEach((tap) =>
+      tap((this.compilation.assets ?? {}) as Record<string, unknown>),
+    );
+
+    await Promise.all(
+      values(this.afterEmit).map((handler) => handler.call(null, this.compilation)),
+    );
+  }
+}
+
+/*
+ * Both views a webpack Source offers. The plugin hashes bytes, so a double with only
+ * source() would have let it pass here and throw against a real compilation.
+ */
+const asset = (content: string) => ({
+  source: () => content,
+  buffer: () => Buffer.from(content),
+});
+
+describe('AppshellPlugin', () => {
+  const packageName = 'webpack-plugin';
+  const config = `packages/${packageName}/__tests__/assets/appshell.config.yaml`;
+  const configsDir = `packages/${packageName}/__tests__/assets/app_manifests`;
+  const registry = 'https://registry.example.com';
+
+  let compiler: MockCompiler;
+  let errors: Error[];
+  let logger: { info: jest.Mock; warn: jest.Mock };
+
+  beforeEach(() => {
+    const plugins = [new container.ModuleFederationPlugin(MODULE_FEDERATION_PLUGIN_OPTIONS)];
+    errors = [];
+    logger = { info: jest.fn(), warn: jest.fn() };
+    compiler = new MockCompiler(
+      { plugins },
+      {
+        outputOptions: { path: '' },
+        // Every real compilation has these; the plugin reads them to see which design
+        // tokens the emitted output reaches for.
+        assets: {},
+        errors: errors as any,
+        getLogger: (() => logger) as any,
+      },
+    );
+
+    mocked.publish.mockResolvedValue({ id: 'acme/widgets@1.0.0', created: true });
+    mocked.activate.mockResolvedValue(undefined);
+    // Hermetic by default: no persisted CLI context, nothing resolved from ~/.appshell.
+    // An empty object is what that looks like now — `scopeId: 'default'` used to stand in
+    // for *nothing configured*, and it was a real-looking address for a namespace nobody
+    // owns, which is exactly why it stopped being invented.
+    mocked.resolveContext.mockReturnValue({});
+    mocked.persistedContext.mockReturnValue({});
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
+    delete process.env.APPSHELL_PUBLISH_ON_BUILD;
+    delete process.env.APPSHELL_REGISTRY;
+    delete process.env.APPSHELL_APPLICATION;
+    delete process.env.APPSHELL_DEFAULT_SCOPE;
+    rimrafSync(configsDir);
+  });
+
+  describe('validate', () => {
+    it('should throw if config is missing remote entrypoints defined in the MF plugin', () => {
+      expect(() => AppshellPlugin.validate(missingRemoteEntrypoint as any)).toThrowError(
+        /Validation error: Missing entrypoint/i,
+      );
+    });
+
+    it('should throw if config has remote entrypoints not defined in the MF plugin', () => {
+      expect(() => AppshellPlugin.validate(missingConfiguredEntrypoint as any)).toThrowError(
+        /Validation error: Missing exposed entrypoint in ModuleFederationPlugin/i,
+      );
+    });
+
+    const declaringVars = (shared: unknown) => ({
+      ...(sampleConfig as any),
+      vars: { TestModule: { RUNTIME_ENV: 'test' } },
+      module: { ...MODULE_FEDERATION_PLUGIN_OPTIONS, shared },
+    });
+
+    it('should throw if a package declaring vars does not share the store', () => {
+      expect(() => AppshellPlugin.validate(declaringVars({ package1: '1.0.0' }))).toThrowError(
+        /must share '@appshell\/runtime' as a singleton/i,
+      );
+    });
+
+    it('should say so when the store is shared but not as a singleton', () => {
+      expect(() =>
+        AppshellPlugin.validate(declaringVars({ '@appshell/runtime': { eager: true } })),
+      ).toThrowError(/shared, but not as a singleton/i);
+    });
+
+    it('should treat a bare name as shared without being a singleton', () => {
+      expect(() => AppshellPlugin.validate(declaringVars(['@appshell/runtime']))).toThrowError(
+        /shared, but not as a singleton/i,
+      );
+    });
+
+    it('should accept the store declared in the array form', () => {
+      expect(
+        AppshellPlugin.validate(declaringVars([{ '@appshell/runtime': { singleton: true } }])),
+      ).toBe(true);
+    });
+
+    // A package with nothing to read has no reason to carry the store.
+    it('should not require the store of a package that declares no vars', () => {
+      expect(
+        AppshellPlugin.validate({
+          ...(sampleConfig as any),
+          vars: {},
+          module: { ...MODULE_FEDERATION_PLUGIN_OPTIONS, shared: { package1: '1.0.0' } },
+        }),
+      ).toBe(true);
+    });
+  });
+
+  describe('tokenUsage', () => {
+    // A reference with a fallback degrades on its own; one without has no plan B.
+    it('should split required from optional on whether a fallback is present', () => {
+      const { required, optional } = AppshellPlugin.tokenUsage({
+        'main.css':
+          '.a{color:var(--appshell-on-surface)}.b{background:var(--appshell-primary, #0af)}',
+      });
+
+      expect(required).toEqual(['on-surface']);
+      expect(optional).toEqual(['primary']);
+    });
+
+    // One place in the package having nothing to fall back to settles it for the package.
+    it('should treat a role used both ways as required', () => {
+      const { required, optional } = AppshellPlugin.tokenUsage({
+        'main.css': 'var(--appshell-primary, #0af) var(--appshell-primary)',
+      });
+
+      expect(required).toEqual(['primary']);
+      expect(optional).toEqual([]);
+    });
+
+    it('should report a name that is not a role rather than counting it as a need', () => {
+      const { required, optional, unknown } = AppshellPlugin.tokenUsage({
+        'main.css': 'var(--appshell-primry)',
+      });
+
+      expect(unknown).toEqual(['primry']);
+      expect(required).toEqual([]);
+      expect(optional).toEqual([]);
+    });
+
+    it('should find tokens in javascript as well as stylesheets', () => {
+      const { required } = AppshellPlugin.tokenUsage({
+        'main.js': 'const s={color:"var(--appshell-danger)"}',
+      });
+
+      expect(required).toEqual(['danger']);
+    });
+
+    it('should not scan assets that cannot reference a token', () => {
+      const { required } = AppshellPlugin.tokenUsage({
+        'logo.svg': 'var(--appshell-primary)',
+        'font.woff2': 'var(--appshell-border)',
+      });
+
+      expect(required).toEqual([]);
+    });
+
+    it('should tolerate whitespace inside the reference', () => {
+      const { required, optional } = AppshellPlugin.tokenUsage({
+        'main.css': 'var( --appshell-surface ) var( --appshell-border , red)',
+      });
+
+      expect(required).toEqual(['surface']);
+      expect(optional).toEqual(['border']);
+    });
+
+    it('should report nothing for output that uses no tokens', () => {
+      expect(AppshellPlugin.tokenUsage({ 'main.js': 'console.log(1)' })).toEqual({
+        required: [],
+        optional: [],
+        unknown: [],
+      });
+    });
+  });
+
+  describe('createTemplate', () => {
+    const pluginWith = (options: any) => ({ _options: options } as any);
+
+    it('should key vars by the federation container name', () => {
+      const template = AppshellPlugin.createTemplate(
+        { vars: { RUNTIME_ENV: 'test' } } as any,
+        pluginWith(MODULE_FEDERATION_PLUGIN_OPTIONS),
+      );
+
+      expect(template.vars).toEqual({ TestModule: { RUNTIME_ENV: 'test' } });
+    });
+
+    // The scope the loader delivers under comes from the remote key, which is prefixed by
+    // the federation name. Keying vars by a divergent `name:` would deliver them nowhere.
+    it('should ignore a config name that diverges from the federation name', () => {
+      const template = AppshellPlugin.createTemplate(
+        { name: 'SomethingElse', vars: { RUNTIME_ENV: 'test' } } as any,
+        pluginWith(MODULE_FEDERATION_PLUGIN_OPTIONS),
+      );
+
+      expect(template.vars).toEqual({ TestModule: { RUNTIME_ENV: 'test' } });
+    });
+
+    it('should refuse to guess a scope for vars when the MF plugin has no name', () => {
+      expect(() =>
+        AppshellPlugin.createTemplate(
+          { vars: { RUNTIME_ENV: 'test' } } as any,
+          pluginWith({ ...MODULE_FEDERATION_PLUGIN_OPTIONS, name: undefined }),
+        ),
+      ).toThrowError(/Cannot scope vars/i);
+    });
+  });
+
+  describe('findModuleFederationPlugin', () => {
+    it('should find ModuleFederationPlugin if it exists', () => {
+      const moduleFederationPlugin = AppshellPlugin.findModuleFederationPlugin(
+        webpackConfig as any,
+      );
+
+      expect(moduleFederationPlugin).toBeTruthy();
+    });
+
+    it('should return undefined if ModuleFederationPlugin does not exist', () => {
+      webpackConfig.plugins = [];
+      expect(AppshellPlugin.findModuleFederationPlugin(webpackConfig as any)).toBeUndefined();
+    });
+  });
+
+  describe('defaults', () => {
+    it('should default config to appshell.config.yaml', () => {
+      const plugin = new AppshellPlugin();
+
+      expect(plugin.options.config).toEqual('appshell.config.yaml');
+    });
+  });
+
+  describe('apply', () => {
+    it('should throw if ModuleFederationPlugin is not found', () => {
+      const plugin = new AppshellPlugin({ config });
+
+      compiler.options.plugins = [];
+
+      expect(() => plugin.apply(compiler as any)).toThrowError(
+        /Webpack ModuleFederationPlugin is required/i,
+      );
+    });
+
+    it('should compile the federation name into the package as its scope', () => {
+      const applied: Record<string, unknown>[] = [];
+      jest
+        .spyOn(DefinePlugin.prototype, 'apply')
+        .mockImplementation(function capture(this: DefinePlugin) {
+          applied.push(this.definitions);
+        });
+      jest.spyOn(fs, 'writeFileSync').mockImplementation();
+
+      new AppshellPlugin({ config }).apply(compiler as any);
+
+      expect(applied).toEqual([{ __APPSHELL_SCOPE__: '"TestModule"' }]);
+    });
+
+    it('should write configuration to configsDir', async () => {
+      const writeFileSyncSpy = jest.spyOn(fs, 'writeFileSync').mockImplementation();
+      const plugin = new AppshellPlugin({ config });
+
+      plugin.apply(compiler as any);
+      await compiler.compile();
+
+      expect(writeFileSyncSpy).toHaveBeenCalledWith(
+        expect.anything(),
+        JSON.stringify(sampleConfig),
+      );
+    });
+
+    it('should not publish outside development mode unless asked', async () => {
+      jest.spyOn(fs, 'writeFileSync').mockImplementation();
+      const plugin = new AppshellPlugin({ config, registry });
+
+      plugin.apply(compiler as any);
+      await compiler.compile();
+
+      expect(mocked.publish).not.toHaveBeenCalled();
+    });
+
+    it('should not publish in development mode', async () => {
+      jest.spyOn(fs, 'writeFileSync').mockImplementation();
+      mocked.resolveContext.mockReturnValue({ scopeId: 'default', registry });
+      compiler.options.mode = 'development';
+      const plugin = new AppshellPlugin({ config });
+
+      plugin.apply(compiler as any);
+      await compiler.compile();
+
+      // A published version is immutable; a file watcher must not overwrite one.
+      expect(mocked.publish).not.toHaveBeenCalled();
+    });
+
+    it('should opt out when APPSHELL_PUBLISH_ON_BUILD is a falsey string with whitespace', async () => {
+      jest.spyOn(fs, 'writeFileSync').mockImplementation();
+      mocked.resolveContext.mockReturnValue({ scopeId: 'default', registry });
+      process.env.APPSHELL_PUBLISH_ON_BUILD = ' false ';
+      compiler.options.mode = 'development';
+      const plugin = new AppshellPlugin({ config });
+
+      plugin.apply(compiler as any);
+      await compiler.compile();
+
+      expect(mocked.publish).not.toHaveBeenCalled();
+    });
+
+    it('should resolve the registry from the CLI context', async () => {
+      jest.spyOn(fs, 'writeFileSync').mockImplementation();
+      mocked.resolveContext.mockReturnValue({ scopeId: 'default', registry });
+      const plugin = new AppshellPlugin({ config, publish: true });
+
+      plugin.apply(compiler as any);
+      await compiler.compile();
+
+      expect(mocked.publish).toHaveBeenCalledWith(expect.objectContaining({ registry }));
+    });
+
+    /*
+     * Where its overlay redirects it. The fixture declares `@appshell/…`, and the publish used
+     * to drop that, sending the package to the publisher's own scope instead
+     * (appshellhq/appshell-services#125).
+     */
+    it('should publish into the scope the package declares, as its overlay does', async () => {
+      jest.spyOn(fs, 'writeFileSync').mockImplementation();
+      mocked.resolveContext.mockReturnValue({ scopeId: 'mine', registry });
+      const plugin = new AppshellPlugin({ config, publish: true });
+
+      plugin.apply(compiler as any);
+      await compiler.compile();
+
+      expect(mocked.publish).toHaveBeenCalledWith(
+        expect.objectContaining({ scopeId: 'appshell', name: 'webpack-plugin' }),
+      );
+    });
+
+    it('should do nothing in a development build that is not serving', async () => {
+      jest.spyOn(fs, 'writeFileSync').mockImplementation();
+      compiler.options.mode = 'development';
+      const plugin = new AppshellPlugin({ config });
+
+      plugin.apply(compiler as any);
+      await compiler.compile();
+
+      // Nothing to publish and no dev server to redirect to, so nothing to say.
+      expect(mocked.publish).not.toHaveBeenCalled();
+      expect(mocked.openOverlay).not.toHaveBeenCalled();
+      expect(errors).toHaveLength(0);
+    });
+
+    describe('serving in development', () => {
+      const serving = (context: Record<string, unknown> = {}) => {
+        jest.spyOn(fs, 'writeFileSync').mockImplementation();
+        process.env.WEBPACK_SERVE = 'true';
+        compiler.options.mode = 'development';
+        compiler.options.devServer = { port: 3001 };
+        mocked.resolveContext.mockReturnValue({
+          scopeId: 'acme',
+          registry,
+          application: 'acme/demo',
+          ...context,
+        } as never);
+
+        return new AppshellPlugin({ config });
+      };
+
+      afterEach(() => {
+        delete process.env.WEBPACK_SERVE;
+      });
+
+      /*
+       * An overlay addresses remotes as `scope/package/Component`, so with no scope there
+       * is no address. This used to be unreachable: the context substituted the literal
+       * `default`, so the overlay redirected `default/thing/Component` — an address no
+       * composition holds. The registry reported nothing wrong, the browser went on
+       * running the published bundle, and the developer was told their code was served.
+       */
+      it('should refuse to open an overlay it cannot address', async () => {
+        const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'appshell-unscoped-'));
+        fs.writeFileSync(
+          path.join(dir, 'package.json'),
+          JSON.stringify({ name: 'unscoped-thing', version: '1.0.0' }),
+        );
+
+        // Only the scope is missing. Dropping the application too would return earlier,
+        // at the "no application to overlay into" warning, and never reach this guard.
+        const plugin = serving({ scopeId: undefined });
+        compiler.context = dir;
+
+        plugin.apply(compiler as any);
+        await compiler.compile();
+
+        expect(mocked.openOverlay).not.toHaveBeenCalled();
+        // Said rather than thrown, which is what the other "cannot proceed" branches in
+        // this method do — and the developer's symptom is *my changes are not showing*,
+        // so the useful thing is a reason at the moment it happens.
+        expect(logger.warn).toHaveBeenCalledWith(expect.stringMatching(/declares no scope/));
+      });
+
+      /*
+       * `created` says an overlay was already open on the registry for this developer.
+       * It says nothing about whether a browser confirmed it — that is a cookie the
+       * registry cannot see. The message used to claim "this browser already holds" it
+       * and withhold the url on that basis, so the case where it is hardest to find was
+       * the case it was hidden in: a second machine, a cleared cookie, or an overlay a
+       * previous run opened.
+       */
+      it.each([true, false])('names the confirm url when created is %s', async (created) => {
+        mocked.openOverlay.mockResolvedValue({ created, confirmUrl: '/c' } as never);
+        const plugin = serving();
+
+        plugin.apply(compiler as any);
+        await compiler.compile();
+
+        expect(logger.info).toHaveBeenCalledWith(expect.stringContaining('/c'));
+      });
+
+      /*
+       * Hot reload failing is invisible from the page: the redirected bundle renders and
+       * simply stops updating. The dev-server client falls back to the *shell's* hostname
+       * when this is unset, so it opens its socket against a host that serves none.
+       */
+      it.each([
+        ['the option is absent', undefined],
+        // What dev-server actually hands a plugin when nobody configured one: a
+        // normalized object carrying whatever the server bound. Asserting on the absent
+        // case alone passed while the real one went unwarned.
+        ['it normalized to the bind address', { hostname: '0.0.0.0', port: 3001 }],
+        ['it normalized to an unspecified v6 bind', { hostname: '::', port: 3001 }],
+      ])('warns when hot reload has no dialable address because %s', async (_, webSocketURL) => {
+        mocked.openOverlay.mockResolvedValue({ created: false } as never);
+        const plugin = serving();
+
+        compiler.options.devServer = {
+          ...compiler.options.devServer,
+          client: webSocketURL ? { webSocketURL } : {},
+        };
+
+        plugin.apply(compiler as any);
+        await compiler.compile();
+
+        expect(logger.warn).toHaveBeenCalledWith(expect.stringMatching(/webSocketURL/));
+      });
+
+      it('stays quiet when the hot reload socket is pinned', async () => {
+        mocked.openOverlay.mockResolvedValue({ created: false } as never);
+        const plugin = serving();
+
+        // After `serving()`, which resets devServer to its own defaults.
+        compiler.options.devServer = {
+          ...compiler.options.devServer,
+          client: { webSocketURL: 'ws://localhost:3001/ws' },
+        };
+
+        plugin.apply(compiler as any);
+        await compiler.compile();
+
+        expect(logger.warn).not.toHaveBeenCalledWith(expect.stringMatching(/client\.webSocketURL/));
+      });
+
+      /*
+       * A dev server exists for hot reload, and hot reload cannot work under the
+       * production shell: React wires Fast Refresh only when the DevTools hook is present
+       * as react-dom evaluates, and the production shell installs none. Asking for it
+       * here means a developer never has to know that to get a working loop.
+       */
+      it('asks for the development shell, which is the one hot reload works in', async () => {
+        mocked.openOverlay.mockResolvedValue({ created: false } as never);
+        const plugin = serving();
+
+        plugin.apply(compiler as any);
+        await compiler.compile();
+
+        expect(mocked.openOverlay).toHaveBeenCalledWith(
+          registry,
+          'acme/demo',
+          expect.any(Object),
+          undefined,
+          expect.any(Object),
+          'dev',
+        );
+      });
+
+      it('opens an overlay instead of publishing', async () => {
+        mocked.openOverlay.mockResolvedValue({ created: true, confirmUrl: '/c' } as never);
+        const plugin = serving();
+
+        plugin.apply(compiler as any);
+        await compiler.compile();
+
+        expect(mocked.publish).not.toHaveBeenCalled();
+        expect(mocked.openOverlay).toHaveBeenCalledWith(
+          registry,
+          'acme/demo',
+          expect.any(Object),
+          undefined,
+          expect.any(Object),
+          'dev',
+        );
+      });
+
+      it('addresses remotes the way the registry does, not by federation key', async () => {
+        mocked.openOverlay.mockResolvedValue({ created: false } as never);
+        const plugin = serving();
+
+        plugin.apply(compiler as any);
+        await compiler.compile();
+
+        const [, , remotes] = mocked.openOverlay.mock.calls[0];
+
+        // `scope/package/Component`, and pointing at this dev server. The scope is
+        // `appshell` because the fixture's package.json declares `@appshell/…` — a
+        // package that says where it belongs overlays into the same place it publishes
+        // to, rather than into whichever scope the developer's token happens to carry.
+        expect(Object.keys(remotes)).toEqual(
+          expect.arrayContaining(['appshell/webpack-plugin/Foo', 'appshell/webpack-plugin/Bar']),
+        );
+        expect(Object.values(remotes)[0].remoteEntryUrl).toMatch(/^http:\/\/localhost:3001\//);
+      });
+
+      /*
+       * The loader describes the code being loaded, and an overlay points at this build.
+       * Without it a redirect addresses a dev server's bundle by whatever container name
+       * the last publish happened to have, and a component not published yet is refused
+       * outright — there being no published loader for it to inherit.
+       */
+      /*
+       * A redirect inherits the published manifestUrl; an introduced component has no
+       * published anything to inherit from, and the composition indexes remotes by it —
+       * so without this the address is in `remotes` and missing from `index`.
+       */
+      it('sends a manifest url, which an introduced remote has nothing to inherit', async () => {
+        mocked.openOverlay.mockResolvedValue({ created: false } as never);
+        const plugin = serving();
+
+        plugin.apply(compiler as any);
+        await compiler.compile();
+
+        const [, , remotes] = mocked.openOverlay.mock.calls[0];
+
+        expect(remotes['appshell/webpack-plugin/Foo'].manifestUrl).toBe(
+          'http://localhost:3001/appshell.manifest.json',
+        );
+      });
+
+      it("sends this build's loader, so the overlay describes the code it points at", async () => {
+        mocked.openOverlay.mockResolvedValue({ created: false } as never);
+        const plugin = serving();
+
+        plugin.apply(compiler as any);
+        await compiler.compile();
+
+        const [, , remotes] = mocked.openOverlay.mock.calls[0];
+
+        expect(remotes['appshell/webpack-plugin/Foo'].loader).toMatchObject({
+          apiVersion: 'federation.appshell.org/v1',
+          kind: 'ModuleFederation',
+          scope: 'TestModule',
+          module: './Foo',
+        });
+      });
+
+      it("sends this build's metadata, so the yaml under development is what renders", async () => {
+        mocked.openOverlay.mockResolvedValue({ created: false } as never);
+        const plugin = serving();
+
+        plugin.apply(compiler as any);
+        await compiler.compile();
+
+        const [, , remotes] = mocked.openOverlay.mock.calls[0];
+        const patch = Object.values(remotes)[0] as { metadata?: Record<string, unknown> };
+
+        // Config metadata is authored, and a developer editing appshell.config.yaml is
+        // changing it as much as the code. Without this an overlay serves their bundle
+        // beside the published route and displayName.
+        expect(patch.metadata).toEqual(expect.objectContaining({ route: '/foo' }));
+      });
+
+      it("sends this build's shared block, keyed by share scope", async () => {
+        mocked.openOverlay.mockResolvedValue({ created: false, divergence: [] } as never);
+        const plugin = serving();
+
+        plugin.apply(compiler as any);
+        await compiler.compile();
+
+        // An overlay serves a build the registry has never seen, so its shared dependency
+        // report otherwise describes the published manifest while the browser runs this.
+        const [, , , , shared] = mocked.openOverlay.mock.calls[0];
+
+        expect(shared).toEqual({
+          '@sharedscope': expect.objectContaining({
+            package1: { requiredVersion: '0.1.0', singleton: true },
+          }),
+        });
+      });
+
+      it('warns loudly when the registry says this build diverges', async () => {
+        mocked.openOverlay.mockResolvedValue({
+          created: false,
+          divergence: [
+            {
+              packageId: 'default/demo@1.0.0',
+              shareScope: 'default',
+              packageName: 'react',
+              published: '^18.0.0',
+              local: '^17.0.0',
+              singleton: { published: true, local: true },
+            },
+          ],
+        } as never);
+        const plugin = serving();
+
+        plugin.apply(compiler as any);
+        await compiler.compile();
+
+        // Nothing downstream can notice: module federation settles a disagreement by
+        // loading whichever copy wins, far from the change that caused it.
+        expect(logger.warn).toHaveBeenCalledWith(
+          expect.stringMatching(/shares react .*\^18\.0\.0 -> \^17\.0\.0/),
+        );
+      });
+
+      it('never fails the build when the registry cannot be reached', async () => {
+        mocked.openOverlay.mockRejectedValue(new Error('connect ECONNREFUSED'));
+        const plugin = serving();
+
+        plugin.apply(compiler as any);
+        await compiler.compile();
+
+        // A dev server that will not start because a registry is down is worse than one
+        // serving code the browser cannot yet compose.
+        expect(errors).toHaveLength(0);
+        expect(logger.warn).toHaveBeenCalledWith(expect.stringMatching(/ECONNREFUSED/));
+      });
+
+      it('says how to fix an unpublished package rather than repeating the registry', async () => {
+        mocked.openOverlay.mockRejectedValue(
+          new Error('default/demo does not publish default/webpack-plugin/Foo.'),
+        );
+        const plugin = serving();
+
+        plugin.apply(compiler as any);
+        await compiler.compile();
+
+        expect(errors).toHaveLength(0);
+        expect(logger.warn).toHaveBeenCalledWith(expect.stringMatching(/appshell publish/));
+      });
+
+      it('warns rather than overlaying when there is no application to overlay', async () => {
+        const plugin = serving({ application: undefined });
+
+        plugin.apply(compiler as any);
+        await compiler.compile();
+
+        expect(mocked.openOverlay).not.toHaveBeenCalled();
+        expect(errors).toHaveLength(0);
+        expect(logger.warn).toHaveBeenCalledWith(expect.stringMatching(/no application/i));
+      });
+    });
+
+    it('should warn when an option overrides the persisted CLI context', async () => {
+      jest.spyOn(fs, 'writeFileSync').mockImplementation();
+      mocked.persistedContext.mockReturnValue({ registry: 'https://persisted.example.com' });
+      const plugin = new AppshellPlugin({ config, registry, publish: true });
+
+      plugin.apply(compiler as any);
+      await compiler.compile();
+
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.stringMatching(/overriding your CLI context/i),
+      );
+    });
+
+    it('should fail before building when publishing without a registry', () => {
+      const plugin = new AppshellPlugin({ config, publish: true });
+
+      expect(() => plugin.apply(compiler as any)).toThrowError(/no registry was given/i);
+    });
+
+    /*
+     * All of this runs in processAssets, which the compiler double used to record and
+     * never invoke. Every assertion below passed vacuously before, or would have.
+     */
+    describe('processAssets', () => {
+      it('should emit the manifest as a compilation asset', async () => {
+        jest.spyOn(fs, 'writeFileSync').mockImplementation();
+        new AppshellPlugin({ config, publish: false }).apply(compiler as any);
+        await compiler.compile();
+
+        expect(compiler.asset('appshell.manifest.json')).toBeDefined();
+      });
+
+      it('should emit a manifest with the remotes substituted', async () => {
+        jest.spyOn(fs, 'writeFileSync').mockImplementation();
+        new AppshellPlugin({ config, publish: false }).apply(compiler as any);
+        await compiler.compile();
+
+        const manifest = JSON.parse(compiler.asset('appshell.manifest.json') as string);
+
+        expect(Object.keys(manifest.components)).toEqual(
+          expect.arrayContaining(['TestModule/Foo', 'TestModule/Bar']),
+        );
+      });
+
+      /*
+       * Substitution writes in place, and building the manifest here from the same object
+       * written to disk at afterEmit replaced the template's own placeholders with values
+       * from the build environment — `${RUNTIME_ENV}` became the string "undefined".
+       *
+       * A template is meant to carry placeholders; that is the whole distinction between
+       * it and a manifest. Nothing downstream would have contradicted it, and no test
+       * could see it while the compilation hook was never fired.
+       */
+      it('should leave the template it was built from untouched', async () => {
+        const written = jest.spyOn(fs, 'writeFileSync').mockImplementation();
+        new AppshellPlugin({ config, publish: false }).apply(compiler as any);
+        await compiler.compile();
+
+        const template = JSON.parse(written.mock.calls[0][1] as string);
+
+        /* eslint-disable no-template-curly-in-string -- the placeholder is the subject */
+        expect(template.vars.TestModule.RUNTIME_ENV).toBe('${RUNTIME_ENV}');
+        /* eslint-enable no-template-curly-in-string */
+      });
+
+      it('should write the scanned token usage onto the template', async () => {
+        const written = jest.spyOn(fs, 'writeFileSync').mockImplementation();
+        compiler.compilation.assets = {
+          'main.css': asset('.a{color:var(--appshell-primary)}'),
+        } as never;
+        new AppshellPlugin({ config, publish: false }).apply(compiler as any);
+        await compiler.compile();
+
+        const template = JSON.parse(written.mock.calls[0][1] as string);
+
+        expect(template.tokens.TestModule.required).toContain('primary');
+      });
+
+      // The scan has to precede the emit, or the manifest understates what the package
+      // needs and nothing downstream disagrees.
+      it('should carry that same usage into the emitted manifest', async () => {
+        jest.spyOn(fs, 'writeFileSync').mockImplementation();
+        compiler.compilation.assets = {
+          'main.css': asset('.a{color:var(--appshell-primary)}'),
+        } as never;
+        new AppshellPlugin({ config, publish: false }).apply(compiler as any);
+        await compiler.compile();
+
+        const manifest = JSON.parse(compiler.asset('appshell.manifest.json') as string);
+
+        expect(manifest.tokens.TestModule.required).toContain('primary');
+      });
+    });
+
+    it('should publish the generated manifest after emit', async () => {
+      jest.spyOn(fs, 'writeFileSync').mockImplementation();
+      const plugin = new AppshellPlugin({ config, registry, publish: true });
+
+      plugin.apply(compiler as any);
+      await compiler.compile();
+
+      expect(mocked.publish).toHaveBeenCalledWith(
+        expect.objectContaining({
+          registry,
+          name: 'webpack-plugin',
+          version: expect.stringMatching(/^\d+\.\d+\.\d+/),
+          // The manifest built during processAssets, not a second one read back off disk.
+          manifest: expect.objectContaining({ remotes: expect.any(Object) }),
+        }),
+      );
+      expect(errors).toHaveLength(0);
+    });
+
+    it('should request force when webpack runs in development mode', async () => {
+      jest.spyOn(fs, 'writeFileSync').mockImplementation();
+      compiler.options.mode = 'development';
+      const plugin = new AppshellPlugin({ config, registry, publish: true });
+
+      plugin.apply(compiler as any);
+      await compiler.compile();
+
+      expect(mocked.publish).toHaveBeenCalledWith(expect.objectContaining({ force: false }));
+    });
+
+    it('should not request force in production mode', async () => {
+      jest.spyOn(fs, 'writeFileSync').mockImplementation();
+      compiler.options.mode = 'production';
+      const plugin = new AppshellPlugin({ config, registry, publish: true });
+
+      plugin.apply(compiler as any);
+      await compiler.compile();
+
+      expect(mocked.publish).toHaveBeenCalledWith(expect.objectContaining({ force: false }));
+    });
+
+    it('should publish under the unscoped package name', () => {
+      expect(AppshellPlugin.identify('packages/webpack-plugin').name).toEqual('webpack-plugin');
+    });
+
+    it('should activate the published version when an application is given', async () => {
+      jest.spyOn(fs, 'writeFileSync').mockImplementation();
+      const plugin = new AppshellPlugin({
+        config,
+        registry,
+        publish: true,
+        application: 'acme/dev',
+      });
+
+      plugin.apply(compiler as any);
+      await compiler.compile();
+
+      expect(mocked.activate).toHaveBeenCalledWith(
+        registry,
+        'acme/dev',
+        'acme/widgets@1.0.0',
+        undefined,
+      );
+    });
+
+    it('should report a failed publish as a compilation error so watch mode survives', async () => {
+      jest.spyOn(fs, 'writeFileSync').mockImplementation();
+      mocked.publish.mockRejectedValue(new Error('403 forbidden'));
+
+      const plugin = new AppshellPlugin({ config, registry, publish: true });
+
+      plugin.apply(compiler as any);
+      // Resolving at all is the assertion: a thrown error stops the build, where a
+      // compilation error lets watch mode report it and carry on.
+      await expect(compiler.compile()).resolves.toBeUndefined();
+
+      expect(errors).toHaveLength(1);
+      expect(errors[0].message).toMatch(/403 forbidden/);
+    });
+  });
+});

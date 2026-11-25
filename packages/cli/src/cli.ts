@@ -1,0 +1,1211 @@
+/* eslint-disable no-console */
+
+import os from 'os';
+import path from 'path';
+import yargs from 'yargs';
+import { readConfig, resolveDefaultScope, resolvePkce } from '../../config/src/utils/config';
+// yargs derives --version by walking up for a package.json, which does not exist beside
+// a bundled CLI — so it reported 'unknown'. webpack inlines this at build time.
+import { version as cliVersion } from '../package.json';
+import * as app from './handlers/app';
+import initConfigHandler, { InitArgs } from './handlers/config/init';
+import listConfigHandler, { ListConfigArgs } from './handlers/config/list';
+import setConfigHandler, { SetConfigArgs } from './handlers/config/set';
+import * as dev from './handlers/dev';
+import { DevStartArgs, DevStatusArgs, DevStopArgs } from './handlers/dev';
+import generateManifestHandler, { GenerateManifestArgs } from './handlers/generate.manifest';
+import loginHandler, { LoginArgs, logout } from './handlers/login';
+import { membersAdd, membersList, create as orgCreate } from './handlers/org';
+import outdatedHandler, { OutdatedArgs } from './handlers/outdated';
+import {
+  deprecate as packagesDeprecate,
+  describe as packagesDescribe,
+  get as packagesGet,
+  list as packagesList,
+  unpublished as packagesUnpublished,
+  visibility as packagesVisibility,
+} from './handlers/packages';
+import publishHandler from './handlers/publish';
+import {
+  create as scopesCreate,
+  get as scopesGet,
+  list as scopesList,
+  release as scopesRelease,
+  transfer as scopesTransfer,
+} from './handlers/scopes';
+import * as theme from './handlers/theme';
+import { ThemeGetArgs, ThemeInitArgs, ThemeListArgs, ThemePublishArgs } from './handlers/theme';
+import { add as trustAdd, list as trustList, remove as trustRemove } from './handlers/trust';
+import whoami from './handlers/whoami';
+import { GlobalArgs } from './util/args';
+
+// readConfig is quiet now, so there is nothing left to suppress here.
+const loadConfig = (cPath: string) => readConfig(cPath);
+const configPathOf = () =>
+  process.env.APPSHELL_CONFIG || path.join(os.homedir(), '.appshell', 'config');
+
+/*
+ * Read when the parser is built, not when this module is imported. Option defaults close
+ * over it and command builders run during parse, so both see whatever `buildCli` last
+ * loaded — which is what lets a test point APPSHELL_CONFIG somewhere empty and get
+ * defaults that do not depend on the machine it runs on.
+ */
+let config = loadConfig(configPathOf());
+
+/*
+ * Each subcommand is declared with the args it actually accepts, rather than all three
+ * sharing one wide union. That is what lets yargs infer a matching shape: a builder
+ * starting from `Argv<GlobalArgs>` and adding this command's options ends up at exactly
+ * the type its handler takes, so nothing has to be asserted.
+ */
+const devStartCommand: yargs.CommandModule<GlobalArgs, DevStartArgs> = {
+  // `$0` keeps bare `appshell dev` working; starting is the common case.
+  command: ['start', '$0'],
+  describe: 'Open an overlay and print the url that applies it',
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  builder: (yargs) =>
+    yargs
+      .option('port', {
+        type: 'number',
+        description: 'Port this package is running on locally, as http://localhost:<port>',
+      })
+      .option('url', {
+        type: 'string',
+        description: 'Full origin this package is served from, when it is not localhost',
+      })
+      .conflicts('port', 'url')
+      .option('package', {
+        type: 'string',
+        description:
+          'Package whose remotes to redirect. Defaults to the package.json in this directory',
+      })
+      .option('remote', {
+        type: 'array',
+        string: true,
+        description:
+          'Redirect only these remote keys. Defaults to every remote the package publishes',
+      })
+      .option('theme', {
+        type: 'string',
+        description:
+          "Render with a different theme for this browser only, as 'base-accent' or a published ref",
+      })
+      .option('shell', {
+        choices: ['prod', 'dev'] as const,
+        default: 'dev' as const,
+        description:
+          'Shell bundle to serve. The development build is what supports hot reloading remotes in place',
+      })
+      .option('open', {
+        boolean: true,
+        default: true,
+        description: 'Open the confirmation page in a browser',
+      }),
+  handler: dev.start,
+};
+
+const devStatusCommand: yargs.CommandModule<GlobalArgs, DevStatusArgs> = {
+  command: 'status',
+  describe: 'List the overlays currently open on the application',
+  handler: dev.status,
+};
+
+const devStopCommand: yargs.CommandModule<GlobalArgs, DevStopArgs> = {
+  command: 'stop [id]',
+  describe: 'Close an overlay, reverting the application for anyone holding it',
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  builder: (yargs) =>
+    yargs
+      .positional('id', { type: 'string', description: 'Overlay to close' })
+      .option('package', {
+        type: 'string',
+        description:
+          'Stop redirecting just this package, leaving the rest of the overlay in place. Defaults to the package.json in this directory',
+      })
+      .option('all', {
+        boolean: true,
+        default: false,
+        description: 'Close every overlay open on this application',
+      }),
+  handler: dev.stop,
+};
+
+/*
+ * `GlobalArgs` on both sides: registry, application and defaultScope are declared with
+ * `global: true` on the root parser before any command attaches, so by the time this
+ * builder runs they are genuinely present — the type is describing what is there rather
+ * than asserting it.
+ */
+const devCommand: yargs.CommandModule<GlobalArgs, GlobalArgs> = {
+  command: 'dev',
+  describe: 'Point an application at this package running locally, for this browser only',
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  builder: (yargs) =>
+    yargs.command(devStartCommand).command(devStatusCommand).command(devStopCommand),
+  handler: () => undefined,
+};
+
+/**
+ * Reads over what the registry holds, shaped after npm and kubectl because both are
+ * already in a developer's fingers.
+ *
+ * The listing marks which version each application has activated. That is the fact
+ * `unpublish` needs and the one the cli could not previously answer — `unpublish` takes a
+ * version and nothing here would tell you which versions existed, let alone which one was
+ * load-bearing.
+ */
+const packagesCommand: yargs.CommandModule<GlobalArgs, GlobalArgs> = {
+  command: 'packages',
+  aliases: ['pkg'],
+  describe: 'List and inspect packages in the appshell registry',
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  builder: (yargs) =>
+    yargs
+      .option('scope', {
+        type: 'string',
+        describe: 'List another scope instead of the configured one',
+      })
+      .command({
+        command: 'list',
+        aliases: ['ls', '$0'],
+        describe: 'List published packages and which versions are activated',
+        handler: packagesList as never,
+      })
+      .command({
+        command: 'get <name>',
+        describe: "Every published version of a package, as 'name' or 'scope/name'",
+        handler: packagesGet as never,
+      })
+      .command({
+        command: 'describe <name>',
+        describe: "What a version exposes, as 'name', 'scope/name' or 'scope/name@version'",
+        handler: packagesDescribe as never,
+      })
+      /*
+       * Publishing cannot do this. Visibility is not part of a package's digest, and
+       * publish short-circuits on a digest match — so `publish --visibility private` on an
+       * existing version matched on content and returned a no-op reporting success.
+       *
+       * Takes a package rather than a version because that is what visibility belongs to,
+       * the way `npm access` treats it: every version follows.
+       */
+      .command({
+        command: 'visibility <name> <visibility>',
+        describe: "Reclassify a package, as 'name' or 'scope/name'",
+        builder: (y) =>
+          y.positional('visibility', {
+            type: 'string',
+            choices: ['public', 'private'] as const,
+            describe: 'What the package becomes',
+          }),
+        handler: packagesVisibility as never,
+      })
+      /*
+       * The remedy for a version published in error. Unpublish refuses anything an
+       * application has activated, so it only works on versions nobody uses — which is
+       * not the case anyone needs a remedy for. This refuses new activations and leaves
+       * existing ones resolving, so nothing running breaks while people move off it.
+       */
+      .command({
+        command: 'deprecate <name> [reason..]',
+        describe: "Mark a version as not to be adopted, as 'name@1.2.3'",
+        builder: (y) =>
+          y
+            .positional('reason', {
+              type: 'string',
+              array: true,
+              describe: 'Why, and what to use instead',
+            })
+            .option('undo', {
+              type: 'boolean',
+              default: false,
+              describe: 'Lift an existing deprecation instead',
+            }),
+        handler: ((argv: { reason?: string[] }) =>
+          packagesDeprecate({
+            ...(argv as object),
+            // Taken as words so a reason needs no quoting, which is the difference
+            // between writing one and writing 'see docs'.
+            //
+            // No words at all is no reason, which lifts the deprecation. Joining the
+            // empty default instead produced '', and an empty string is a field that is
+            // present and blank rather than absent — so the bare form sent
+            // `{reason: ''}`, which the registry rightly refuses as a deprecation with
+            // nothing to say, while the CLI had already decided it was undeprecating and
+            // reported the failure under that name.
+            reason: argv.reason?.length ? argv.reason.join(' ') : undefined,
+          } as never)) as never,
+      })
+      /*
+       * What `restore` can still bring back, and until when. appshellhq/appshell-services#29.
+       * The frontend must never be the only way to do anything, so the list is here too.
+       */
+      .command({
+        command: 'unpublished <name>',
+        describe: "Unpublished versions that can still be restored, as 'name' or 'scope/name'",
+        handler: packagesUnpublished as never,
+      }),
+  handler: () => undefined,
+};
+
+/*
+ * A scope is the namespace half of every package address, and it is owned.
+ *
+ * Publishing provisions the caller's own, so most people never need this. It exists for
+ * every other name: the registry refuses a publish into a scope nobody has claimed rather
+ * than granting it on the way past, and this is the command that refusal names. Without
+ * it the only route out of that error was an http request written by hand.
+ */
+const scopesCommand: yargs.CommandModule<GlobalArgs, GlobalArgs> = {
+  command: 'scopes',
+  aliases: ['scope'],
+  describe: 'Claim and inspect the namespaces packages are published into',
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  builder: (yargs) =>
+    yargs
+      .command({
+        command: 'list',
+        aliases: ['ls', '$0'],
+        describe: 'List the scopes you can publish into',
+        handler: scopesList as never,
+      })
+      .command({
+        command: 'create <name>',
+        describe: 'Claim a scope',
+        handler: scopesCreate as never,
+      })
+      .command({
+        command: 'get <name>',
+        describe: 'Show a scope and who owns it, or that it is unclaimed',
+        handler: scopesGet as never,
+      })
+      .command({
+        command: 'release <name>',
+        describe: 'Give up a scope; the name is freed only if it never published',
+        handler: scopesRelease as never,
+      })
+      .command({
+        command: 'transfer <name> <organization>',
+        describe: 'Hand a scope to an organization you belong to (one way)',
+        handler: scopesTransfer as never,
+      }),
+  handler: () => undefined,
+};
+
+/**
+ * Organizations, on the platform the registry asks about membership: the way a namespace
+ * comes to have more than one person who can publish into it, by `scopes transfer` to one.
+ */
+const orgCommand: yargs.CommandModule<GlobalArgs, GlobalArgs> = {
+  command: 'org',
+  aliases: ['orgs', 'organization'],
+  describe: 'Create organizations and manage who belongs to them',
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  builder: (yargs) =>
+    yargs
+      .option('api', {
+        describe: 'Platform api organizations live on; derived from the auth issuer when unset',
+        default: process.env.APPSHELL_API || config.api,
+        type: 'string',
+      })
+      .option('authIssuer', {
+        describe: 'Auth issuer, from which the platform api is derived',
+        default: process.env.APPSHELL_AUTH_ISSUER || config.authIssuer,
+        type: 'string',
+      })
+      .command({
+        command: 'create <slug>',
+        describe: 'Create an organization; you own it',
+        builder: (y) =>
+          y.option('displayName', { type: 'string', describe: 'Human-readable name' }),
+        handler: orgCreate as never,
+      })
+      .command({
+        command: 'members',
+        describe: 'List and add the members of an organization',
+        builder: (y) =>
+          y
+            .command({
+              command: 'list <organization>',
+              aliases: ['ls'],
+              describe: 'List the members of an organization',
+              handler: membersList as never,
+            })
+            .command({
+              command: 'add <organization> <userId>',
+              describe: 'Add a member by user id (theirs from `appshell whoami`)',
+              builder: (z) =>
+                z.option('role', {
+                  choices: ['member', 'admin'] as const,
+                  default: 'member' as const,
+                  describe: 'Admins can add and remove members',
+                }),
+              handler: membersAdd as never,
+            })
+            .demandCommand(),
+        handler: () => undefined,
+      })
+      .demandCommand(),
+  handler: () => undefined,
+};
+
+/**
+ * Trusted publishing: which CI workflows may publish into a scope with their own OIDC
+ * identity, so no secret is stored anywhere. `publish` presents the token; this manages the
+ * records the registry checks it against. appshellhq/appshell-services#51.
+ *
+ * With --application, trusted deployment instead: which workloads — GitHub workflows, or
+ * Kubernetes service accounts — may apply one application of the scope, which `app apply`
+ * (or a controller) does with their own tokens. appshellhq/appshell-services#57.
+ *
+ * The scope is a positional, never resolved from config or the working directory: this
+ * decides who else can publish into a namespace, and that is not something to aim by
+ * default.
+ */
+/*
+ * `trust`'s own --application, never defaulted. The global option of the same name takes its
+ * default from APPSHELL_APPLICATION or config, which is right for commands that act on "the"
+ * application, and wrong here: whether --application is given decides whether a command
+ * changes the scope's publishers or an application's deployers, so a configured application
+ * must not silently turn `trust remove` to the other set of records.
+ */
+const TRUST_APPLICATION = {
+  type: 'string',
+  requiresArg: true,
+  default: undefined,
+  describe:
+    "An application in the scope: manage the workloads trusted to apply it, rather than the scope's publishers",
+} as const;
+
+const trustCommand: yargs.CommandModule<GlobalArgs, GlobalArgs> = {
+  command: 'trust',
+  describe:
+    'Trust CI workflows to publish into a scope, or workloads to apply its applications, without a stored secret',
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  builder: (yargs) =>
+    yargs
+      .command({
+        command: 'add <scope>',
+        describe:
+          'Trust a GitHub Actions workflow to publish into a scope, or a workload to apply one of its applications',
+        builder: (y) =>
+          y
+            .positional('scope', {
+              type: 'string',
+              describe: 'Scope the workflow may publish into, or whose application it may apply',
+            })
+            .option('application', TRUST_APPLICATION)
+            .option('github', {
+              type: 'string',
+              requiresArg: true,
+              describe: 'Repository the workflow runs in, as owner/repo',
+            })
+            .option('workflow', {
+              type: 'string',
+              requiresArg: true,
+              describe: 'Workflow file, as pipeline.yml or .github/workflows/pipeline.yml',
+            })
+            .option('kubernetes', {
+              type: 'string',
+              requiresArg: true,
+              describe:
+                "With --application: the cluster's OIDC issuer, exactly as its service account tokens carry it, for a Kubernetes service account",
+            })
+            .option('namespace', {
+              type: 'string',
+              requiresArg: true,
+              describe: "With --kubernetes: the service account's namespace",
+            })
+            .option('service-account', {
+              type: 'string',
+              requiresArg: true,
+              describe: 'With --kubernetes: the service account',
+            })
+            .conflicts('github', 'kubernetes')
+            .conflicts('kubernetes', ['workflow', 'environment', 'issuer', 'github-api'])
+            .check((args) => {
+              if (!args.github && !args.kubernetes) {
+                throw new Error(
+                  'Name what to trust: --github <owner/repo>, or --kubernetes <issuer>.',
+                );
+              }
+
+              if (args.github && !args.workflow) {
+                throw new Error('--github needs --workflow: the workflow file to trust.');
+              }
+
+              if (args.kubernetes && !(args.namespace && args.serviceAccount)) {
+                throw new Error('--kubernetes needs --namespace and --service-account.');
+              }
+
+              if ((args.namespace || args.serviceAccount) && !args.kubernetes) {
+                throw new Error('--namespace and --service-account go with --kubernetes.');
+              }
+
+              return true;
+            })
+            .option('environment', {
+              type: 'string',
+              describe:
+                'Deployment environment the job must run in. Recommended: its protection rules then decide which runs can publish',
+            })
+            // No defaults here: githubInstance supplies github.com's pair when neither is given,
+            // and refuses one without the other, so the ids and the issuer can't come from two
+            // different GitHub instances.
+            .option('issuer', {
+              type: 'string',
+              describe:
+                "OIDC issuer the workflow's tokens come from: https://<host>/_services/token for Enterprise Server, given with --github-api. github.com's when both are left out",
+            })
+            .option('github-api', {
+              type: 'string',
+              describe:
+                "GitHub api the repository is looked up on: https://<host>/api/v3 for Enterprise Server, given with --issuer. github.com's when both are left out",
+            }),
+        handler: trustAdd as never,
+      })
+      .command({
+        command: 'list <scope>',
+        aliases: ['ls'],
+        describe:
+          'List the workflows trusted to publish into a scope, or the workloads trusted to apply one of its applications',
+        builder: (y) => y.option('application', TRUST_APPLICATION),
+        handler: trustList as never,
+      })
+      .command({
+        command: 'remove <scope> <id>',
+        aliases: ['rm'],
+        describe: 'Stop trusting a workflow or workload, by the id `trust list` shows',
+        builder: (y) => y.option('application', TRUST_APPLICATION),
+        handler: trustRemove as never,
+      })
+      .demandCommand(),
+  handler: () => undefined,
+};
+
+const whoamiCommand: yargs.CommandModule<GlobalArgs, GlobalArgs> = {
+  command: 'whoami',
+  describe: 'Show who you are logged in as, including the user id organizations add members by',
+  handler: whoami as never,
+};
+
+const generateManifestCommand: yargs.CommandModule<unknown, GenerateManifestArgs> = {
+  command: 'manifest',
+  describe: 'Generate the appshell manifest by processing the template specified by --template',
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  builder: (yargs) =>
+    yargs
+      // No default: the plugin emits the template into webpack's output directory, which
+      // the cli cannot know, and a default leaves the handler unable to tell a path
+      // someone supplied from one nobody chose. Absent, it is resolved by looking.
+      .option('template', {
+        alias: 't',
+        type: 'string',
+        description: 'Path to the appshell config template to process',
+      })
+      .option('outDir', {
+        alias: 'o',
+        default: 'dist',
+        requiresArg: true,
+        type: 'string',
+        description: 'Output location for the appshell manifest',
+      })
+      .option('outFile', {
+        alias: 'f',
+        default: 'appshell.manifest.json',
+        type: 'string',
+        description: 'Output filename for the appshell manifest',
+      }),
+  handler: generateManifestHandler,
+};
+
+const outdatedCommand: yargs.CommandModule<unknown, OutdatedArgs> = {
+  command: 'outdated',
+  aliases: ['o'],
+  describe: 'Analyzes shared dependencies for outdated versions',
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  builder: (yargs) =>
+    yargs
+      .option('registry', {
+        description: 'Registry against which the package is compared',
+      })
+      .option('workingDir', {
+        alias: 'd',
+        default: '.',
+        description: 'Working directory to analyze shared dependencies',
+      })
+      .option('manager', {
+        alias: 'm',
+        default: 'npm',
+        type: 'string',
+        choices: ['npm', 'yarn'],
+        description: 'Package manager to use for dependency resolution',
+      }) as yargs.Argv<OutdatedArgs>,
+  handler: outdatedHandler,
+};
+
+const initConfigCommand: yargs.CommandModule<unknown, InitArgs> = {
+  command: 'init',
+  aliases: ['i'],
+  describe: 'Initialize the configuration',
+  // registry, application and defaultScope arrive as global options; these two did not. They
+  // still reached the handler — the CLI is strictCommands() rather than strict(), so
+  // yargs passes an undeclared option through — but nothing advertised them, and
+  // `config init --help` was the only place a caller would look.
+  //
+  // Deliberately without defaults: with one, yargs would always supply a value, the
+  // handler's `?? existing` would never fire, and re-running init would silently wipe a
+  // configured issuer.
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  builder: (yargs) =>
+    yargs
+      .option('config', {
+        alias: 'c',
+        describe: 'Path to the cli config file',
+        default: configPathOf(),
+        type: 'string',
+      })
+      // Declared here without defaults so they shadow the global options, whose defaults
+      // would otherwise make argv always carry a value and init write it as though it had
+      // been chosen.
+      .option('defaultScope', {
+        describe: 'Scope that unqualified packages and applications resolve to',
+        type: 'string',
+      })
+      .option('application', {
+        describe: "Application to operate against, as 'name' or 'scope/name'",
+        type: 'string',
+      })
+      .option('authIssuer', {
+        describe: 'OIDC issuer the registry authenticates against',
+        type: 'string',
+      })
+      .option('clientId', {
+        describe: 'OIDC client the cli authenticates as',
+        type: 'string',
+      })
+      .option('pkce', {
+        describe:
+          'Send PKCE when logging in (the default). --no-pkce for a provider that refuses it, ' +
+          'such as Okta',
+        type: 'boolean',
+      })
+      .option('authScope', {
+        describe:
+          "OIDC scopes 'appshell login' asks for, such as the registry API's scope Entra ID needs",
+        type: 'string',
+      }) as yargs.Argv<InitArgs>,
+  handler: initConfigHandler,
+};
+
+const listConfigCommand: yargs.CommandModule<unknown, ListConfigArgs> = {
+  command: 'list',
+  aliases: ['ls'],
+  describe: 'Print the current cli configuration',
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  builder: (yargs) =>
+    yargs.option('config', {
+      alias: 'c',
+      describe: 'Path to the cli config file',
+      default: configPathOf(),
+      type: 'string',
+    }) as yargs.Argv<ListConfigArgs>,
+  handler: listConfigHandler,
+};
+
+const setConfigCommand: yargs.CommandModule<unknown, SetConfigArgs> = {
+  command: 'set <key> <value>',
+  describe: 'Set a value in the cli configuration',
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  builder: (yargs) =>
+    yargs
+      .positional('key', { type: 'string', demandOption: true })
+      .positional('value', { type: 'string', demandOption: true })
+      .option('config', {
+        alias: 'c',
+        describe: 'Path to the cli config file',
+        default: configPathOf(),
+        type: 'string',
+      }) as yargs.Argv<SetConfigArgs>,
+  handler: setConfigHandler,
+};
+
+const loginCommand: yargs.CommandModule<unknown, LoginArgs> = {
+  command: 'login',
+  describe: 'Authenticate with an appshell registry',
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  builder: (yargs) =>
+    yargs
+      .option('authIssuer', {
+        default: process.env.APPSHELL_AUTH_ISSUER || config.authIssuer || '',
+        type: 'string',
+        description: 'OIDC issuer url used to obtain a token',
+      })
+      .option('clientId', {
+        default: process.env.APPSHELL_CLIENT_ID || config.clientId || 'appshell-cli',
+        type: 'string',
+        description: 'OIDC client id',
+      })
+      .option('pkce', {
+        default: resolvePkce(config),
+        type: 'boolean',
+        description:
+          'Send PKCE with the device grant. --no-pkce for a provider that refuses it, such as Okta',
+      })
+      .option('clientSecret', {
+        // Only read from the application so the secret never lands in shell history.
+        default: process.env.APPSHELL_CLIENT_SECRET,
+        type: 'string',
+        description:
+          'OIDC client secret. Switches to the client credentials grant for CI. Prefer APPSHELL_CLIENT_SECRET',
+      })
+      .option('scope', {
+        /*
+         * `offline_access` is what makes staying logged in possible at all.
+         *
+         * Without it the refresh token is bound to the sso session, which this realm
+         * idles out after 30 minutes — so a refresh only ever worked inside a stretch of
+         * continuous use, which is when logging in again is least annoying. An offline
+         * token outlives the session; Keycloak's default idle for one is 30 days.
+         *
+         * Every account here is granted the offline_access role through
+         * default-roles-appshell, so asking for it costs nothing when it is not wanted.
+         */
+        default:
+          process.env.APPSHELL_AUTH_SCOPE || config.authScope || 'openid profile offline_access',
+        alias: 'auth-scope',
+        type: 'string',
+        description: "OIDC scopes to request. Set a default with 'appshell config set auth-scope'",
+      }) as yargs.Argv<LoginArgs>,
+  handler: loginHandler,
+};
+
+const logoutCommand: yargs.CommandModule<unknown, { registry: string }> = {
+  command: 'logout',
+  describe: 'Discard the stored credential for a registry',
+  handler: logout,
+};
+
+/*
+ * The builder's type names the flag as it is written — `package-version` — while the
+ * handler reads `packageVersion`. Both are correct: yargs supplies the camel-cased form
+ * to handlers, which is what `ArgumentsCamelCase` describes. Declaring the option type
+ * literally is what lets the two line up without an assertion.
+ */
+type PublishOptions = GlobalArgs & {
+  template?: string;
+  name?: string;
+  'package-version'?: string;
+  visibility?: 'public' | 'private';
+  watch: boolean;
+  force: boolean;
+};
+
+const publishCommand: yargs.CommandModule<GlobalArgs, PublishOptions> = {
+  command: 'publish',
+  describe: 'Publish a package to the appshell registry',
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  builder: (yargs) =>
+    yargs
+      // No default: the plugin emits the template into webpack's output directory, which
+      // the cli cannot know, and a default leaves the handler unable to tell a path
+      // someone supplied from one nobody chose. Absent, it is resolved by looking.
+      .option('template', {
+        alias: 't',
+        type: 'string',
+        description: 'Path to the appshell config template to process',
+      })
+      .option('name', {
+        type: 'string',
+        description: 'Package name. Defaults to the unscoped package.json name',
+      })
+      // Not `version`: yargs reserves that word for its own flag, so the value never
+      // reaches the handler and the package silently publishes at its package.json version.
+      .option('package-version', {
+        type: 'string',
+        description: 'Package version to publish as. Defaults to the package.json version',
+      })
+      .option('visibility', {
+        type: 'string',
+        choices: ['public', 'private'] as const,
+        description: 'Visibility of the published version',
+      })
+      .option('watch', {
+        alias: 'w',
+        boolean: true,
+        default: false,
+        type: 'boolean',
+        description: 'Republish whenever the template changes',
+      })
+      // Whether force is permitted is the registry's call, not this flag's: it is on by
+      // default only for a registry running without auth, and a real one refuses unless
+      // ALLOW_FORCE_PUBLISH says otherwise. Sending it has always been supported end to
+      // end — there was simply no way to ask for it from here.
+      .option('force', {
+        boolean: true,
+        default: false,
+        type: 'boolean',
+        description: 'Republish over an existing version whose content differs',
+      }),
+  handler: publishHandler,
+};
+
+// The forms `parseAddress` takes. Publish prints the second, so it's what gets copied.
+const NAME_FORMS = "The package, as 'name', 'scope/name' or '@scope/name'";
+
+const unpublishCommand: yargs.CommandModule<
+  unknown,
+  { registry: string; defaultScope?: string; name: string; version: string }
+> = {
+  command: 'unpublish <name> <version>',
+  describe: 'Remove a published package version from the appshell registry',
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  builder: (yargs) =>
+    yargs
+      // `version` is yargs' own reserved flag. Left alone it wins over this positional
+      // and the handler unpublishes `<name>@false` — so turn the built-in off for this
+      // command, where a bare `--version` would be meaningless anyway. `appshell
+      // --version` is unaffected; the top-level parser still has it.
+      .version(false)
+      .positional('name', { type: 'string', demandOption: true, describe: NAME_FORMS })
+      .positional('version', { type: 'string', demandOption: true }) as yargs.Argv<{
+      registry: string;
+      defaultScope?: string;
+      name: string;
+      version: string;
+    }>,
+  handler: async (argv) => {
+    const { RegistryClient } = await import('./util/registry');
+    const { resolvePackage } = await import('./util/address');
+    const { scopeId, name } = await resolvePackage(argv, { positional: argv.version });
+    const result = await new RegistryClient(argv.registry).unpublish(scopeId, name, argv.version);
+    console.log(`Unpublished ${scopeId}/${name}@${argv.version}`);
+    // A registry that keeps the content says until when (appshellhq/appshell-services#29);
+    // one from before says nothing, and nor may a reply with no body.
+    if (result?.restorableUntil) {
+      const { restoreCommand } = await import('./util/restoreHint');
+      console.log(
+        `Restorable until ${new Date(result.restorableUntil).toISOString()}: ${restoreCommand({
+          name,
+          version: argv.version,
+          scopeId,
+          registry: argv.registry,
+        })}`,
+      );
+    }
+  },
+};
+
+type VersionArgs = { registry: string; defaultScope?: string; name: string; version: string };
+
+// The positionals restore and purge share with unpublish, `--version` off for the same reason.
+const versionPositionals = (y: yargs.Argv) =>
+  y
+    .version(false)
+    .positional('name', { type: 'string', demandOption: true, describe: NAME_FORMS })
+    .positional('version', { type: 'string', demandOption: true }) as yargs.Argv<VersionArgs>;
+
+/* Undoes an unpublish inside the registry's window. appshellhq/appshell-services#29. */
+const restoreCommand: yargs.CommandModule<unknown, VersionArgs> = {
+  command: 'restore <name> <version>',
+  describe: 'Bring back an unpublished version, exactly as it was, inside its window',
+  builder: versionPositionals,
+  handler: async (argv) => {
+    const { RegistryClient } = await import('./util/registry');
+    const { resolvePackage } = await import('./util/address');
+    const { scopeId, name } = await resolvePackage(argv, { positional: argv.version });
+    await new RegistryClient(argv.registry).restorePackage(scopeId, name, argv.version);
+    console.log(`Restored ${scopeId}/${name}@${argv.version}`);
+  },
+};
+
+/*
+ * Drops an unpublished version's kept content now, so it can no longer be restored: for a
+ * removal that can't wait, such as a secret in a manifest. The registry refuses it for a
+ * published version, so it's always the second of two steps, and `--yes` makes the second
+ * one deliberate as well.
+ */
+const purgeCommand: yargs.CommandModule<unknown, VersionArgs & { yes: boolean }> = {
+  command: 'purge <name> <version>',
+  describe: "Permanently drop an unpublished version's content, so it can't be restored",
+  builder: (y) =>
+    versionPositionals(y)
+      .option('yes', {
+        type: 'boolean',
+        default: false,
+        describe: 'Confirm: this cannot be undone',
+      })
+      // Refused by the parser, before anything reaches the registry.
+      .check((argv) =>
+        argv.yes
+          ? true
+          : `Purging ${argv.name}@${argv.version} cannot be undone. Run it again with --yes to confirm.`,
+      ) as yargs.Argv<VersionArgs & { yes: boolean }>,
+  handler: async (argv) => {
+    const { RegistryClient } = await import('./util/registry');
+    const { resolvePackage } = await import('./util/address');
+    const { scopeId, name } = await resolvePackage(argv, { positional: argv.version });
+    await new RegistryClient(argv.registry).purgePackage(scopeId, name, argv.version);
+    console.log(`Purged ${scopeId}/${name}@${argv.version}: it can no longer be restored`);
+  },
+};
+
+/**
+ * The parser, with every command registered and nothing parsed.
+ *
+ * Separate from the entry point so the wiring can be exercised. `index.ts` used to call
+ * `.parse()` at module load, which meant importing the commands ran the CLI — so nothing
+ * could assert that a command passes the right arguments to its handler, and
+ * `unpublish <name> <version>` shipped handing the handler `version: false`.
+ *
+ * Deliberately does not install `.fail()`. That handler calls `process.exit`, which a
+ * caller driving the parser needs to supply for itself.
+ */
+export const buildCli = (args: string[]) => {
+  config = loadConfig(configPathOf());
+
+  return (
+    yargs(args)
+      .option('apiKey', {
+        alias: 'k',
+        default: process.env.APPSHELL_API_KEY || config.apiKey || '',
+        type: 'string',
+        description: 'Api key to use for appshell registry',
+        global: true,
+      })
+      .option('apiKeyHeader', {
+        default: process.env.APPSHELL_API_KEY_HEADER || config.apiKeyHeader || 'x-api-key',
+        type: 'string',
+        description: 'Header to send the registry api key in',
+        global: true,
+      })
+      .option('registry', {
+        alias: 'r',
+        describe: 'Appshell registry to operate against',
+        default: process.env.APPSHELL_REGISTRY || config.registry || 'http://localhost:7150',
+        type: 'string',
+        global: true,
+      })
+      .option('application', {
+        alias: 'a',
+        describe: "Application to operate against, as 'name' or 'scope/name'",
+        default: process.env.APPSHELL_APPLICATION || config.application,
+        type: 'string',
+        global: true,
+      })
+      /*
+       * No default. An unset scope is resolved per command by `resolveScopeId`, which
+       * falls back to the package in the working directory and then to the scope the
+       * account owns. The literal 'default' that used to sit here named a scope nobody
+       * owns and nothing can publish into, so it addressed an empty namespace.
+       *
+       * `default-scope`, not `scope-id`. The old name described identity — the scope this
+       * account *has* — and the value has never been that: the registry takes a caller's
+       * scope from the token. It says where an unqualified name resolves, an unscoped
+       * package's included, since that's where it's then looked for (`packageScope`).
+       */
+      .option('defaultScope', {
+        describe: 'Scope that unqualified packages and applications resolve to',
+        default: resolveDefaultScope(config),
+        type: 'string',
+        global: true,
+      })
+      .option('verbose', {
+        alias: 'v',
+        boolean: true,
+        default: false,
+        type: 'boolean',
+        description: 'Verbose output',
+        global: true,
+      })
+      .middleware((argv) => {
+        if (!argv.verbose) {
+          // eslint-disable-next-line no-console
+          console.debug = () => {};
+        }
+      })
+      .command({
+        command: 'generate [target]',
+        describe: 'Generates a resource',
+        handler: () => {},
+        // eslint-disable-next-line @typescript-eslint/no-shadow
+        builder: (yargs) => yargs.command(generateManifestCommand).demandCommand(),
+      })
+      .command({
+        command: 'config [target]',
+        describe: 'Configures the appshell cli',
+        handler: () => {},
+        // eslint-disable-next-line @typescript-eslint/no-shadow
+        builder: (yargs) =>
+          yargs
+            .command(initConfigCommand)
+            .command(listConfigCommand)
+            .command(setConfigCommand)
+            .demandCommand(),
+      })
+      .command({
+        command: 'theme <target>',
+        describe: 'Publish and browse themes in the appshell registry',
+        handler: () => {},
+        // eslint-disable-next-line @typescript-eslint/no-shadow
+        builder: (yargs) =>
+          yargs
+            .command<ThemeListArgs>({
+              command: 'list',
+              describe: 'List themes this scope may use: its own, plus every public one',
+              // eslint-disable-next-line @typescript-eslint/no-shadow
+              builder: (yargs) =>
+                yargs.option('scope', {
+                  type: 'string',
+                  description: 'List another scope instead of the configured one',
+                }),
+              handler: theme.list,
+            })
+            .command<ThemeGetArgs>({
+              command: 'get <ref>',
+              describe:
+                "Read a theme, values included. 'name', 'scope/name' or 'scope/name@version'",
+              // eslint-disable-next-line @typescript-eslint/no-shadow
+              builder: (yargs) => yargs.positional('ref', { type: 'string', demandOption: true }),
+              handler: theme.get,
+            })
+            .command<ThemeInitArgs>({
+              command: 'init',
+              describe: 'Fork a published theme into a file to edit',
+              // eslint-disable-next-line @typescript-eslint/no-shadow
+              builder: (yargs) =>
+                yargs
+                  .option('from', {
+                    type: 'string',
+                    demandOption: true,
+                    description: "Theme to fork, as 'scope/name@version'",
+                  })
+                  .option('name', {
+                    type: 'string',
+                    description: "Name for the new theme. Defaults to '<source>-fork'",
+                  })
+                  .option('out', {
+                    alias: 'o',
+                    type: 'string',
+                    description: 'Write to this file instead of stdout',
+                  }),
+              handler: theme.init,
+            })
+            .command<ThemePublishArgs>({
+              command: 'publish',
+              describe: 'Publish a theme from a file',
+              // eslint-disable-next-line @typescript-eslint/no-shadow
+              builder: (yargs) =>
+                yargs.option('file', {
+                  alias: 'f',
+                  type: 'string',
+                  demandOption: true,
+                  description: 'Path to the theme resource to publish',
+                }),
+              handler: theme.publish,
+            })
+            .demandCommand(),
+      })
+      .command({
+        command: 'app <target>',
+        describe: 'Manage appshell applications',
+        handler: () => {},
+        // eslint-disable-next-line @typescript-eslint/no-shadow
+        builder: (yargs) =>
+          yargs
+            .command({
+              command: 'apply',
+              describe: 'Reconcile an application against a declared resource file',
+              // eslint-disable-next-line @typescript-eslint/no-shadow
+              builder: (yargs) =>
+                yargs.option('file', {
+                  alias: 'f',
+                  type: 'string',
+                  demandOption: true,
+                  requiresArg: true,
+                  describe: 'Path to an application resource, as yaml or json',
+                }),
+              handler: app.apply as never,
+            })
+            .command({
+              command: 'list',
+              aliases: ['ls'],
+              describe: 'List applications',
+              // eslint-disable-next-line @typescript-eslint/no-shadow
+              builder: (yargs) =>
+                yargs.option('owner', { type: 'string', description: 'Filter by owner' }),
+              handler: app.list as never,
+            })
+            .command({
+              command: 'get [name]',
+              describe: 'Show a single application',
+              handler: app.get as never,
+            })
+            .command({
+              command: 'create <name>',
+              describe: 'Create an application',
+              // eslint-disable-next-line @typescript-eslint/no-shadow
+              builder: (yargs) =>
+                yargs
+                  .positional('name', { type: 'string', demandOption: true })
+                  .option('ephemeral', { boolean: true, default: false, type: 'boolean' })
+                  .option('shell-bundle-url', {
+                    type: 'string',
+                    describe:
+                      'Shell bundle this application loads, instead of the registry default',
+                  }),
+              handler: app.create as never,
+            })
+            .command({
+              command: 'delete [name]',
+              aliases: ['rm'],
+              describe: 'Delete an application',
+              handler: app.remove as never,
+            })
+            .command({
+              command: 'activate <package>',
+              describe:
+                "Activate a package, as 'scope/name@version', supplying any vars it declares",
+              // eslint-disable-next-line @typescript-eslint/no-shadow
+              builder: (yargs) =>
+                yargs.positional('package', { type: 'string', demandOption: true }).option('set', {
+                  type: 'array',
+                  string: true,
+                  description:
+                    'Supply a var the package declares, as NAME=value. Repeatable. The scope ' +
+                    'is resolved from the package, so a name it does not declare is refused.',
+                }),
+              handler: app.activate as never,
+            })
+            .command({
+              command: 'deactivate <package>',
+              describe: "Remove a package from an application, as 'name' or 'scope/name'",
+              // eslint-disable-next-line @typescript-eslint/no-shadow
+              builder: (yargs) =>
+                yargs.positional('package', { type: 'string', demandOption: true }),
+              handler: app.deactivate as never,
+            })
+            .command({
+              command: 'revisions [name]',
+              describe: 'List an application revision history',
+              // eslint-disable-next-line @typescript-eslint/no-shadow
+              builder: (yargs) => yargs.option('limit', { type: 'number' }),
+              handler: app.revisions as never,
+            })
+            .command({
+              command: 'rollback [name]',
+              describe: 'Roll an application back to a previous revision',
+              // eslint-disable-next-line @typescript-eslint/no-shadow
+              builder: (yargs) =>
+                yargs.option('to', { type: 'number', demandOption: true, description: 'Revision' }),
+              handler: app.rollback as never,
+            })
+            .command({
+              command: 'composition [name]',
+              describe: 'Print the resolved composition for an application',
+              handler: app.composition as never,
+            })
+            .command({
+              command: 'open [name]',
+              describe: 'Print the shell url for an application',
+              handler: app.open as never,
+            })
+            .command({
+              command: 'sync',
+              describe: 'Sync a target application from a source application',
+              // eslint-disable-next-line @typescript-eslint/no-shadow
+              builder: (yargs) =>
+                yargs
+                  .option('from', {
+                    type: 'string',
+                    demandOption: true,
+                    description: "Source application as 'name' or 'scope/name'",
+                  })
+                  .option('to', {
+                    type: 'string',
+                    description:
+                      "Target application as 'name' or 'scope/name'. Defaults to --application.",
+                  })
+                  .option('mode', {
+                    type: 'string',
+                    choices: ['replace', 'merge'] as const,
+                    default: 'replace',
+                    description:
+                      'replace copies source fields verbatim, merge applies source values',
+                  })
+                  .option('include', {
+                    type: 'array',
+                    string: true,
+                    choices: [
+                      'packages',
+                      'shell',
+                      'overrides',
+                      'allowOverrides',
+                      'sharedBaselines',
+                      'sharedDepsEnforcement',
+                    ] as const,
+                    description: 'Optional list of application sections to sync',
+                  }),
+              handler: app.sync as never,
+            })
+            .command({
+              command: 'clone',
+              describe: 'Create a new application by cloning a source application',
+              // eslint-disable-next-line @typescript-eslint/no-shadow
+              builder: (yargs) =>
+                yargs
+                  .option('from', {
+                    type: 'string',
+                    demandOption: true,
+                    description: "Source application as 'name' or 'scope/name'",
+                  })
+                  .option('to', {
+                    type: 'string',
+                    description:
+                      "Target application as 'name' or 'scope/name'. Defaults to --application.",
+                  })
+                  .option('ephemeral', {
+                    boolean: true,
+                    type: 'boolean',
+                    description: 'Optional ephemeral override on the target application',
+                  })
+                  .option('allow-overlays', {
+                    type: 'boolean',
+                    description:
+                      "Let the clone take overlays, so 'appshell dev' can point it at your machine. A clone never inherits its source's setting",
+                  }),
+              handler: app.clone as never,
+            })
+            .demandCommand(),
+      })
+      .command(devCommand)
+      .command(packagesCommand)
+      .command(scopesCommand)
+      .command(orgCommand)
+      .command(trustCommand)
+      .command(whoamiCommand)
+      .command(loginCommand)
+      .command(logoutCommand)
+      .command(publishCommand)
+      .command(unpublishCommand)
+      .command(restoreCommand)
+      .command(purgeCommand)
+      .command(outdatedCommand)
+      .version(cliVersion)
+      .help()
+      .alias('h', 'help')
+      /*
+       * Without these, `appshell nonsens` printed nothing and exited 0, so a typo in a
+       * script read as success. Every subcommand group already demands one; the top level
+       * was the one that did not.
+       *
+       * `strictCommands` rather than `strict`: unknown *options* stay tolerated, because
+       * global flags are added over time and rejecting them would break callers who pass a
+       * newer flag to an older CLI. An unknown command has no such excuse.
+       */
+      .demandCommand(1, 'Specify a command. Run `appshell --help` to see them.')
+      .strictCommands()
+  );
+};
+
+export default buildCli;

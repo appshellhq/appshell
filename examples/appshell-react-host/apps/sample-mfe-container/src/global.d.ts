@@ -1,8 +1,6 @@
 declare module '*.svg' {
-  const content: string;
-  export default content;
-}
+  import type { FC, SVGProps } from 'react';
 
-interface Window {
-  __appshell_env__ContainerModule?: Record<string, string, string | number | undefined>;
+  const Svg: FC<SVGProps<SVGSVGElement>>;
+  export default Svg;
 }

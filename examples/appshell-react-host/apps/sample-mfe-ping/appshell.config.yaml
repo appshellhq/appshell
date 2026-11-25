@@ -1,10 +1,12 @@
-remotes:
+# Demo code from a public repo, so published public. The registry defaults to private.
+visibility: public
+
+components:
   PingModule/Ping:
-    url: ${SAMPLE_MFE_PING_URL}
-    filename: ${REMOTE_ENTRY_PATH}
     metadata:
       route: /ping
       displayName: Ping Micro-Frontend
-      displayGroup: main
+      displayGroup: primary
       order: 10
-      icon: ViewList
+      # One of lucide's icons, by name, which a workspace's navigation draws beside the entry.
+      icon: send

@@ -1,5 +1,5 @@
 {
-  "remotes": {
+  "components": {
     "BarModule/Bar": {
       "url": "${APPS_TEST_URL}",
       "metadata": {

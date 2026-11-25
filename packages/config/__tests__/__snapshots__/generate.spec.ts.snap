@@ -2,32 +2,73 @@
 
 exports[`generate manifest should generate an appshell manifest from the config template 1`] = `
 {
-  "environment": {
-    "RUNTIME_ENV": "development",
-    "RUNTIME_ENV_VERSION": "1.0.0",
+  "components": {
+    "BizModule/Biz": {
+      "id": "BizModule/Biz",
+      "loader": {
+        "apiVersion": "federation.appshell.org/v1",
+        "filename": "remoteEntry.js",
+        "kind": "ModuleFederation",
+        "module": "./Biz",
+        "scope": "BizModule",
+        "shareScope": "@sharedscope",
+      },
+      "metadata": {
+        "displayGroup": "auxiliary",
+        "displayName": "Biz App",
+        "icon": "ViewList",
+        "order": 30,
+        "route": "/biz",
+      },
+    },
+    "TestModule/Bar": {
+      "id": "TestModule/Bar",
+      "loader": {
+        "apiVersion": "federation.appshell.org/v1",
+        "filename": "remoteEntry.js",
+        "kind": "ModuleFederation",
+        "module": "./Bar",
+        "scope": "TestModule",
+        "shareScope": "@sharedscope",
+      },
+      "metadata": {
+        "displayGroup": "main",
+        "displayName": "Bar App",
+        "icon": "ViewList",
+        "order": 20,
+        "route": "/bar",
+      },
+    },
+    "TestModule/Foo": {
+      "id": "TestModule/Foo",
+      "loader": {
+        "apiVersion": "federation.appshell.org/v1",
+        "filename": "remoteEntry.js",
+        "kind": "ModuleFederation",
+        "module": "./Foo",
+        "scope": "TestModule",
+        "shareScope": "@sharedscope",
+      },
+      "metadata": {
+        "displayGroup": "main",
+        "displayName": "Foo App",
+        "icon": "ViewList",
+        "order": 10,
+        "route": "/foo",
+      },
+    },
   },
-  "modules": {
-    "TestModule": {
-      "exposes": {
-        "./Bar": "./src/Entry2",
-        "./Foo": "./src/Entry1",
-      },
-      "filename": "remoteEntry.js",
-      "library": {
-        "name": "some shared lib",
-        "type": "umd",
-      },
-      "name": "TestModule",
-      "remoteType": "amd",
-      "remotes": {
-        "./Remote1": {
-          "external": "external module",
-          "shareScope": "@shared",
-        },
-      },
-      "runtime": "runtimeChunk",
-      "shareScope": "@sharedscope",
-      "shared": {
+  "overrides": {
+    "vars": {
+      "RUNTIME_ENV": "New value for RUNTIME_ENV",
+    },
+  },
+  "remotes": [],
+  "shared": {
+    "apiVersion": "federation.appshell.org/v1",
+    "kind": "ModuleFederation",
+    "scopes": {
+      "@sharedscope": {
         "package1": {
           "requiredVersion": "0.1.0",
           "singleton": true,
@@ -39,242 +80,10 @@ exports[`generate manifest should generate an appshell manifest from the config 
       },
     },
   },
-  "overrides": {
-    "environment": {
-      "RUNTIME_ENV": "New value for RUNTIME_ENV",
-    },
-  },
-  "remotes": {
-    "BizModule/Biz": {
-      "id": "BizModule/Biz",
-      "manifestUrl": "http://localhost:4040/appshell.manifest.json",
-      "metadata": {
-        "displayGroup": "auxiliary",
-        "displayName": "Biz App",
-        "icon": "ViewList",
-        "order": 30,
-        "route": "/biz",
-      },
-      "module": "./Biz",
-      "remoteEntryUrl": "http://localhost:4040/remoteEntry.js",
-      "scope": "BizModule",
-      "shareScope": "@sharedscope",
-    },
-    "TestModule/Bar": {
-      "id": "TestModule/Bar",
-      "manifestUrl": "http://remote-module.com/remoteEntry.js/appshell.manifest.json",
-      "metadata": {
-        "displayGroup": "main",
-        "displayName": "Bar App",
-        "icon": "ViewList",
-        "order": 20,
-        "route": "/bar",
-      },
-      "module": "./Bar",
-      "remoteEntryUrl": "http://remote-module.com/remoteEntry.js/undefined",
-      "scope": "TestModule",
-      "shareScope": "@sharedscope",
-    },
-    "TestModule/Foo": {
-      "id": "TestModule/Foo",
-      "manifestUrl": "http://remote-module.com/remoteEntry.js/appshell.manifest.json",
-      "metadata": {
-        "displayGroup": "main",
-        "displayName": "Foo App",
-        "icon": "ViewList",
-        "order": 10,
-        "route": "/foo",
-      },
-      "module": "./Foo",
-      "remoteEntryUrl": "http://remote-module.com/remoteEntry.js/remoteEntry.js",
-      "scope": "TestModule",
-      "shareScope": "@sharedscope",
-    },
-  },
-}
-`;
-
-exports[`generate register should handle a directory 1`] = `
-{
-  "index": {
-    "ContainerModule/Container": "http://localhost:30001/appshell.manifest.json",
-    "PingModule/Ping": "http://localhost:30011/appshell.manifest.json",
-    "PongModule/CoolComponent": "http://localhost:30021/appshell.manifest.json",
-    "PongModule/Pong": "http://localhost:30021/appshell.manifest.json",
-    "TestModule1/Component1": "http://test.com/1/appshell.manifest.json",
-    "TestModule1/Component2": "http://test.com/1/appshell.manifest.json",
-    "TestModule2/Component": "http://test.com/2/appshell.manifest.json",
-    "TestModule3/ComponentA": "http://test.com/3/appshell.manifest.json",
-    "TestModule3/ComponentB": "http://test.com/3/appshell.manifest.json",
-  },
-  "metadata": {
-    "ContainerModule/Container": {
-      "displayGroup": "main",
-      "displayName": "Host App",
-      "icon": "ViewList",
-      "order": 0,
-      "route": "/",
-    },
-    "PingModule/Ping": {
-      "displayGroup": "main",
-      "displayName": "Ping Micro-Frontend",
-      "icon": "ViewList",
-      "order": 10,
-      "route": "/ping",
-    },
-    "PongModule/CoolComponent": {
-      "displayGroup": "main",
-      "displayName": "Cool Shared Component",
-      "icon": "ViewList",
-      "order": 30,
-      "route": "/cool",
-    },
-    "PongModule/Pong": {
-      "displayGroup": "main",
-      "displayName": "Pong Micro-Frontend",
-      "icon": "ViewList",
-      "order": 20,
-      "route": "/pong",
-    },
-    "TestModule1/Component1": {
-      "foo": "bar",
-    },
-    "TestModule1/Component2": {
-      "biz": "bang",
-    },
-    "TestModule2/Component": {
-      "arg1": "val1",
-      "arg2": "val2",
-      "arg3": "val3",
-    },
-    "TestModule3/ComponentA": {
-      "argA": "valA",
-      "argB": "valB",
-    },
-    "TestModule3/ComponentB": {
-      "argC": "valC",
-      "argD": "valD",
-    },
-  },
-}
-`;
-
-exports[`generate register should handle a single global configuration file 1`] = `
-{
-  "index": {
-    "ContainerModule/Container": "http://localhost:30001/appshell.manifest.json",
-    "PingModule/Ping": "http://localhost:30011/appshell.manifest.json",
-    "PongModule/CoolComponent": "http://localhost:30021/appshell.manifest.json",
-    "PongModule/Pong": "http://localhost:30021/appshell.manifest.json",
-  },
-  "metadata": {
-    "ContainerModule/Container": {
-      "displayGroup": "main",
-      "displayName": "Host App",
-      "icon": "ViewList",
-      "order": 0,
-      "route": "/",
-    },
-    "PingModule/Ping": {
-      "displayGroup": "main",
-      "displayName": "Ping Micro-Frontend",
-      "icon": "ViewList",
-      "order": 10,
-      "route": "/ping",
-    },
-    "PongModule/CoolComponent": {
-      "displayGroup": "main",
-      "displayName": "Cool Shared Component",
-      "icon": "ViewList",
-      "order": 30,
-      "route": "/cool",
-    },
-    "PongModule/Pong": {
-      "displayGroup": "main",
-      "displayName": "Pong Micro-Frontend",
-      "icon": "ViewList",
-      "order": 20,
-      "route": "/pong",
-    },
-  },
-  "overrides": {
-    "environment": {
-      "ContainerModule": {
-        "ENV_VAR_A": "Overridden value of A",
-      },
-    },
-  },
-}
-`;
-
-exports[`generate register should merge multiple valid global configurations 1`] = `
-{
-  "index": {
-    "ContainerModule/Container": "http://localhost:30001/appshell.manifest.json",
-    "PingModule/Ping": "http://localhost:30011/appshell.manifest.json",
-    "PongModule/CoolComponent": "http://localhost:30021/appshell.manifest.json",
-    "PongModule/Pong": "http://localhost:30021/appshell.manifest.json",
-    "TestModule1/Component1": "http://test.com/1/appshell.manifest.json",
-    "TestModule1/Component2": "http://test.com/1/appshell.manifest.json",
-    "TestModule2/Component": "http://test.com/2/appshell.manifest.json",
-    "TestModule3/ComponentA": "http://test.com/3/appshell.manifest.json",
-    "TestModule3/ComponentB": "http://test.com/3/appshell.manifest.json",
-  },
-  "metadata": {
-    "ContainerModule/Container": {
-      "displayGroup": "main",
-      "displayName": "Host App",
-      "icon": "ViewList",
-      "order": 0,
-      "route": "/",
-    },
-    "PingModule/Ping": {
-      "displayGroup": "main",
-      "displayName": "Ping Micro-Frontend",
-      "icon": "ViewList",
-      "order": 10,
-      "route": "/ping",
-    },
-    "PongModule/CoolComponent": {
-      "displayGroup": "main",
-      "displayName": "Cool Shared Component",
-      "icon": "ViewList",
-      "order": 30,
-      "route": "/cool",
-    },
-    "PongModule/Pong": {
-      "displayGroup": "main",
-      "displayName": "Pong Micro-Frontend",
-      "icon": "ViewList",
-      "order": 20,
-      "route": "/pong",
-    },
-    "TestModule1/Component1": {
-      "foo": "bar",
-    },
-    "TestModule1/Component2": {
-      "biz": "bang",
-    },
-    "TestModule2/Component": {
-      "arg1": "val1",
-      "arg2": "val2",
-      "arg3": "val3",
-    },
-    "TestModule3/ComponentA": {
-      "argA": "valA",
-      "argB": "valB",
-    },
-    "TestModule3/ComponentB": {
-      "argC": "valC",
-      "argD": "valD",
-    },
-  },
-  "overrides": {
-    "environment": {
-      "ContainerModule": {
-        "ENV_VAR_A": "Overridden value of A",
-      },
-    },
+  "tokens": undefined,
+  "vars": {
+    "RUNTIME_ENV": "\${RUNTIME_ENV}",
+    "RUNTIME_ENV_VERSION": "\${RUNTIME_ENV_VERSION}",
   },
 }
 `;

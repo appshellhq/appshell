@@ -1,9 +1,7 @@
 {
-  "remotes": {
+  "components": {
     "BarModule/Bar": {
       "id": "BarModule/Bar",
-      "url": "${APPS_TEST_URL}",
-      "filename": "remoteEntry.js",
       "metadata": {
         "route": "/bar",
         "displayName": "Bar App",
@@ -13,7 +11,7 @@
       }
     }
   },
-  "environment": {
+  "vars": {
     "bar_module": {
       "RUNTIME_ENV": "${RUNTIME_ENV}",
       "RUNTIME_ENV_VERSION": "${RUNTIME_ENV_VERSION}"
@@ -50,7 +48,7 @@
     "shareScope": "@sharedscope"
   },
   "overrides": {
-    "environment": {
+    "vars": {
       "bar_module": {
         "RUNTIME_ENV": "New value for RUNTIME_ENV"
       }

@@ -34,6 +34,18 @@ describe('config', () => {
         registry: expectedConfig.registry,
       });
     });
+
+    it('should return an empty config when the YAML parser returns null', () => {
+      const configPath = '/path/to/config.yaml';
+
+      jest.spyOn(fs, 'existsSync').mockReturnValue(true);
+      jest.spyOn(fs, 'readFileSync').mockReturnValue('');
+      jest.spyOn(yaml, 'parse').mockReturnValue(null as unknown as CliConfig);
+
+      const result = readConfig(configPath);
+
+      expect(result).toEqual({});
+    });
   });
 
   describe('writeConfig', () => {
