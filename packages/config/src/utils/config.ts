@@ -34,6 +34,14 @@ export const resolveDefaultScope = (
   env: NodeJS.ProcessEnv = process.env,
 ): string | undefined => env.APPSHELL_DEFAULT_SCOPE || config.defaultScope;
 
+/**
+ * Whether `appshell login` sends PKCE with the device grant. On unless the config says
+ * `false`: written as a string by `config set` and `config init`, and read as a boolean from
+ * a file somebody edited by hand.
+ */
+export const resolvePkce = (config: { pkce?: unknown }): boolean =>
+  String(config.pkce ?? 'true').toLowerCase() !== 'false';
+
 export const readConfig = (configPath: string) => {
   if (fs.existsSync(configPath)) {
     const config = readYaml<CliConfig>(configPath) ?? ({} as CliConfig);

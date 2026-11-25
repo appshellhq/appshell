@@ -76,6 +76,7 @@ export const CLI_SETTINGS = [
   'apiKeyHeader',
   'caFile',
   'api',
+  'pkce',
 ] as const;
 
 export type CliSetting = (typeof CLI_SETTINGS)[number];
@@ -112,6 +113,11 @@ export type CliConfig = Record<string, string> & {
   defaultScope: string;
   authIssuer: string;
   clientId: string;
+  /**
+   * Whether `appshell login` sends PKCE with the device grant: 'true', the default, or
+   * 'false' for a provider that refuses it, such as Okta. Read with `resolvePkce`.
+   */
+  pkce?: string;
 };
 
 /* appshell.config.yaml types */

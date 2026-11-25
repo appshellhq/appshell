@@ -12,10 +12,11 @@ export type InitArgs = {
   defaultScope?: string;
   authIssuer?: string;
   clientId?: string;
+  pkce?: boolean;
 };
 
 export default async (argv: InitArgs) => {
-  const { config, registry, application, defaultScope, authIssuer, clientId } = argv;
+  const { config, registry, application, defaultScope, authIssuer, clientId, pkce } = argv;
 
   if (!fs.existsSync(config)) {
     console.log(`Creating configuration file at ${config}`);
@@ -44,6 +45,8 @@ export default async (argv: InitArgs) => {
       defaultScope: defaultScope ?? existing.defaultScope,
       authIssuer: authIssuer ?? existing.authIssuer,
       clientId: clientId ?? existing.clientId ?? 'appshell-cli',
+      // Written only when asked: on is the default, and a written default reads as a choice.
+      pkce: pkce === undefined ? existing.pkce : String(pkce),
     },
     isUndefined,
   ) as CliConfig;

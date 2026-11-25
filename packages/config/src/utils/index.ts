@@ -7,7 +7,13 @@ export {
   extractDependencies,
   printResults,
 } from './compare';
-export { mergeConfigWithArgs, readConfig, resolveDefaultScope, writeConfig } from './config';
+export {
+  mergeConfigWithArgs,
+  readConfig,
+  resolveDefaultScope,
+  resolvePkce,
+  writeConfig,
+} from './config';
 export { default as copy } from './copy';
 export { default as dump } from './dump';
 export { default as list } from './list';

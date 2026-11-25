@@ -3,7 +3,7 @@
 import os from 'os';
 import path from 'path';
 import yargs from 'yargs';
-import { readConfig, resolveDefaultScope } from '../../config/src/utils/config';
+import { readConfig, resolveDefaultScope, resolvePkce } from '../../config/src/utils/config';
 // yargs derives --version by walking up for a package.json, which does not exist beside
 // a bundled CLI — so it reported 'unknown'. webpack inlines this at build time.
 import { version as cliVersion } from '../package.json';
@@ -583,6 +583,12 @@ const initConfigCommand: yargs.CommandModule<unknown, InitArgs> = {
       .option('clientId', {
         describe: 'OIDC client the cli authenticates as',
         type: 'string',
+      })
+      .option('pkce', {
+        describe:
+          'Send PKCE when logging in (the default). --no-pkce for a provider that refuses it, ' +
+          'such as Okta',
+        type: 'boolean',
       }) as yargs.Argv<InitArgs>,
   handler: initConfigHandler,
 };
@@ -634,6 +640,12 @@ const loginCommand: yargs.CommandModule<unknown, LoginArgs> = {
         default: process.env.APPSHELL_CLIENT_ID || config.clientId || 'appshell-cli',
         type: 'string',
         description: 'OIDC client id',
+      })
+      .option('pkce', {
+        default: resolvePkce(config),
+        type: 'boolean',
+        description:
+          'Send PKCE with the device grant. --no-pkce for a provider that refuses it, such as Okta',
       })
       .option('clientSecret', {
         // Only read from the application so the secret never lands in shell history.

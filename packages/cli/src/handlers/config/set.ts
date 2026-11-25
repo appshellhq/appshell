@@ -20,6 +20,11 @@ export default async (argv: SetConfigArgs) => {
     throw new Error(`Unknown setting '${argv.key}'. Expected one of: ${settable.join(', ')}.`);
   }
 
+  // A switch, and a typo in one would read as on.
+  if (key === 'pkce' && !['true', 'false'].includes(value)) {
+    throw new Error(`'${argv.key}' is true or false, not '${value}'.`);
+  }
+
   writeConfig(config, { ...readConfig(config), [key]: value });
   console.log(`Set ${key} in ${config}`);
 };

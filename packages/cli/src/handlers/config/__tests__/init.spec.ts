@@ -54,6 +54,23 @@ describe('config init', () => {
     });
   });
 
+  /* For a provider that refuses PKCE on the device grant, such as Okta (#125). */
+  it('writes pkce false for --no-pkce', async () => {
+    await buildCli(['config', 'init', '--no-pkce']).parseAsync();
+
+    expect(written().pkce).toBe('false');
+  });
+
+  // On is the default, and a written default reads as a choice.
+  it('writes no pkce unless asked, and keeps one already set', async () => {
+    await buildCli(['config', 'init']).parseAsync();
+    expect(written()).not.toHaveProperty('pkce');
+
+    fs.writeFileSync(configPath, yaml.stringify({ pkce: 'false' }));
+    await buildCli(['config', 'init']).parseAsync();
+    expect(written().pkce).toBe('false');
+  });
+
   it('keeps a configured issuer when init is re-run without one', async () => {
     fs.writeFileSync(configPath, yaml.stringify({ 'auth-issuer': 'https://kept.example.com' }));
 

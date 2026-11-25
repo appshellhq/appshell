@@ -10,6 +10,8 @@ export type LoginArgs = {
   clientId: string;
   clientSecret?: string;
   scope: string;
+  /** Whether the device grant sends PKCE. Defaults on; see `pkcePair`. */
+  pkce?: boolean;
 };
 
 type DeviceAuthorization = {
@@ -48,6 +50,12 @@ const discover = async (issuer: string) => {
  * user code off a screen, could poll for the token. With a challenge sent at authorization and
  * the verifier only at redemption, the token goes to this process alone. Keycloak enforces it
  * on any client that requires S256, as appshell-cli in the appshell realm does.
+ *
+ * It's an extension, though: the device grant's own standard (RFC 8628) has no PKCE, and some
+ * providers refuse it. Okta ignores the challenge, then refuses the verifier once the person
+ * has approved, and expires the device code with it, so there's nothing to retry. So it's a
+ * setting, on by default for the realms that require it: `--no-pkce`, or `pkce: false` in the
+ * config, for a provider that refuses it. appshellhq/appshell-services#125.
  */
 export const pkcePair = () => {
   const verifier = randomBytes(32).toString('base64url');
@@ -92,13 +100,28 @@ const clientCredentials = async (
   return data;
 };
 
+/** A refusal that's about PKCE, so the setting is what to change. */
+const ABOUT_PKCE = /pkce|code[_ ]?(challenge|verifier)/i;
+
+/** What to change when a provider refuses PKCE, or requires it and wasn't sent it. */
+const pkceAdvice = (pkce: boolean, message: string) => {
+  if (!ABOUT_PKCE.test(message)) return '';
+
+  return pkce
+    ? " This provider doesn't take PKCE on the device grant: log in again with --no-pkce, " +
+        "or keep it with 'appshell config set pkce false'."
+    : ' This provider requires PKCE: log in again without --no-pkce, or ' +
+        "'appshell config set pkce true'.";
+};
+
 const deviceGrant = async (
   deviceEndpoint: string,
   tokenEndpoint: string,
   clientId: string,
   scope: string,
+  pkce: boolean,
 ): Promise<TokenResponse> => {
-  const { verifier, challenge } = pkcePair();
+  const { verifier, challenge } = pkce ? pkcePair() : { verifier: undefined, challenge: undefined };
 
   let authorization: DeviceAuthorization;
   try {
@@ -108,11 +131,13 @@ const deviceGrant = async (
         client_id: clientId,
         scope,
         code_challenge: challenge,
-        code_challenge_method: 'S256',
+        code_challenge_method: challenge && 'S256',
       }),
     ));
   } catch (err) {
-    throw new Error(`Device authorization failed: ${oauthError(err).message}`);
+    const { message } = oauthError(err);
+
+    throw new Error(`Device authorization failed: ${message}${pkceAdvice(pkce, message)}`);
   }
 
   console.log(
@@ -152,7 +177,7 @@ const deviceGrant = async (
       if (error === 'slow_down') {
         interval += 5;
       } else if (error !== 'authorization_pending') {
-        throw new Error(`Authorization failed: ${message}`);
+        throw new Error(`Authorization failed: ${message}${pkceAdvice(pkce, message)}`);
       }
     }
   }
@@ -161,7 +186,7 @@ const deviceGrant = async (
 };
 
 export default async (argv: LoginArgs) => {
-  const { registry, authIssuer, clientId, clientSecret, scope } = argv;
+  const { registry, authIssuer, clientId, clientSecret, scope, pkce = true } = argv;
 
   if (!authIssuer) {
     throw new Error(
@@ -176,7 +201,7 @@ export default async (argv: LoginArgs) => {
   if (clientSecret) {
     token = await clientCredentials(tokenEndpoint, clientId, clientSecret, scope);
   } else if (deviceEndpoint) {
-    token = await deviceGrant(deviceEndpoint, tokenEndpoint, clientId, scope);
+    token = await deviceGrant(deviceEndpoint, tokenEndpoint, clientId, scope, pkce);
   } else {
     throw new Error(
       `${authIssuer} does not advertise a device authorization endpoint. Pass --client-secret to use client credentials.`,
