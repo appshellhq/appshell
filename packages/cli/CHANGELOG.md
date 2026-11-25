@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.150](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.149...v1.0.0-alpha.150) (2026-11-25)
+
+### Features
+
+- **cli:** log in to any OpenID Connect provider, and publish unscoped packages into the default scope ([#104](https://github.com/appshellhq/appshell/issues/104)) ([0202b72](https://github.com/appshellhq/appshell/commit/0202b7246dbff1d70bb3892020b843960df96b0f)), closes [appshellhq/appshell-services#125](https://github.com/appshellhq/appshell-services/issues/125) [appshellhq/appshell-services#125](https://github.com/appshellhq/appshell-services/issues/125) [appshellhq/appshell-services#125](https://github.com/appshellhq/appshell-services/issues/125)
+
 # [1.0.0-alpha.149](https://github.com/appshellhq/appshell/compare/v1.0.0-alpha.148...v1.0.0-alpha.149) (2026-11-17)
 
 **Note:** Version bump only for package @appshell/cli
