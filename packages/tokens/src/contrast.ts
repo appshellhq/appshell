@@ -41,7 +41,9 @@ const oklchToRgb = (l: number, c: number, hDeg: number): Rgb => {
   ];
 };
 
-const OKLCH = /^oklch\(\s*([\d.]+)%\s+([\d.]+)\s+([\d.]+)\s*\)$/i;
+/** A CSS number, unsigned: `0.5` and `.5`, never `5.` or `.`, which CSS doesn't read. */
+const NUMBER = String.raw`(\d+(?:\.\d+)?|\.\d+)`;
+const OKLCH = new RegExp(String.raw`^oklch\(\s*${NUMBER}%\s+${NUMBER}\s+${NUMBER}\s*\)$`, 'i');
 const HEX = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
 
 /** Returns undefined rather than throwing — an unmeasurable value is reported, not fatal. */

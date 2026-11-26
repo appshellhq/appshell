@@ -47,6 +47,8 @@ describe('validateValues', () => {
         'var(--appshell-primary)',
         'color-mix(in oklch, var(--appshell-primary), white 12%)',
         'color-mix(in srgb, #0af 40%, oklch(20% 0.02 255))',
+        'color-mix(in srgb, white 0%, black)',
+        'color-mix(in srgb, white 30%, black 70%)',
       ],
       [
         'bananas',
@@ -58,6 +60,11 @@ describe('validateValues', () => {
         'color-mix(in nowhere, white, black)',
         'color-mix(in oklch, url(https://example.test), white)',
         '#0af !important',
+        'oklch(.% . .)',
+        'oklch(50.% 0.1 20)',
+        'color-mix(in srgb, white 101%, black)',
+        'color-mix(in srgb, white 0%, black 0%)',
+        'color-mix(in oklch, oklch(.% . .), white)',
       ],
     ],
     [

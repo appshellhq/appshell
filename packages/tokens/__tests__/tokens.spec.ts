@@ -52,6 +52,9 @@ describe('colour', () => {
 
   it('should report a value it cannot measure rather than throwing', () => {
     expect(parseColor('bananas')).toBeUndefined();
+    // Numbers CSS can't read, which parsed to NaN channels and were measured as if they could.
+    expect(parseColor('oklch(.% . .)')).toBeUndefined();
+    expect(parseColor('oklch(50.% 0.1 20)')).toBeUndefined();
   });
 });
 

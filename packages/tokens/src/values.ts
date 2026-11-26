@@ -119,19 +119,25 @@ const isColour = (value: string): boolean => {
 
 const SPACE = /^(?:oklch|oklab|srgb|srgb-linear|display-p3|lab|lch|hsl|hwb|xyz)$/i;
 const COLOR_MIX = /^color-mix\(\s*in\s+([a-z0-9-]+)\s*,([^,]+),([^,]+)\)$/i;
-const MIX_PART = new RegExp(String.raw`^(.+?)(?:\s+${NUMBER}%)?$`);
+const MIX_PART = new RegExp(String.raw`^(.+?)(?:\s+(${NUMBER})%)?$`);
 
-/** `color-mix(in oklch, var(--appshell-primary), white 12%)`, as hover and active are derived. */
+/**
+ * `color-mix(in oklch, var(--appshell-primary), white 12%)`, as hover and active are derived.
+ * Each weight is 0–100%, and two can't both be zero, or CSS throws the declaration away.
+ */
 const isColorMix = (value: string): boolean => {
   const mix = COLOR_MIX.exec(value);
 
   if (!mix || !SPACE.test(mix[1])) return false;
 
-  return [mix[2], mix[3]].every((part) => {
-    const colour = MIX_PART.exec(part.trim());
+  const parts = [mix[2], mix[3]].map((part) => MIX_PART.exec(part.trim()));
+  const weights = parts.map((part) => (part?.[2] === undefined ? undefined : Number(part[2])));
 
-    return Boolean(colour && isColour(colour[1]));
-  });
+  return (
+    parts.every((part) => part && isColour(part[1])) &&
+    weights.every((weight) => weight === undefined || weight <= 100) &&
+    !(weights[0] === 0 && weights[1] === 0)
+  );
 };
 
 const VALID: Record<ValueKind, (value: string) => boolean> = {
