@@ -21,3 +21,11 @@ export {
   type ResolvedTheme,
   type ThemeSelection,
 } from './theme';
+export {
+  MAX_VALUE_LENGTH,
+  describeValueFinding,
+  validateValues,
+  valueKindOf,
+  type ValueFinding,
+  type ValueKind,
+} from './values';

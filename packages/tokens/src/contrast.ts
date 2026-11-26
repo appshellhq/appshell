@@ -41,7 +41,9 @@ const oklchToRgb = (l: number, c: number, hDeg: number): Rgb => {
   ];
 };
 
-const OKLCH = /^oklch\(\s*([\d.]+)%\s+([\d.]+)\s+([\d.]+)\s*\)$/i;
+/** A CSS number, unsigned: `0.5` and `.5`, never `5.` or `.`, which CSS doesn't read. */
+const NUMBER = String.raw`(\d+(?:\.\d+)?|\.\d+)`;
+const OKLCH = new RegExp(String.raw`^oklch\(\s*${NUMBER}%\s+${NUMBER}\s+${NUMBER}\s*\)$`, 'i');
 const HEX = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
 
 /** Returns undefined rather than throwing — an unmeasurable value is reported, not fatal. */
@@ -132,10 +134,14 @@ const check = (
   });
 
 /**
- * Every finding for a theme. Empty means it passes.
+ * Every contrast finding for a theme. Empty means it's legible.
  *
  * `color-mix` values are skipped rather than failed: hover and active are derived from
  * roles that are themselves checked, and resolving them needs a browser.
+ *
+ * Contrast only. A role no pair measures (type, dimensions, `border`, hover and active)
+ * can hold anything as far as this is concerned, so check `validateValues` first: it's
+ * what says each value is one its role can take, and can't break out of the CSS.
  */
 export const validateTheme = (theme: Theme): ContrastFinding[] => [
   ...check(theme, TEXT_PAIRS, AA_TEXT),
