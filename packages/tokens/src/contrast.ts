@@ -132,10 +132,14 @@ const check = (
   });
 
 /**
- * Every finding for a theme. Empty means it passes.
+ * Every contrast finding for a theme. Empty means it's legible.
  *
  * `color-mix` values are skipped rather than failed: hover and active are derived from
  * roles that are themselves checked, and resolving them needs a browser.
+ *
+ * Contrast only. A role no pair measures (type, dimensions, `border`, hover and active)
+ * can hold anything as far as this is concerned, so check `validateValues` first: it's
+ * what says each value is one its role can take, and can't break out of the CSS.
  */
 export const validateTheme = (theme: Theme): ContrastFinding[] => [
   ...check(theme, TEXT_PAIRS, AA_TEXT),

@@ -4,8 +4,8 @@ The design token contract an Application supplies and every package it composes 
 
 A catalogue of components that cannot be themed to their host is not composable — visual
 coherence is the point. This package is the vocabulary that makes it possible: 46 CSS
-custom properties, a set of presets, and the contrast validation that keeps a theme
-legible.
+custom properties, a set of presets, and the checks that keep a theme legible and safe to
+inline into a page.
 
 ## For a package author
 
@@ -149,6 +149,33 @@ Four things this caught in the presets, each of which would otherwise have shipp
 
 The presets are held to the same standard as everyone else's themes — the test suite
 composes all 20 combinations and asserts no findings.
+
+## Values are checked against their role, too
+
+Contrast measures colours, and only those in a pair. A theme is also inlined into every page
+the registry serves, inside a `<style>` element, so a value is a way into the page: one
+carrying `;}` adds rules of its own, and one carrying `</style>` closes the element and writes
+markup. `validateValues` checks each value against its role, so it can't:
+
+```ts
+import { validateValues, describeValueFinding } from '@appshell/tokens';
+
+validateValues({ 'space-md': '1rem;}</style>' }).map(describeValueFinding);
+// [ 'space-md: the value contains a character no token value may: < > { } ; \\ or a control character.' ]
+```
+
+- **Colours** are `#rgb`, `#rrggbb`, `oklch(L% C H)`, `white`, `black`, `transparent`,
+  `currentcolor`, another colour role as `var(--appshell-<role>)`, or a `color-mix()` of those,
+  as hover and active are derived.
+- **`font-body` and `font-mono`** are lists of font families, each quoted or named.
+- **Sizes, spaces and radii** are a length or percentage: `1rem`, `12px`, `50%`, or `0`.
+- **Line heights** are a number, `normal`, or a length.
+- **Any value** refuses `<`, `>`, `{`, `}`, `;`, `\` and control characters, is a string, and
+  is at most 256 characters. A key that isn't a role in the contract is refused.
+
+Check values first, then contrast: a value that isn't a colour can't be measured anyway. The
+registry checks both wherever a theme comes in: when one is published, when an application
+lays `overrides` over one, and when an overlay does.
 
 ## Colour format
 
