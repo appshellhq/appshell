@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.2](https://github.com/appshellhq/appshell/compare/v1.0.1...v1.0.2) (2026-11-26)
+
+### Bug Fixes
+
+- **release:** version every package together again after 1.0.0 ([#109](https://github.com/appshellhq/appshell/issues/109)) ([bb08604](https://github.com/appshellhq/appshell/commit/bb086046fcd739ec233717af5e5e4c819d3154f2)), closes [#108](https://github.com/appshellhq/appshell/issues/108)
+
 ## [1.0.1](https://github.com/appshellhq/appshell/compare/v1.0.0...v1.0.1) (2026-11-26)
 
 **Note:** Version bump only for package appshell
