@@ -817,15 +817,38 @@ jobs:
         if: ${{ contains(github.ref, 'refs/heads/feat') || contains(github.ref, 'refs/heads/fix') }}
         run: npx lerna version --no-push --conventional-prerelease --force-publish --yes
 
+      # No --conventional-graduate. It was how the alphas became 1.0.0, and once nothing is a
+      # prerelease it versions only the packages that changed and their dependents, whatever
+      # --force-publish says: the first release after 1.0.0 moved three packages of eight, and
+      # everything after this step assumes one version (appshellhq/appshell#108). The bump
+      # itself comes from the commits since the last tag, as lerna.json's conventionalCommits
+      # asks.
       - name: Version and tag release
         if: ${{ github.ref == 'refs/heads/main' }}
-        run: npx lerna version --no-push --conventional-graduate --force-publish --yes
+        run: npx lerna version --no-push --force-publish --yes
 
       # Read after `lerna version` and before `lerna publish`, so it is the version this
       # run is about to put on npm rather than the one that was there when it started.
+      #
+      # From lerna.json, which is where lerna records it, and only once every public package
+      # is at it. Read from one package, a version that package didn't take went unnoticed:
+      # the run pushed the previous release's tag again, never pushed its own, and waited for
+      # the example to reach a version it had already passed (appshellhq/appshell#108).
+      # Refused here, nothing has been pushed or published yet.
       - name: Record the version being published
         id: published
-        run: echo "version=$(node -p "require('./packages/config/package.json').version")" >> "$GITHUB_OUTPUT"
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          version=$(node -p "require('./lerna.json').version")
+          behind=$(npx lerna list --json | VERSION="$version" node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).filter(p=>!p.private&&p.version!==process.env.VERSION).map(p=>`${p.name}@${p.version}`).join(" ")))')
+          if [ -n "$behind" ]; then
+            echo "::error::lerna.json says $version, but these packages are not at it: $behind"
+            exit 1
+          fi
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
 
       # Pushed before anything is published, so a version number is claimed in git before it
       # can exist on npm. The other order let a publish that failed after uploading leave git
